@@ -4,7 +4,7 @@ This repository contains a collection of projects that I am completing as part o
 
 ## Projects
 
-### 1. Transforming a Messy Dataset with Tidyverse (RStudio)
+### 1. Ukraine War-Fires
 In this project, I work with a raw and unstructured dataset, cleaning and transforming it using the **Tidyverse** library in R. The process involves:
 - Data wrangling with `dplyr`
 - Reshaping data using `tidyr`
