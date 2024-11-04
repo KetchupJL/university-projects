@@ -5,6 +5,8 @@ This project investigates whether spatial and temporal factors can be used to cl
 
 ### [Full Project Report](./MTHM501%20Report.pdf) 
 
+Grade: TBC
+
 ![Ukraine War Fires Animation](./Plots%20and%20Tables/ukraine_fire_animation.gif)
 
 ## Table of Contents
