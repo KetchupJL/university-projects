@@ -9,6 +9,9 @@ Grade: TBC
 
 ![Ukraine War Fires Animation](./Plots%20and%20Tables/ukraine_fire_animation.gif)
 
+
+[![View Interactive Heatmap](https://img.shields.io/badge/Interactive%20Heatmap-View%20Here-blue?style=for-the-badge)](https://KetchupJL.github.io/university-projects/Predicted%20Probabilities%20of%20War-Related%20Fires%20Heatmap.html)
+
 ## Table of Contents
 - [Background](#background)
 - [Research Objectives](#research-objectives)
