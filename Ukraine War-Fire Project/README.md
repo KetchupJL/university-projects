@@ -2,10 +2,10 @@
 
 **Project Overview**  
 This project investigates whether spatial and temporal factors can be used to classify fires as war-related in Ukraine. It leverages data from the onset of the Russian invasion in February 2022 through October 2024, exploring the effects of regional proximity to conflict zones and seasonal variations on fire classification.
+Grade: TBC
 
 ### [Full Project Report](./MTHM501%20Report.pdf) 
 
-Grade: TBC
 
 ![Ukraine War Fires Animation](./Plots%20and%20Tables/ukraine_fire_animation.gif)
 
@@ -64,8 +64,9 @@ This analysis uses **hierarchical modeling** to account for the nested nature of
 ### Key R Packages
 - **Data Manipulation**: `dplyr`, `tidyverse`
 - **Visualization**: `ggplot2`, `gganimate`, `plotly`
-- **Modeling**: `lme4`
-- **Spatial Analysis**: `sf`
+- **Tables**: `knitr`, `kableExtra`, `gt`
+- **Modeling**: `lme4`, `sjplot2`, `lmerTest`, `sjstats`
+- **Spatial Analysis**: `sf`, `spatial`
 
 ## Results
 The results indicate that spatial and temporal patterns significantly affect the classification of fires as war-related. Key findings include:
