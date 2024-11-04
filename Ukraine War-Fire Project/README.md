@@ -88,6 +88,7 @@ This animated map shows the progression of war-related fires in Ukraine over tim
 The seasonal trend plot shows peaks in war-related fire activity between July and October, illustrating a temporal pattern that aligns with intensified conflict periods.
 
 ## Interactive Visualizations
+View the interactive heatmap [here](https://KetchupJL.github.io/university-projects/Predicted%20Probabilities%20of%20War-Related%20Fires%20Heatmap.html).
 An interactive heatmap of predicted probabilities for war-related fires is available. This map enables users to explore spatial and temporal patterns dynamically, showing higher probabilities in Eastern and Northern Ukraine and seasonal peaks.
 
 ### Accessing the Interactive Heatmap
