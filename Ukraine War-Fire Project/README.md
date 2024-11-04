@@ -84,7 +84,7 @@ The results indicate that spatial and temporal patterns significantly affect the
 ![Ukraine War Fires Animation](./ukraine_fire_animation.gif)
 This animated map shows the progression of war-related fires in Ukraine over time. Red dots represent war-related fires, while grey dots indicate non-war fires. Created using `gganimate`, it provides a dynamic view of fire activity across regions from 2022 onward.
 
-### Seasonal Trend Plot
+### Seasonal Trend Plot  ![Ukraine War Fires Animation](./Plots%20and%20Tables/Seasonal%20Trends%20Plot.png)
 The seasonal trend plot shows peaks in war-related fire activity between July and October, illustrating a temporal pattern that aligns with intensified conflict periods.
 
 ## Interactive Visualizations
