@@ -5,6 +5,9 @@
 **Project Overview**  
 This project investigates whether spatial and temporal factors can be used to classify fires as war-related in Ukraine. It leverages data from the onset of the Russian invasion in February 2022 through October 2024, exploring the effects of regional proximity to conflict zones and seasonal variations on fire classification.
 
+### [Full Project Report](./MTHM501%20Report.pdf) 
+
+
 ## Table of Contents
 - [Background](#background)
 - [Research Objectives](#research-objectives)
