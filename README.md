@@ -14,6 +14,6 @@ This repository showcases key projects completed during my university studies, h
 
 ## Projects
 
-### 1. [War-Related Fires in Ukraine - Spatial and Temporal Patterns](https://KetchupJL.github.io/university-projects/tree/main/Ukraine%20War-Fire%20Project)
+### 1. [War-Related Fires in Ukraine - Spatial and Temporal Patterns](https://KetchupJL.github.io/university-projects/Ukraine%20War-Fire%20Project)
    - **Description**: Interactive heatmap project visualizing the predicted probabilities of war-related fires across regions in Ukraine, with a focus on spatial and temporal analysis.
    - **Technologies Used**: R, Plotly, GIS data analysis.
