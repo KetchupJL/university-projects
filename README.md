@@ -1,4 +1,4 @@
-# University Projects Repository
+# Data Science University Projects
 
 ## Overview
 
