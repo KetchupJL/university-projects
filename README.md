@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository showcases key projects completed during my Masters studies, highlighting applied skills across various modules. Each project includes a summary, full report and, where available, achieved grades.
+This repository showcases key projects completed during my Masters studies, highlighting applied skills across various modules. Each project includes a summary, full report, project brief and, where available, achieved grades.
 
 ## Technical Skills
 
