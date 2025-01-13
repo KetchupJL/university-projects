@@ -16,5 +16,11 @@ This repository showcases key projects completed during my Masters studies, high
 
 ### 1. [War-Related Fires in Ukraine - Spatial and Temporal Patterns](https://github.com/KetchupJL/university-projects/tree/main/Ukraine%20War-Fire%20Project)
    - **Description**: Interactive heatmap project visualizing the predicted probabilities of war-related fires across regions in Ukraine, with a focus on spatial and temporal analysis.
-   - **Technologies Used**: R, Plotly, GIS data analysis.
-   - **Module MTHM501 - Working With Data**: Grade - 82%
+   - **Technologies Used**: Python - (Pandas, Numpy, Scipy-learn, Seaborn and more). Machine Learning methods used: Principle Component Analysis, Autoencoders and Linear Regression.
+   - **Module MTHM503**: Grade - %
+
+
+### 2. [Applications of Data Science and Statistical Modelling - Coursework Assignment](https://github.com/KetchupJL/university-projects)
+   - **Description**: 
+   - **Technologies Used**: 
+   - **Module MTHM503**: Grade - %
