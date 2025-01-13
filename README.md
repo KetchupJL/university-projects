@@ -16,7 +16,7 @@ This repository showcases key projects completed during my Masters studies, high
 
 ### 1. [War-Related Fires in Ukraine - Spatial and Temporal Patterns](https://github.com/KetchupJL/university-projects/tree/main/Ukraine%20War-Fire%20Project)
    - **Description**: A Data Science report predicting the probabilities of war-related fires across regions in Ukraine, with a focus on spatial and temporal analysis.
-   - **Technologies Used**: 
+   - **Technologies Used**: R, Plotly and GIS data analysis.
    - **Module MTHM503**: Grade - 82%
 
 
