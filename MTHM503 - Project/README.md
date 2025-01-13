@@ -55,7 +55,10 @@
 
 
 ## Results
+![Clustermap](./Plots/Part%20C%20-%20Clustermap%20(Eucidean%20Distance).png)
 
+
+![Dendrogram](./Plots/Part%20C%20-%20Dendrogram.png)
 
 ### Statistical Significance
 
@@ -65,7 +68,7 @@
 ### Animated Map
 
 
-### Seasonal Trend Plot  ![Ukraine War Fires Animation](./Plots%20and%20Tables/Seasonal%20Trends%20Plot.png)
+### Seasonal Trend Plot  ![Linear Regression Model](./Plots/Part%20B%20-%20Change%20in%20Sea%20Level%20data%20with%20linear%20regression%20model.png)
 
 ## Interactive Visualizations
 
