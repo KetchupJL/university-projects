@@ -2,7 +2,7 @@
 
 **Project Overview**  
 
-**Grade: %**
+**Grade: 74%**
 
 ## [Full Project Report](./MTHM503_Project.pdf) 
 
