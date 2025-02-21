@@ -20,7 +20,7 @@ This repository showcases key projects completed during my Masters studies, high
    - **Module MTHM503**: Grade - 82%
 
 
-### 2. [Applications of Data Science and Statistical Modelling - Coursework Assignment](https://github.com/KetchupJL/university-projects/tree/main/MTHM503%20-%20Project)
+### 2. [Applications of Data Science and Statistical Modelling - Coursework Assignment](https://github.com/KetchupJL/university-projects)
    - **Description**: A set of problem questions, which required a range of data wrangling, statistical modelling and machine learning methods to solve.
    - **Technologies Used**: Python - (Pandas, Numpy, Scipy-learn, Seaborn and more). Machine Learning methods used: Principle Component Analysis, Autoencoders and Linear Regression.
-   - **Module MTHM503**: Grade - 74%
+   - **Module MTHM503**: Grade - %
