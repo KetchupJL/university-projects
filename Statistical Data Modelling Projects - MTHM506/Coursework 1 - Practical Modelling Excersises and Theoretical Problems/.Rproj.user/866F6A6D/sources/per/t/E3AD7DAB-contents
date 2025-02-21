@@ -1,0 +1,276 @@
+---
+title: "MTHM506-Statistical Data Modelling - Individual Project"
+author: "James R Lewis"
+date: "00-02-2025"
+output:
+  html_document:
+    css: style.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r nlmodel, include=FALSE}
+load("~/GitHub/university-projects/Statistical Data Modelling Projects - MTHM506/Coursework 1 - Practical Modelling Excersises and Theoretical Problems/datasets.RData")
+library(tidyverse)
+library(ggplot2)
+library(rmarkdown)
+```
+
+## Question 1 {.unnumbered}
+
+ The data frame nlmodel contains data on a response variable y and a single explanatory variable x. A scatter plot of y versus x suggests a strong non-linear relationship:
+ 
+ 
+```{r initial_plot, fig.width=4, fig.height=3, fig.align="center", echo=FALSE}
+ggplot(nlmodel, aes(x = x, y = y)) +
+       geom_point() +
+       theme_minimal()
+```
+ 
+Suppose for these data we wish to consider the model:
+
+
+<div style="text-align: center;">
+$$
+Y_i \sim N\left( \frac{\theta_1 x_i}{\theta_2 + x_i} , \sigma^2 \right)
+$$
+ </div>
+ <div style="text-align: center;">
+  i = 1, 2,..., 100, Y<sub>i</sub> independent
+</div>
+
+
+a. **Why can’t this model be fit using a linear (regression)  model?** 
+ 
+The mean of this model also exhibits a non-linear relationship involving the unknown parameters θ<sub>1</sub> and θ<sub>2</sub>. Specifically, the presence of θ<sub>2</sub> + x<sub>i</sub>  in the denominator introduces a dependency between x<sub>i</sub> and the parameters that cannot be expressed as a linear combination. Consequently, this violates the linearity assumption required for a standard linear regression model, as the relationship between x<sub>i</sub> and y<sub>i</sub> cannot be transformed into a linear form, as indicated by the scatter plot.
+
+
+
+b. **Write down the likelihood L(θ<sub>1</sub>,θ<sub>2</sub>,σ<sub>2</sub>;y,x) and the log-likelihood ℓ(θ<sub>1</sub>, θ<sub>2</sub>, σ<sub>2</sub>;y,x)** 
+ 
+ The likelihood function L(θ<sub>1</sub>,θ<sub>2</sub>,σ<sub>2</sub>;y,x) is the product of the probability density functions of the normal distribution for each observation y<sub>i</sub>:
+ 
+ **Likelihood Function**:
+ \[
+L(\theta_1, \theta_2, \sigma^2; y, x) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(y_i - \mu_i)^2}{2\sigma^2}\right)
+\]
+ 
+ **Log-Likelihood Function**:
+\[
+\ell(\theta_1, \theta_2, \sigma^2; y, x) = -\frac{n}{2} \log(2\pi) - \frac{n}{2} \log(\sigma^2) - \frac{1}{2\sigma^2} \sum_{i=1}^{n} \left(y_i - \frac{\theta_1 x_i}{\theta_2 + x_i}\right)^2
+\]
+
+
+c. **Write an R function mylike() which evaluates the negative log-likelihood (i.e. −ℓ(θ<sub>1</sub>,θ<sub>2</sub>,σ ;y,x)) for any values of the three parameters**
+
+``` {r negative log-likelihood function, include=TRUE}
+mylike <- function(params, y, x) {
+  # Defining the Parameters
+  theta1 <- params[1]
+  theta2 <- params[2]
+  sigma <- params[3]
+  
+  # Defining the Mean
+  mu <- (theta1 * x) / (theta2 +x)
+  
+  n <- length(y)
+  
+  # I have manually multiplied the equation by a minus to make this the negative log-likelihood
+  result <- -n/2 * log(sqrt(2 * pi)) - n/2 * log(sigma^2) -
+    sum((y - mu)^2) / (2 * sigma^2)
+  
+  return(-result)
+}
+```
+
+d.  **Use the R function nlm() in association with your function mylike() to numerically minimise the log-likelihood. Provide some evidence of how you chose sensible starting values. Report the maximum likelihood estimates of the parameters and super impose a plot of the associated mean relationship on a scatter plot of y versus x.**
+
+``` {r Minimising Log-likelihood, include=FALSE}
+x <- nlmodel$x
+y <- nlmodel$y
+
+```
+
+``` {r Log-likelihood estimates, include=TRUE}
+# mean(y) = 176.81
+theta1_init <- 175
+# mean(x) = 0.5341
+theta2_init <- 0.5
+# sd(y) = 39.45
+sigma_init <- 40
+# Combine into a vector
+inits <- c(theta1_init, theta2_init, sigma_init)
+
+result <- nlm(mylike, p = inits, hessian = T, x = x, y = y, iterlim = 10000, steptol = 1e-10)
+```
+```{r Formatting estimates, include=FALSE}
+# Reporting estimates
+mle_params <- result$estimate
+names(mle_params) <- c("theta1", "theta2", "sigma")
+```
+```{r Printing estimates, echo=FALSE}
+print(mle_params)
+```
+Starting values:
+
+- **Theta 1** directly influences, so a reasonable initial guess would be the mean of 𝑦.
+- **Theta 2** appears in the denominator and affects 𝑥, making the mean of 𝑥 a sensible starting point.
+- **Sigma** is related to the standard deviation, so I will choose the standard deviation of 𝑦 as the initial estimate.
+
+``` {r Setting up plot, include=FALSE}
+# Creating scatter plot
+
+# First extracting MLEs
+theta1_mle <- mle_params[1]
+theta2_mle <- mle_params[2]
+
+# Calculate the fitted mean
+fitted_mu <- (theta1_mle * x)/(theta2_mle + x)
+
+plot_data <- data.frame(x = x, y = y, fitted_mu = fitted_mu)
+```
+
+``` {r Scatter plot, fig.width=6, fig.height=4, fig.align="center", echo = FALSE}
+ggplot(plot_data, aes(x = x, y = y)) +
+  geom_point(size = 2, colour = "black") +
+  geom_line(aes(y = fitted_mu), colour = "red", linewidth = 1.1) +
+  labs(x = "X", y = "Y", title = "Scatter Plot with Fitted Mean Relationship") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10)
+)
+```
+
+COMMENT IN SCATTER PLOT AND THE MEAN LINE.
+is it a good fit? what is the relationship?
+Evaluate it
+
+e. **Report the standard errors for θ<sub>1</sub> and θ<sub>2</sub>, and use those to construct 95% confidence intervals.**
+``` {r Hessian Matrix, include=FALSE}
+result$hessian # Using the Hessian matrix to manually obtain the observed
+# information matrix and compute the standard error for the two parameters.
+
+OIM <- solve(result$hessian) # Observed information matrix
+OIM
+
+# Extract standard errors
+std_errors <- sqrt(diag(OIM))
+names(std_errors) <- c("theta1", "theta2", "sigma")
+```
+Standard Errors for θ<sub>1</sub> and θ<sub>2</sub>
+``` {r Standard Errors, echo=FALSE}
+print(std_errors)
+```
+```{r Constructing CIs, include=FALSE}
+# Constructing 95% CIs
+
+# Extract standard errors for theta1 and theta2
+theta1_se <- std_errors["theta1"]
+theta2_se <- std_errors["theta2"]
+
+# Compute 95% CIs
+theta1_ci <- c(theta1_mle - 1.96 * theta1_se, theta1_mle + 1.96 * theta1_se)
+theta2_ci <- c(theta2_mle - 1.96 * theta2_se, theta2_mle + 1.96 * theta2_se)
+```
+
+95% Confidence Intervals for θ<sub>1</sub> and θ<sub>2</sub>
+
+``` {r CIs, echo=FALSE}
+# Printing CIs
+cat("95% CI for theta1: [", theta1_ci[1], ",", theta1_ci[2], "]\n")
+cat("95% CI for theta2: [", theta2_ci[1], ",", theta2_ci[2], "]\n")
+```
+
+INTERPRET THESE CONFIDENCE INTERVALS
+argh
+argh
+argh
+
+f. **Test the hypothesis that θ<sub>2</sub> = 0.08 at the 5% significance level (not using the confidence interval) and compute the associated p-value of the test.**
+
+We test the hypothesis that \(\theta_2 = 0.08\) at the 5% significance level. The null and alternative hypotheses are defined as follows:
+
+- **Null Hypothesis (\(H_0\)):** \(\theta_2 = 0.08\)
+- **Alternative Hypothesis (\(H_1\)):** \(\theta_2 \neq 0.08\)
+
+Z-statistic Test
+
+The Z-statistic is computed as:
+
+\[
+Z = \frac{\hat{\theta_2} - 0.08}{\text{SE}(\hat{\theta_2})}
+\]
+
+Where:
+- \(\hat{\theta_2}\) is the MLE for \(\theta_2\),
+- \(\text{SE}(\hat{\theta_2})\) is the standard error of \(\hat{\theta_2}\).
+
+EXPLAIN WHY WE ARE DOING THIS
+
+The p-value for the two-tailed test is given by:
+
+\[
+\text{p-value} = 2 \cdot (1 - \Phi(|Z|))
+\]
+
+```{r Z-Stat, include=TRUE}
+
+# Compute the z-statistic
+z_stat <- (theta2_mle - 0.08) / theta2_se
+
+# Print the z-statistic
+z_stat
+
+# Compute the p-value for the two-tailed test
+# z-stat is negative so use pnorm() which computes P(Z < z).
+p_value <- 2*(pnorm(z_stat, 0, 1))
+#Print p-value
+p_value
+```
+EXPLAIN WHAT THE P VALUE MEANS
+The P-Value is smaller than 0.05, thus we can reject the null hypothesis and.
+
+Comment on CIs
+TALK ABOUT P VALUE HERE AND ITS SIGNIFICANCE.
+DO WE REJECT OR ACCEPT THE NULL HYPOTHESIS????
+COMMENT AND EXPLAIN MODEL
+
+g. **Use plug-in prediction to construct and plot 95% prediction intervals.**
+
+ ADD SCIENTIFIC NOTATION HERE FOR PREDICTION : LOOK AT PREDICTION SHEET
+
+``` {r P value, echo=FALSE}
+# Compute 95% prediction intervals
+lower_bound <- fitted_mu - 1.96 * mle_params["sigma"]
+upper_bound <- fitted_mu + 1.96 * mle_params["sigma"]
+
+# Create a data frame for plotting
+plot_data <- data.frame(x = x, y = y, fitted_mu = fitted_mu, 
+                        lower = lower_bound, upper = upper_bound)
+
+# Plot the observed data, fitted mean, and prediction intervals
+ggplot(plot_data, aes(x = x, y = y)) +
+  geom_point(size = 2, colour = "black") +  # Observed data
+  geom_line(aes(y = fitted_mu), colour = "red", linewidth = 1.1) +  # Fitted mean
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2, fill = "blue") +  # Prediction interval
+  labs(x = "X", y = "Y", title = "Scatter Plot with 95% Prediction Intervals") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10)
+  )
+```
+AM I DOING THIS RIGHT? FOLLOW STEPS ON PREDICTION SHEET
+INTERPRET PREDICTION INTERVALS
+COMMENT ON THE PLOT? ARE THE PREDITION INTERVALS GOOD? EVALUATE
+
+
+## Question 2 {.unnumbered}
+
+
+The data frame aid sdata relates to the number of quarterly AIDS cases in the UK, yi, from January  1983 to March 1994']. The variable cases is yi and date is time, symbolised here as xi. In this question we consider two competing models to describe the trend in the number of cases. Model *-+/1 is
