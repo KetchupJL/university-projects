@@ -1,0 +1,179 @@
+---
+title: "**MTHM017 - Advanced Topics in Statistics, Assignment**"
+author: "**James R Lewis**"
+date: "**00-00-2025**"
+output:
+  pdf_document:
+    latex_engine: xelatex
+    extra_dependencies: ["amsmath", "amssymb", "mathtools", "bm", "booktabs", "caption", "hyperref", "fancyvrb"]
+    includes:
+      in_header: preamble.tex
+    toc: true
+    toc_depth: 2
+    number_sections: false
+  html_document:
+    css: style.css
+  word_document: default
+header-includes:
+  - \usepackage{fontspec}
+  - \setmainfont{Latin Modern Roman}
+  - \defaultfontfeatures{Ligatures=TeX}
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{mathtools}
+  - \usepackage{bm}
+  - \usepackage{geometry}
+  - \geometry{a4paper, margin=1in}
+  - \usepackage{setspace}
+  - \usepackage{fancyvrb}
+  - \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small, baselinestretch=0.7}
+  - \onehalfspacing
+classoption: a4paper,11pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r loading datasets and libraries, include=FALSE}
+rtimes <- read.csv("~/GitHub/university-projects/Advanced Topics In Statistics/Assignment/rtimes.csv")
+
+ClassificationTrue <- read.csv("~/GitHub/university-projects/Advanced Topics In Statistics/Assignment/ClassificationTrue.csv")
+
+Classification <- read.csv("~/GitHub/university-projects/Advanced Topics In Statistics/Assignment/Classification.csv")
+
+library(tidyverse)
+library(ggplot2)
+library(rmarkdown)
+```
+
+
+**Declaration of AI Assistance**: I have used OpenAI’s ChatGPT tool in creating this report.
+
+AI-supported/AI-integrated use is permitted in this assessment. I acknowledge the following uses of GenAI tools in this assessment:
+
+1. I have used GenAI tools to check and debug my code.
+2. I have used GenAI tools to proofread and correct grammar or spelling errors.
+3. I have used GenAI tools to give me feedback on a draft.
+
+I declare that I have referenced use of GenAI outputs within my assessment in line with the University referencing guidelines.
+
+\newpage
+
+# A. Bayesian Inference
+
+
+## 1. 
+[6 marks] Read in the data, then for each person produce a histogram of that given person’s reaction
+ times. The range of the x axis should be the same on each histogram. Visually compare the reaction
+ time distributions of schizophrenic and non-schizophrenic individuals. What differences/similarities can you observe? Reference the histograms of specific individuals to support your conclusions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

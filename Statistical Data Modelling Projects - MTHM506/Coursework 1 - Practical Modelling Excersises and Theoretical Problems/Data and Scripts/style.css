@@ -1,0 +1,28 @@
+/* style.css */
+body {
+  font-family: "Times New Roman", Times, serif;
+}
+
+/* Justify all text for readability */
+body {
+    text-align: justify;
+    line-height: 1.5;
+}
+
+/* Ensure headings and questions are aligned to the left */
+h1, h2, h3, h4, h5, h6 {
+    text-align: left;
+}
+
+/* Adjust paragraph spacing */
+p {
+    margin-bottom: 15px;
+}
+
+
+/* Code block formatting */
+pre {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+}
