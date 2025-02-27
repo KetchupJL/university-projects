@@ -1,0 +1,6 @@
+"0","# Renaming first column"
+"0","names(rtimes)[1] <- ""PatientType"""
+"0","# Classifying the patient type, 1-11 non-schiz, 12-17 schiz"
+"0","rtimes$PatientType <- c(rep(""non-schizophrenic"", 11), rep(""schizophrenic"", 6))"
+"0","rtimes1 <- rtimes"
+"0","head(rtimes1)"

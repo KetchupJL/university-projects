@@ -59,6 +59,18 @@ AI-supported/AI-integrated use is permitted in this assessment. I acknowledge th
 
 I declare that I have referenced use of GenAI outputs within my assessment in line with the University referencing guidelines.
 
+``` {r setting plot theme, include = FALSE}
+custom_theme <- theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 14),  # Centered title
+    axis.title = element_text(face = "bold", size = 12),
+    axis.text = element_text(size = 11), 
+    panel.grid.major = element_line(color = "gray85"),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.8)
+  )
+```
+
 \newpage
 
 # A. Bayesian Inference
@@ -69,67 +81,234 @@ I declare that I have referenced use of GenAI outputs within my assessment in li
  times. The range of the x axis should be the same on each histogram. Visually compare the reaction
  time distributions of schizophrenic and non-schizophrenic individuals. What differences/similarities can you observe? Reference the histograms of specific individuals to support your conclusions.
 
+I will begin by making the dataset more usable and clear.
+
+```{r, data wrangling rtimes, include=TRUE}
+# Renaming first column
+names(rtimes)[1] <- "PatientType"
+# Classifying the patient type, 1-11 non-schiz, 12-17 schiz
+rtimes$PatientType <- c(rep("non-schizophrenic", 11), rep("schizophrenic", 6))
+rtimes1 <- rtimes
+head(rtimes1)
+```
+
+### Creating Histograms
+
+We want to extract the data from these columns **rtimes[, 2:31]**, for all 17 patients. We will plot 17 histograms, displaying the distribution of the 30 reaction times.
+
+In order to keep a consistent range across the 17 histograms, we need to find the absolute minimum and maximum values in this dataset. To do this, we extract all the data, 17 rows * 30 trials.
+
+```{r extracting data points, include = TRUE}
+DataValues <- unlist(rtimes1[, 2:31])
+range(DataValues)
+
+# We want to store these values
+
+x_min <- 204
+x_max <- 1714
+```
+
+Below, we can observe two sets of histograms, the first containing the eleven non-schizophrenic patients, and the seconds containing the 6 schizophrenic patients.
+
+We reshape to data frame to long format, as having the reaction time data in one column (a list) makes much easier to code the histogram. To create a separate plot for each patient, we use facet_wrap() to group data by PatientID.
+```{r histo format, include=TRUE}
+# Reshaping to long format
+rtimes_long <- rtimes1 %>%
+  pivot_longer(cols = starts_with("T"),  # Columns T1 to T30
+               names_to = "Trial", 
+               values_to = "ReactionTime") %>%
+  mutate(PatientID = rep(1:17, each = 30)) %>%  # Add patientID
+  select(PatientID, PatientType, ReactionTime)
+
+# Splitting into two datasets so I can have seperate histogramws
+non_schizo <- rtimes_long %>% filter(PatientType == "non-schizophrenic") 
+schizo <- rtimes_long %>% filter(PatientType == "schizophrenic")          
+```
+```{r histograms, fig.width=7, fig.height=5, fig.align="center", include=TRUE}
+# Plotting non-schizophrenic histograms
+hist1 <- ggplot(non_schizo, aes(x = ReactionTime)) +
+  geom_histogram(binwidth = 150, fill = "dodgerblue1", color = "black") +
+  facet_wrap(~ PatientID, ncol = 4, scales = "free_y") +  # 11 plots, 4 columns
+  coord_cartesian(xlim = c(x_min, x_max)) +  # Fixed x-axis
+  labs(title = "Figure 1: Non-Schizophrenic Reaction Times", 
+       x = "Reaction Time (ms)", 
+       y = "Count") +
+  custom_theme
+
+# Plotting schizophrenic histograms
+hist2 <- ggplot(schizo, aes(x = ReactionTime)) +
+  geom_histogram(binwidth = 150, fill = "sienna2", color = "black") +
+  facet_wrap(~ PatientID, ncol = 3, scales = "free_y") +  # 6 plots, 3 columns
+  coord_cartesian(xlim = c(x_min, x_max)) +  # Fixed x-axis
+  labs(title = "Figure 2: Schizophrenic Reaction Times", 
+       x = "Reaction Time (ms)", 
+       y = "Count") +
+  custom_theme
+```
+```{r histograms, fig.width=7, fig.height=5, fig.align="center", echo=FALSE}
+print(hist1)
+print(hist2)
+```
+
+
+In Figure 1 we can see that Non-schizophrenic patients such as patient 1 have a narrower and concentrated histogram, with reaction times completely clustered around the second bin (150-300ms). For example, every Non-schizophrenic patient's results show that at least two thirds of their reaction times were faster than 300ms. 
+
+In contrast, the Schizophrenic patients histograms in Figure 2 exhibit a much wider spread of reaction times, with some patients having reactions times exceeding 1500ms. This indicates greater variability, for instance, patient 14 has a wide range of reaction times with many being greater than 1000ms, whilst also having a significant count below 500ms. This suggests that Schizophrenic patients have a mixture of normal and delayed responses, and this aligns with the theory of attention deficits and motor retardation in schizophrenics. This is generally observed by their inconsistent distributions and right skew, compared to the tighter uniform distributions of non-schizophrenics
+
+Nonetheless, both groups share similarities in their distributions. They both have peaks within the first two bins 0-500ms, as you can see when comparing patient 8 (non) to 13 (schizophrenic). However, only schizophrenics have reaction time values in the higher bands (greater than 800ms)
+
+Overall, these histograms support the hypothesis that schizophrenics experience attention deficits  and motor reflex retardation, as seen by the wider spread of values and more irregular histograms for schizophrenic individuals.
 
 
 
+## 2. [5 marks] The above model uses the logarithm of measured reaction times. Explain why taking the
+ logarithm is necessary here (referencing the relevant output), then perform the transformation yourself. For each person compute the standard deviation of the log transformed reaction times of that individual.
+
+ -Calculate standard deviations: For each of the 17 people, compute the standard deviation of their 30 log-transformed reaction times.
+ 
+
+Log-transforming the reaction times is necessary for the model above for two main reasons. Firstly, there is skewness in the data as seen in the Schizophrenic reaction times histograms, for example, Patient 14 and 15 are right-skewed distributions with extreme values (over 1500ms), whilst non-schizophrenic's have a tighter distribution.
+Following this, schizophrenics don't seems to follow a normal distribution, thus, log transforming reduces the skewness and helps stabilise the variance from the effect of outliers/skew. This enambles the data to fit the models normal distributions assumption better.
+Finally, the log-transformation scales the data, making the mean and variance more interpretable. For example, the original range of 204ms to 1714ms, becomes 5.31 to 7.44 (3 s.f.) when log-transformed. Put simply, handling smaller numbers is easier.
 
 
 
+```{r log transforming, include=TRUE}
+log_rtimes_long <- rtimes_long %>%
+  mutate(LogReactionTime = log(ReactionTime))
+range(log_rtimes_long$LogReactionTime) # checking the range also lets us know if any observations are negative.
+```
+Now we compute the standard deviation of each patients 30 log-transformed reaction times. This is useful as it measures the within personal variability on the log scale.
+
+``` {r sd log, include = TRUE}
+# Compute standard deviation of log-transformed reaction times for each person
+sd_log <- log_rtimes_long %>%
+  group_by(PatientID) %>%
+  summarise(SD_Log_RT = sd(LogReactionTime))
+
+# Print results
+head(sd_log)
+```
+
+
+## 3. [5 marks] List the parameters of the model and assign non-informative uniform prior distributions to each parameter, paying attention to the values these parameters are allowed take.
+
+
+## **The model**
+
+
+**Non-Schizophrenic Reaction Times:** 
+For the responses of the $i$th non-schizophrenic person ($i = 1, 2, \ldots, 11$)
+
+$$y_{ij} \sim N(\alpha_i, \sigma_y^2), \quad i = 1, 2, \ldots, 11, \quad j = 1, 2, \ldots, 30$$
+
+
+**Schizophrenic Reaction Times:**
+
+For the responses of the $i$th schizophrenic individual ($i = 12, 13, \ldots, 17$), with probability $(1-\lambda)$ there is no delay, and the response is normally distributed with mean $\alpha_i$ and variance $\sigma_y^2$; and with probability $\lambda$ the response is delayed so that the observations have mean $\alpha_i + \tau$ and variance $\sigma_y^2$.
+
+$$y_{ij} \sim N(\alpha_i + \tau z_{ij}, \sigma_y^2)$$
+
+$$z_{ij} \sim \text{Bernoulli}(\lambda), \quad i = 12, 13, \ldots, 17, \quad j = 1, 2, \ldots, 30$$
 
 
 
+**Distributions of $\alpha$:**
+
+For non-schizophrenic individuals we assume that $\alpha_i$ follows a normal distribution with mean $\mu$ and variance $\sigma_\alpha^2$
+
+$$\alpha_i \sim N(\mu, \sigma_\alpha^2), \quad i = 1, 2, \ldots, 11$$
+
+For schizophrenics:
+$$\alpha_i \sim N(\mu + \beta, \sigma_\alpha^2), \quad i = 12, 13, \ldots, 17$$
+The reason we are using non-informative uniform prior distributions is because we lack prior knowledge about the parameters. Thus, having a reasonable range of values that are equally likely gives a non-bias estimation and allows the data to strong influence the posterior distribution.
+
+**Parameters and Priors:**
+
+**For Non-Schizophrenic Individuals:**
+
+- \(\alpha_i\) (for \(i = 1\) to 17): Person-specific means on the log scale.
+``` {r echo=TRUE, results = "hide"}
+alpha[i] ~ dunif(0, 10)
+```
 
 
+- \(\mu\): Mean of \(\alpha_i\) for non-schizophrenics, which represents the mean log reaction time. with most values between 200ms and 1800ms), when log transformed they equal, 5.3 and 7.5.. A wide range of -10 - 10 to avoid bias and cover potential outliers.
+``` {r echo=TRUE, results = "hide"}
+mu ~ dunif(-10, 10)
+```
 
 
+- (\sigma_y^2\): Varience of log-reaction times.
+``` {r echo=TRUE, results = "hide"}
+sigma_y2 ~ dunif(0, 5)
+tau_y <- 1 / sigma_y2 
+```
+
+- (\sigma_\alpha^2\): Varience of \(\alpha_i\).
+``` {r echo=TRUE, results = "hide"}
+sigma_alpha2 ~ dunif(0, 5)
+tau_alpha <- 1 / sigma_alpha2
+
+```
+
+**For Schizophrenic Individuals:**
+
+- \(\beta\): Additional variable in \(\alpha_i\) mean for schizophrenics, which represents the increase in reaction time due to schizophrenia. Although we expect schizophrenics to be slower, there is still the possibility of motor retardation having no difference, or faster reactions (unlikely, but possible). A range of -10 - 10 is wide enough for the data to determine the direction.
+``` {r echo=TRUE, results = "hide"}
+beta ~ dunif(-10, 10)
+```
+
+- \(\tau\): Log-transformed delay parameter for schizophrenics (\(\tau > 0\)). This is a wide range, but remains uninformative and is contrained to positive values.
+``` {r echo=TRUE, results = "hide"}
+tau ~ dunif(0, 10)
+```
+
+- \(\lambda\): Probability of delay (\(0 \leq \lambda \leq 1\)). Value must lie between 0 and 1, as $\lambda$ is a probability.
+``` {r echo=TRUE, results = "hide"}
+lambda ~ dunif(0, 1)
+```
 
 
+## 4. 
 
 
+```{r jags model, include=TRUE}
+jags.model <- function(){
+    # Reaction time of non-schizophrenics
+  for (i in 1:11){
+    for (j in 1:30) {
+      y.ns[i,j] ~ dnorm(alpha.ns[i], p.y)
+    }
+  alpha.ns[i] ~ dnorm(mu, p.alpha)
+}
+
+  # Reaction time of schizophrenics
+  for (i in 12:17){
+    for (j in 1:30) {
+      y.s[i,j] ~ dnorm(alpha.s[i] + tau*z, p.y)
+    }
+  z ~ dbern(lambda)
+  alpha.s[i] ~ dnorm(mu + beta, p.alpha)
+}
+  
+  #priors
+  mu ~ dunif(-10, 10)
+  sigma_y2 ~ dunif(0, 5) #(p.y)
+  sigma_alpha2 ~ dunif(0, 5) #(p.a)
+  beta ~ dunif(-10, 10)
+  tau ~ dunif(0, 10)
+  lambda ~ dunif(0, 1)
+  
+  
+  p.y <- 1 / sigma_y2   # Precision for sigma_y^2
+  p.alpha <- 1 / sigma_alpha2    # Precision for sigma_alpha^2
+}
+
+```
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+nOW
 
 
 

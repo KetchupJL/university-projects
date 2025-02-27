@@ -36,7 +36,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r nlmodel, include=FALSE}
-load("~/GitHub/university-projects/Statistical Data Modelling Projects - MTHM506/Coursework 1 - Practical Modelling Excersises and Theoretical Problems/.RData")
+load("~/GitHub/university-projects/Statistical Data Modelling Projects - MTHM506/Coursework 1 - Practical Modelling Excersises and Theoretical Problems/Data and Scripts/.RData")
 library(tidyverse)
 library(ggplot2)
 library(rmarkdown)
@@ -929,6 +929,34 @@ summary(NBmodel_cubic)$theta
 The Negative Binomial's residual deviance is significantly lower than the Poisson, reflecting improved fit by accounting for overdispersion. Moreover, the NB model estimates a dispersion parameter (\theta = 64), indicating mild overdispersion compared to the Poisson Cubic model's severe overdispersion.
 
 This is further supported by a chi-squared goodness-of-fit test yields a p-value of 0.306, indicating no significant lack of fit (p > 0.05)
+
+Below, is a plot displaying the model's predictions with 95% confidence intervals.
+
+```{r nb predictions, include=TRUE}
+pred3 <- predict(NBmodel_cubic, type = "link", 
+                 se.fit = TRUE)
+prediction_data$fit_model3 <- exp(pred3$fit)
+prediction_data$lower_model3 <- exp(pred3$fit - 1.96 * pred3$se.fit)
+prediction_data$upper_model3 <- exp(pred3$fit + 1.96 * pred3$se.fit)
+
+aids$fit_model3 <- prediction_data$fit_model3
+aids$lower_model3 <- prediction_data$lower_model3
+aids$upper_model3 <- prediction_data$upper_model3
+
+
+ggplot() +
+  geom_point(data = aids, aes(x = date_proper, y = cases), alpha = 1, 
+             color = "black") +
+  geom_line(data = aids, aes(x = date_proper, y = fit_model3), 
+            color = "red") +
+  geom_ribbon(data = aids, aes(x = date_proper, ymin = lower_model3, 
+              ymax = upper_model3), fill = "red", alpha = 0.2) +
+  labs(x = "Date", y = "Cases", title = "Figure 9: Negative Binomial with Cubic Terms") +
+  custom_theme
+```
+
+In Figure 9, you can see that the **Negative Binomial Cubic model** fits the data well, fairly accurately capturing the non-linear trend and heteroscedasticity, indicated by the 95% confidence interval getting larger over time. 
+
 
 ### AIC
 
