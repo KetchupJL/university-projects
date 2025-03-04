@@ -1,0 +1,7 @@
+library(gt)
+num_summary %>%
+  gt() %>%
+  
+  # Add title and subtitle to the table
+  tab_header(
+    title = "Summary of War-related Fires by Region"

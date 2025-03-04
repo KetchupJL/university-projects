@@ -1,0 +1,17 @@
+# Load necessary libraries
+library(knitr)
+library(kableExtra)
+
+# Convert to dataframe if it's a tibble
+num_summary <- as.data.frame(num_summary)
+
+# Escape underscores for LaTeX compatibility
+colnames(num_summary) <- gsub("_", "\\_", colnames(num_summary))
+
+# Generate kable table without tabu dependency
+kable(num_summary, format = "latex", booktabs = TRUE, digits = 2,
+      caption = "Summary Statistics for X1 and X2 by Group") %>%
+  kable_styling(latex_options = c("hold_position"), latex_table_env = "longtable")  # Force longtable instead of tabu
+
+stargazer(num_summary)
+

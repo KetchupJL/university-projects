@@ -1,0 +1,5 @@
+"0","pos_tau <- substr(rownames(jags.mod.fit$BUGSoutput$summary), 1, 3) == ""tau"""
+"0","tau_mean <- jags.mod.fit$BUGSoutput$summary[pos_tau, 1]"
+"0","tau_median <- jags.mod.fit$BUGSoutput$summary[pos_tau, 5]"
+"0","tau2.5 <- jags.mod.fit$BUGSoutput$summary[pos_tau,3]"
+"0","tau97.5 <- jags.mod.fit$BUGSoutput$summary[pos_tau,7]"

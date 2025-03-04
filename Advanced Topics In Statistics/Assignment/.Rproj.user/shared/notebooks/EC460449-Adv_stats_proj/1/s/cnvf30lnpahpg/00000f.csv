@@ -1,0 +1,5 @@
+"0","sigma_alpha2 ~ dunif(0.001, 5)"
+"1","sigma_alpha2 ~ dunif(0.001, 5)
+"
+"0","# tau_alpha <- 1 / sigma_alpha2"
+"0",""

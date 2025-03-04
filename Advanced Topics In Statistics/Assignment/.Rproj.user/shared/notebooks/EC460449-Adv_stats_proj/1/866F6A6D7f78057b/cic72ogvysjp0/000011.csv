@@ -1,0 +1,2 @@
+"0","# Creating missing data in log_rtimes dataset"
+"0","log_rtimes[12:17, 31:60] <- NA "

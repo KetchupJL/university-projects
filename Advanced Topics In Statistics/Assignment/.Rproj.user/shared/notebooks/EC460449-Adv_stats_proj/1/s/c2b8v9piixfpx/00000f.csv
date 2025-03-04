@@ -1,0 +1,6 @@
+"0","df_stats <- data.frame("
+"0","  Parameter = c(""Beta"", ""Lambda"", ""Tau""),"
+"0","  Median = c(exp(beta_median), lambda_median, exp(tau_median)),"
+"0","  Lower_95_CI = c(exp(beta2.5), lambda2.5, exp(tau2.5)),"
+"0","  Upper_95_CI = c(exp(beta97.5), lambda97.5, exp(tau97.5))"
+"0",")"

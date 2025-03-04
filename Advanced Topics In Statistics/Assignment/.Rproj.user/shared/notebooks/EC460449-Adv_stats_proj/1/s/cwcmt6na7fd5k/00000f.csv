@@ -1,0 +1,4 @@
+"0","sigma_y2 ~ dunif(0.001, 5)"
+"1","sigma_y2 ~ dunif(0.001, 5)
+"
+"0","# tau_y <- 1 / sigma_y2 "
