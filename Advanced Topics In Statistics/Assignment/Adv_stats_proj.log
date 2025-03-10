@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999996 (MiKTeX 24.4) (preloaded format=xelatex 2025.2.23)  4 MAR 2025 12:18
+This is XeTeX, Version 3.141592653-2.6-0.999996 (MiKTeX 24.4) (preloaded format=xelatex 2025.2.23)  10 MAR 2025 12:57
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1099,6 +1099,26 @@ e pdf)
 
 
 [9]
+LaTeX Font Info:    Calculating math sizes for size <10.5> on input line 741.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
+(Font)              scaled to size 10.5pt on input line 741.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
+(Font)              scaled to size 7.34996pt on input line 741.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
+(Font)              scaled to size 5.25pt on input line 741.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
+(Font)              scaled to size 10.50096pt on input line 741.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
+(Font)              scaled to size 7.35063pt on input line 741.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
+(Font)              scaled to size 5.25047pt on input line 741.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
+(Font)              scaled to size 10.49887pt on input line 741.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
+(Font)              scaled to size 7.34917pt on input line 741.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
+(Font)              scaled to size 5.24944pt on input line 741.
+
 
 [10]
 File: Adv_stats_proj_files/figure-latex/post distri-1.pdf Graphic file (type pd
@@ -1113,22 +1133,22 @@ f)
 [13]
 
 [14]
-Overfull \hbox (185.14319pt too wide) in paragraph at lines 1075--1075
+Overfull \hbox (190.89194pt too wide) in paragraph at lines 1079--1079
 []\TU/lmtt/m/n/10.95 ## Inference for Bugs model at "C:/Users/james/AppData/Loc
-al/Temp/RtmpC6nK6n/model1e3c1245869", fit using jags,[] 
+al/Temp/RtmpCypwik/model5db87158506c", fit using jags,[] 
  []
 
 
 
 [15]
-Overfull \hbox (328.86194pt too wide) in paragraph at lines 1118--1118
+Overfull \hbox (328.86194pt too wide) in paragraph at lines 1122--1122
 []\TU/lmtt/m/n/10.95 ## Warning in geom_point(aes(x = raw_min_sd, y = raw_max_s
 d), color = "red", : All aesthetics have length 1, but the data has 2000 rows.[
 ] 
  []
 
 
-Overfull \hbox (18.4295pt too wide) in paragraph at lines 1118--1118
+Overfull \hbox (18.4295pt too wide) in paragraph at lines 1122--1122
 []\TU/lmtt/m/n/10.95 ## i Please consider using []annotate()[] or provide this 
 layer with data containing[] 
  []
@@ -1151,42 +1171,56 @@ Missing character: There is no σ in font [lmroman10-regular]:mapping=tex-text;!
 File: Adv_stats_proj_files/figure-latex/unnamed-chunk-18-1.pdf Graphic file (ty
 pe pdf)
 <use Adv_stats_proj_files/figure-latex/unnamed-chunk-18-1.pdf>
-LaTeX Font Info:    Calculating math sizes for size <7.5> on input line 1199.
+LaTeX Font Info:    Calculating math sizes for size <7.5> on input line 1209.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 7.5pt on input line 1199.
+(Font)              scaled to size 7.5pt on input line 1209.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 5.24997pt on input line 1199.
+(Font)              scaled to size 5.24997pt on input line 1209.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 3.75pt on input line 1199.
+(Font)              scaled to size 3.75pt on input line 1209.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 7.50069pt on input line 1199.
+(Font)              scaled to size 7.50069pt on input line 1209.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 5.25044pt on input line 1199.
+(Font)              scaled to size 5.25044pt on input line 1209.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 3.75034pt on input line 1199.
+(Font)              scaled to size 3.75034pt on input line 1209.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 7.49919pt on input line 1199.
+(Font)              scaled to size 7.49919pt on input line 1209.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 5.2494pt on input line 1199.
+(Font)              scaled to size 5.2494pt on input line 1209.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 3.74959pt on input line 1199.
+(Font)              scaled to size 3.74959pt on input line 1209.
 
 
 [18]
+Overfull \hbox (49.1521pt too wide) in paragraph at lines 1284--1284
+[][]\TU/lmr/bx/n/12 2. Select75%ofthedatatoactasatrainingset,withtheremaining25
+%fortesting/evaluation. 
+ []
 
-[19] (Adv_stats_proj.aux)
+
+
+[19]
+
+LaTeX Font Warning: Font shape `TU/lmtt/bx/it' in size <10.95> not available
+(Font)              Font shape `TU/lmtt/b/sl' tried instead on input line 1322.
+
+
+
+
+[20] (Adv_stats_proj.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 22864 strings out of 408644
- 413444 string characters out of 5744893
- 991480 words of memory out of 5000000
- 45612 multiletter control sequences out of 15000+600000
- 600578 words of font info for 137 fonts, out of 8000000 for 9000
+ 22947 strings out of 408644
+ 416051 string characters out of 5744893
+ 991754 words of memory out of 5000000
+ 45681 multiletter control sequences out of 15000+600000
+ 614285 words of font info for 166 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  90i,9n,114p,1013b,531s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on Adv_stats_proj.pdf (19 pages).
+Output written on Adv_stats_proj.pdf (20 pages).

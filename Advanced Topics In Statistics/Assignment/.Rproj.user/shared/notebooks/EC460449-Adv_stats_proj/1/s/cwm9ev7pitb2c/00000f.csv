@@ -1,2 +1,0 @@
-"0","set.seed(123) "
-"0","jags.param2 <- c(""mu"", ""beta"", ""tau"", ""lambda"", ""p.y"", ""p.alpha"", ""Smin"", ""Smax"")"

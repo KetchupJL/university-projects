@@ -1,0 +1,2 @@
+install.packages("webshot2")
+webshot2::install_phantomjs()

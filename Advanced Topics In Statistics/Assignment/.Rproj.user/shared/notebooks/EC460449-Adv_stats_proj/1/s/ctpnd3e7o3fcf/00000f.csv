@@ -1,4 +1,4 @@
-"0"," jags.param <- c(""mu"", ""beta"", ""tau"", ""lambda"", ""p.y"", ""p.alpha"", ""alpha.ns"", ""alpha.s"", ""sigma_y2"")"
+"0"," jags.param <- c(""mu"", ""beta"", ""tau"", ""lambda"", ""sigma_y2"", ""sigma_alpha2"")"
 "0",""
 "0","set.seed(123)"
 "0",""

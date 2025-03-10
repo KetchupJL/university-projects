@@ -1,0 +1,29 @@
+library(dplyr)
+library(gt)
+
+library(dplyr)
+library(gt)
+
+gelman.diag(jagsfit.mcmc, multivariate = FALSE)$psrf %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column(var = "Parameter") %>%
+  filter(Parameter %in% c("mu", "beta", "tau", "lambda", "sigma_y2", "sigma_alpha2")) %>%
+  select(Parameter, `Point est.`, `Upper C.I.`) %>%
+  gt() %>%
+  tab_header(title = "Gelman-Rubin Statistics for Key Parameters") %>%
+  fmt_number(
+    columns = c("Point est.", "Upper C.I."), # Original column names here
+    decimals = 3
+  ) %>%
+  cols_label(
+    `Point est.` = "Point Estimate",
+    `Upper C.I.` = "Upper CI"
+  ) %>%
+  tab_options(
+    table.font.size = px(14),
+    heading.title.font.size = px(16),
+    heading.title.font.weight = "bold"
+  )
+
+
+

@@ -1,7 +1,9 @@
 "0"," jags.mod.fit <- jags(data = data_list, inits = jags.inits,"
 "0","  parameters.to.save = jags.param, n.chains = 2, n.iter = 10000,"
-"0","  n.burnin = 5000, n.thin = 1 , model.file = jags.model, DIC = TRUE)"
+"0","  n.burnin = 5000, n.thin = 1 , model.file = jags.model, DIC = FALSE)"
 "2","module glm loaded
+"
+"2","module dic loaded
 "
 "1","Compiling model graph
    Resolving undeclared variables

@@ -1,0 +1,30 @@
+install.packages('viridis')
+
+
+library(geoR)
+library(ggplot2)
+library(viridis)
+x1 <- seq(from = 0, to = 10, by = 1)
+x2 <- seq(from = 0, to = 10, by = 1)
+grid <- expand.grid(x = x1,y=x2)
+
+
+set.seed(5474832)
+sigma2<-5 #variance5
+phi<-1 #somecorrelationlength
+sample_data <- grf(grid=grid,
+                 cov.pars=c(sigma2,phi),
+                 cov.model="matern",
+                 kappa=1.5)
+
+sample_data <- grf(grid = grid, cov.model = "matern",
+                   cov.pars = c(1, 0.5), nugget = 0,
+                   kappa = 1.5)
+
+lim <- max(abs(sample_data$data))
+image(sample_data, col = viridis(100), zlim = c(-lim, lim))
+
+
+lim <- 8 
+image(sample_data, col=viridis(100), zlim=c(-lim,lim))
+

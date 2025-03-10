@@ -1,0 +1,35 @@
+gt_table1 <- classification_summary %>%
+  gt() %>%
+  tab_header(
+    title = md("**Summary Statistics for Group 0 and Group 1**"),
+    subtitle = md("*Comparison of X1 Across Groups*")
+  ) %>%
+  cols_label(
+    Group = "Group",
+    `Mean X1` = "Mean X1", `SD X1` = "SD X1", `Median X1` = "Median X1",
+    `Min X1` = "Min X1", `Max X1` = "Max X1",
+    `Mean X2` = "Mean X2", `SD X2` = "SD X2", `Median X2` = "Median X2",
+    `Min X2` = "Min X2", `Max X2` = "Max X2"
+  ) %>%
+  fmt_number(
+    columns = where(is.numeric),
+    decimals = 2
+  ) %>%
+  tab_options(
+    table.font.size = px(10),
+    table.width = pct(100),  # Ensure the table uses the full page width
+    heading.align = "center",
+    column_labels.font.weight = "bold",
+    column_labels.border.bottom.width = px(1),   # Ensures column headers span the width
+    column_labels.border.bottom.color = "black",
+    table.border.top.width = px(1),              # Ensures top border spans full width
+    table.border.top.color = "black",
+    table.border.bottom.width = px(1),           # Ensures bottom border spans full width
+    table.border.bottom.color = "black",
+    data_row.padding = px(4)
+  ) %>%
+  cols_align(
+    align = "center", columns = where(is.numeric)
+  ) %>%
+  opt_table_lines() %>%
+  opt_row_striping()  # Adds subtle row striping for better readability

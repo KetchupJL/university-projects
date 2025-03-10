@@ -1,0 +1,38 @@
+data(parana)
+par(mar=c(4,2,2,2))
+plot(parana)
+
+?par
+
+model_ml <- likfit(parana, ini.cov.pars = c(10,1))
+
+
+model_trend <- likfit(parana, trend = '1st', ini.cov.pars = c(10,1), cov.model = 'matern', kappa = 5/2)
+model_trend
+
+xv.ml<-xvalid(parana,model=model_trend)
+par(mfrow=c(3,2),mar=c(4,2,2,2))
+plot(xv.ml,error=TRUE,std.error=FALSE,pch=19)
+?xvalid
+
+
+model_bad<-likfit(parana,fix.nugget=TRUE,ini.cov.pars=c(10,1),cov.model= 'matern',
+                  kappa=3/2)
+xv.ml<-xvalid(parana,model=model_bad)
+par(mfrow=c(3,2),mar=c(4,2,2,2))
+plot(xv.ml,error=TRUE,std.error=FALSE,pch=19)
+
+
+pred_grid<-expand.grid(seq(100,800,by=5),seq(0,550,by=5))
+#obj.modelisthemodelwewanttouseforprediction
+preds<-krige.conv(parana,loc=pred_grid,
+                  krige=krige.control(obj.model=model_ml))
+
+image(preds,col=viridis::viridis(100),zlim=c(0,max(c(preds$predict))),
+      coords.data=parana[1]$coords,main= 'Mean',xlab='x',ylab= 'y',
+      x.leg = c(700, 900), y.leg = c(20, 70))
+
+image(preds, values = preds$krige.var, col = heat.colors(100)[100:1],
+      zlim = c(0,max(c(preds$krige.var))), coords.data = parana[1]$coords,
+      main = 'Variance', xlab = 'x', ylab = 'y', x.leg = c(700, 900), y.leg = c(20, 70))
+
