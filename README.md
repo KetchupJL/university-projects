@@ -17,7 +17,7 @@ This repository showcases key projects completed during my Masters studies, high
 ### 1. [War-Related Fires in Ukraine - Spatial and Temporal Patterns](https://github.com/KetchupJL/university-projects/tree/main/Ukraine%20War-Fire%20Project)
    - **Description**: A Data Science report predicting the probabilities of war-related fires across regions in Ukraine, with a focus on spatial and temporal analysis.
    - **Technologies Used**: R, Plotly and GIS data analysis.
-   - **Module MTHM503**: Grade - 82%
+   - **Module MTHM501**: Grade - 82%
 
 
 ### 2. [Applications of Data Science and Statistical Modelling - Coursework Assignment](https://github.com/KetchupJL/university-projects/tree/main/MTHM503%20-%20Project)
@@ -26,8 +26,15 @@ This repository showcases key projects completed during my Masters studies, high
    - **Module MTHM503**: Grade - 74%
 
 
-### 3. [Advanced Topics in Statistics - Coursework Assignment](https://github.com/KetchupJL/university-projects/tree/main/Advanced%20Topics%20In%20Statistics)
+### 3. [Statistical Data Modelling - Coursework 1](https://github.com/KetchupJL/university-projects/tree/main/Statistical%20Data%20Modelling%20Projects%20-%20MTHM506/Coursework%201%20-%20Practical%20Modelling%20Excersises%20and%20Theoretical%20Problems)
+   - **Description**: 
+   - **Technologies Used**: R - .
+   - **.
+   - **Module MTHM506**: Grade - NA%
+
+
+### 4. [Advanced Topics in Statistics - Coursework Assignment](https://github.com/KetchupJL/university-projects/tree/main/Advanced%20Topics%20In%20Statistics)
    - **Description**: Two sets of tasks. One requiring Bayesian inference and the other usings various supervised machine learning techniques.
    - **Technologies Used**: R - (JAGS, ...).
    - **Classification (Machine Learning) methods used**: Linear/Quadratic Discriminant Analysis, K-Nearest Neighbours, Support Vector Machines andRandom Forests.
-   - **Module MTHM503**: Grade - NA%
+   - **Module MTHM017**: Grade - NA%
