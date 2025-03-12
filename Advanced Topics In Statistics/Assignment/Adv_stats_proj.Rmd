@@ -972,14 +972,13 @@ Detailed description of model performance:
 
 optimize the (hyper) parameters of the method.
 
-### **K-Nearest Neighbors (KNN):**
+## **K-Nearest Neighbors (KNN):**
 
 ```{r}
 library(class) # This is the package which has the KNN function
 ```
-theory behind how the classification method classifies the data:
 
-The KNN classifier is a supervised classification algorithm. It classifies a new observation by examining the classes of its **k** nearest neighbours, and assigning  the class by through a "majority vote" (most common class of neighbours). 
+The KNN classifier is a supervised, non- parametric classification algorithm. It classifies a new observation by examining the classes of its **k** nearest neighbours, and assigning  the class by through a "majority vote" (most common class of neighbours). 
 
 The value of k controls the **flexibility** of the model:
 
@@ -991,91 +990,215 @@ The goal is to select an **optimal k** that balances bias and variance, typicall
 
 ### **Fitting the model**
 ```{r fitting knn1}
-knn_fit1 = knn(train=train_X, test=test_X, cl=train$Group, k=5)
+knn_fit1 = knn(train=train_X, test=test_X, cl=train$Group, k=7)
 
 # Confusion Matrix
 confusionMatrix(knn_fit1, test$Group)
 ```
-Wth K = 5, we get an accuracy result of 79.2%. This is quite good, but we should optimise K withing the K-Fold cross validation method to get the highest possible accuracy.
+Initially, the model was fitted using an arbitrary choice of **k = 7**, resulting in an accuracy of 79.6%. Although this initial accuracy was good, further hyperparameter tuning was necessary to achieve the best predictive performance.
 
-### Now we tune the **hyperparameters**
+### **Hyperparameters Optimisation**
 
 Tuning hyperparameters essentially means improve a machine learning algorithm's structure, so it can be flexible enough to fit the data but constrained enough to not fit the noise. In **KNN 'K'** is a hyperparameter. 
 
-We use the **K-Fold cross validation**
+We use the **K-Fold cross validation**. This divides the dataset into K Folds, then the ML model is trained on K-1 folds and tested on Kth fold. This method estimates the average prediction error from the K runs and optiaml values for hyper parameters to build the final model.
 
-Explain ^
-Impliement
-Discuss new results and compare
-Evalaute method and performace.
+We use the train() function here which does the fitting and tuning simultaenously.
 
-present the results of an evaluation of the method:
-Describe findings:
+```{r warning=FALSE}
+set.seed(123)
+# Set training options
+# Repeat 5-fold cross-validation, ten times
+opts <- trainControl(method='repeatedcv', number=10, repeats=5)
+# Find optimal k (model)
+mdl <- train(x=train_X, y=train$Group, # training data
+method='knn', # machine learning model
+trControl=opts, # training options
+tuneGrid=data.frame(k=seq(4, 20))) # range of k's to try
+print(mdl) # print the outcome
+```
+The cross-validation results indicated an optimal value at k = 9, which achieved the highest average accuracy (82.0%).
 
-Detailed description of model performance:
+### **Optimised KNN Model**
+```{r}
+knn_fit2 = knn(train=train_X, test=test_X, cl=train$Group, k=9)
+# Confusion Matrix
+confusionMatrix(knn_fit2, test$Group)
+```
 
-optimize the (hyper) parameters of the method.
+### Evaluation and Model Comparison: K-Nearest Neighbour (KNN)
 
+The optimized KNN classifier performed well overall, producing an accuracy of 78.8%, demonstrating strong specificity (88.1%) and acceptable balanced accuracy (75.2%). However, sensitivity (62.2%) was relatively lower, indicating some limitations in correctly classifying positive cases. The moderate Cohen’s kappa (0.52) also suggests moderate agreement beyond random chance, affirming good but not excellent classifier stability.
 
-### **Quadratic Discriminant Analysis (QDA):**
+### Comparison of Models
 
-
-### **Random Forest (RF):** 
-
-
-### **Support Vector Machines (SVM):**
-
-
-
-
-
-
-
-
-
-
-
-
+Interestingly, the single train-test evaluation initially favored k = 7 (accuracy 79.6%), while cross-validation identified k = 9 as optimal. However, due to the greater reliability and robustness of cross-validation, which provides more dependable estimates of a model’s generalization capability, **k = 9**remains the preferred choice, as cross-validation offers a more comprehensive indication of how well the model will perform with unseen data.
 
 
+## **Quadratic Discriminant Analysis (QDA):**
 
+Quadratic Discriminant Analysis (QDA) is a classification method that extends Linear Discriminant Analysis (LDA) by allowing each class to have its own covariance matrix. Like LDA, QDA assumes observations within each class are generated from a multivariate Gaussian distribution; however, unlike LDA, QDA does not assume these covariance matrices to be equal across classes. Due to this flexibility, QDA produces quadratic decision boundaries, enabling it to capture more complex, non-linear separations between classes effectively. Consequently, QDA is particularly suitable when the classes exhibit differing covariance structures, as it can adapt to variability within individual classes to achieve improved classification accuracy.
 
+### **Fitting the model**
 
+```{r}
+library(MASS)
+set.seed(123)
+# Fitting QDA model
+qda_fit1 <- qda(Group ~ ., data=train) # Used '.' syntax to call all other variables in the data set.
 
-
-
-
-
-
-
-
-
-
-
-
-
+# Predicting classes using fitted model
+qda_predict <- predict(qda_fit1,test)
+confusionMatrix(qda_predict$class, test$Group)
+```
 
 
 
+### **Interpretation of Results**
+
+The QDA model demonstrated strong specificity (93.1%), indicating excellent performance in correctly classifying negative cases. However, the sensitivity was notably lower (52.2%), suggesting a limitation in correctly identifying positive cases. Balanced accuracy (72.7%) indicates that the model provides good predictive capability overall, though with an imbalance in classification effectiveness between positive and negative instances. A moderate Cohen’s Kappa value (0.49) reflects acceptable performance beyond chance, but room for improvement remains, particularly in sensitivity.
+
+###  **Evaluation of Model**
+
+Unlike KNN, QDA does not have hyperparameters (such as k) that require optimization. The method directly estimates distinct covariance matrices for each class based on training data, leaving no flexibility for tuning beyond potential transformations or feature selection strategies.
+
+In summary, the QDA classifier provided a robust classification performance, excelling in specificity but demonstrating limitations in sensitivity. Given its inherent lack of hyperparameters, further performance improvements would likely involve feature engineering or combining QDA with complementary classification techniques.
+
+
+
+## **Random Forest (RF):** 
+
+Random Forests (RF) is an ensemble learning method that enhances classification accuracy by constructing multiple decision trees and aggregating their predictions. It extends **bagging** by de-correlating the trees, reducing model variance and improving generalisation.
+
+**Bagging**: RF builds multiple trees using bootstrap samples (sampling with replacement) from the original dataset. Each tree is grown deep and unpruned, reducing variance through averaging. Predictions are aggregated using majority voting for classification.
+
+**Random Feature Selection**: To reduce correlation between trees, each split considers only a random subset of predictors (typically \(\sqrt{p}\)). This de-correlates trees, enhancing model robustness and lowering variance.
+
+**Out-of-Bag (OOB) Error**: On average, one-third of observations are left out of each bootstrap sample. These "out-of-bag" observations provide a natural method for estimating model error without a separate validation set.
+
+
+### **Fitting the model**
+
+```{r warning=FALSE}
+library(randomForest)
+
+# Fitting random forest model
+set.seed(123)
+
+mdl <- train(x=train_X, y=train$Group,
+             method='rf',
+             ntree=200,
+             tuneGrid=data.frame(mtry=2))
+print(mdl)
+```
+
+We can try to optimise hyperparameters. By adjusting the number of trees from 200 to 500, resampling accuracy fell 0.002. Adjusting the mtry parameter (number of predictors randomly samples at each split) showed no effect on the accuracy, so it will remain at the value 2.  
+
+
+```{r}
+set.seed(123)
+# Test model on testing data
+TestPred <- predict(mdl, newdata=test_X)
+confusionMatrix(TestPred, test$Group) # predicted/true
+```
+```{r}
+# Variable importance by mean decrease in gini index
+varImp(mdl$finalModel)
+```
+
+### **Variable Importance**
+  Variable importance, assessed by the mean decrease in Gini index, indicated that `X1` (175.67) contributed more significantly to the model’s classification decisions compared to `X2` (141.44). This suggests that `X1` is the most influential predictor in distinguishing between the target classes.
+
+
+### **Interpretation of Results**
+
+The optimized Random Forest model achieved an overall accuracy of 75.2%, with high specificity (83.1%) indicating strong performance in correctly identifying negative cases. However, sensitivity was comparatively lower (61.1%), highlighting some limitations in classifying positive cases. The balanced accuracy of 72.1% reflects moderate but balanced classification performance across both classes. The Cohen's Kappa statistic (0.45) suggests moderate agreement beyond chance.
+
+### **Conclusion**
+
+Random Forests provided a powerful and stable classification approach by reducing variance through bagging and random feature selection. However, its accuracy is around 3% lower than KNN and QDA.
 
 
 
 
 
 
+## **Support Vector Machines (SVM):**
+
+Support Vector Machines (SVM) are supervised classification algorithms designed to find the optimal hyperplane that best separates data points belonging to different classes. SVM seeks the hyperplane that maximizes the margin between groups 0 and 1 while minimizing classification errors.
+
+When even more complex data structures arise, where linear separation is infeasible, SVM generalizes through the use of kernel functions. Kernels implicitly map the original feature space to a higher-dimensional space where a linear separator can be found. Although it might seem counter-intuitive to increase dimensionality, the kernel trick ensures this is done implicitly, allowing SVM to handle non-linear relationships efficiently. Kernels can be considered as generalized distance measures, and common types include the linear, polynomial, and radial basis function (RBF) kernels. Kernel choice is a hyperparameter that can be optimized via cross-validation. However, in caret, each kernel is treated as a separate model, requiring manual cross-validation when comparing kernels.
+
+Since we already know the data displays non-linear relationships, we wont fit the linear kernal as we alrady know it wont classify the data well., but will fit the Polynomial and Radial Basis Function (RFB) kernal.
 
 
+### **Fitting the model**
+
+1. **RFB Kernal**
+
+First we will fit the RFB Kernal. This is a strong option does to its versatility and flexibility.
+We will also perform hyperparamater stuning in this, using 5-fold cross-validation method.
+
+```{r warning=FALSE}
+library(caret)
+library(kernlab)
+set.seed(123)
+
+# Initial Model (without manual hyperparameter tuning)
+rbf_mdl <- train(x = train_X, y = train$Group, 
+                 method = 'svmRadial',
+                 trControl = trainControl(method = "cv", number = 5))
+
+# View the best tuning parameters
+print(rbf_mdl$bestTune)
+
+# Plot model accuracy vs different values of Cost and Sigma
+plot(rbf_mdl)
+
+```
+
+Implementing the optimal hyperparameter values:
+```{r warning=FALSE}
+# Manually tuning the hyperparameters C and sigma
+rbf_mdl2 <- train(x = train_X, y = train$Group,
+                  method = "svmRadial",
+                  trControl = trainControl(method = "cv", number = 5),
+                  tuneGrid = expand.grid(C = seq(0, 1, length = 20),
+                                         sigma = seq(0.01, 2, length = 10)))
+
+# View the best tuning parameters
+print(rbf_mdl2$bestTune)
+
+# Plot model accuracy vs different values of Cost and Sigma
+plot(rbf_mdl2)
+
+# Evaluate the optimized model on the test data
+yTestPred_rbf <- predict(rbf_mdl2, newdata = test_X)
+confusionMatrix(yTestPred_rbf, test$Group)
+
+```
 
 
+2. **Polynomial Kernal**
 
+We will also fit an this model, and fit its optimised version to see if this can create a better fitted decsion boundary.
 
+```{r warning=FALSE}
+set.seed(123)
 
+poly_mdl <- train(x = train_X, y = train$Group,
+                  method = "svmPoly")
 
+# View the best tuning parameters
+print(poly_mdl$bestTune)
 
+# Plot the accuracy vs hyperparameters to visualize performance
+plot(poly_mdl)
 
-
-
-
+# Evaluate the optimized model on the test data
+yTestPred_poly <- predict(poly_mdl, newdata = test_X)
+confusionMatrix(yTestPred_poly, test$Group)
+```
 
 
 
