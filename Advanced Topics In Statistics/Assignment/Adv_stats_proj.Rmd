@@ -434,12 +434,36 @@ MCMCtrace(jagsfit.mcmc,
 
 Next, we check to summary statistics.
 
-```{r, include=TRUE, results='hide'}
+```{r, include=TRUE, }
 print(jags.mod.fit$BUGSoutput$summary[c("beta", "lambda", "mu"), ])
 ```
 The n.eff statistics in the table above is a crude measurement for effective sample size, if the value is above 1000, it indicates that you have sample adequacy, enough independent samples for posterior inference. In our case, we can confidently assume that our model has plenty of valid samples shown by the n.eff values greater than 1000(3000, 3000, 2500).
 
+To confirm this, we can check to see if the MCMC standard error is 1-5% of the posterior standard deviation. We do this by dividing Time-series SD by SD.
+
+```{r }
+summary(jagsfit.mcmc)
+```
+```{r}
+SampleCheck <- summary(jagsfit.mcmc)
+stats <- SampleCheck$statistics
+
+sd_values <- SampleCheck$statistics[, "SD"]
+se_values <- SampleCheck$statistics[, "Time-series SE"]
+
+MC_Error <- (se_values / sd_values) * 100
+```
+
+```{r, fig.align='center'}
+MC_Error[c("beta", "lambda", "tau")]
+```
+
+
 Now we extract the relevant statistics for Beta, Lamba and Tau. It is important to note that Beta and Tau have been in log scale up until this point, so by multiplying them by exponential, we return them to their true values.
+
+
+
+
 This can be seen in the code below.
 
 ### Beta
@@ -857,35 +881,40 @@ gt_table_X1
 gt_table_X2
 
 ```
-### **Key Observations from the Summary Statistics:**
-X1 Differences Across Groups:
+### **Numerical Summaries and Interpretation**
 
-Group 0 has a higher mean X1 (0.26) compared to Group 1 (-0.12).
-However, Group 1 exhibits a higher standard deviation (1.12 vs. 0.54 for Group 0), indicating greater variability.
-Group 1 has more extreme X1 values (Min = -3.06, Max = 3.29), while Group 0’s range is smaller (Min = -1.09, Max = 1.64).
-Group 1’s median X1 (-0.30) is lower than Group 0’s (0.26), suggesting a shift in distribution.
-X2 Differences Across Groups:
+#### Variable X1:
+- **Mean and Variability:** Group 1 shows higher variability in X1 (SD = 1.12) compared to Group 0 (SD = 0.59), indicating greater dispersion around its mean.
+- **Median and Range**: The median of Group 1 (-0.30) is lower than that of Group 0 (0.06), suggesting a shift towards lower values for Group 1. Group 1 also exhibits more extreme values with a broader range (Min = -3.06, Max = 3.29) compared to Group 0 (Min = -1.09, Max = 1.64).
 
-Group 1 has a higher mean X2 (0.30) compared to Group 0 (-0.60), suggesting a more positive shift.
-The standard deviations are similar (0.89 for Group 0 vs. 0.93 for Group 1), implying that X2 has comparable spread in both groups.
-The range of X2 is wider in Group 1 (-3.41 to 3.94) than in Group 0 (-3.39 to 1.84).
-The median X2 values reinforce this trend, with Group 0’s median at -0.60 and Group 1’s median at 0.31.
-Summary of Findings
-X1 shows higher variability in Group 1, with more extreme values, while Group 0 is more centered.
-X2 is generally more positive in Group 1 than in Group 0.
-The spread in X1 suggests that the data is not completely linearly separable, which influences the choice of classification method.
+### Summaries for Variable X2
+X2 shows greater similarity between the two groups compared to X1:
+- **Central Tendency**: The median X2 value of Group 1 (0.31) is higher than Group 0 (-0.05), indicating that Group 1 typically has higher X2 values.
+- **Spread and Range:** Both groups have similar variability, indicated by their standard deviations (0.93 for Group 1 vs. 0.89 for Group 0). However, Group 1 again has a wider range (-3.41 to 3.94) compared to Group 0 (-3.39 to 1.84).
 
-Given the numerical summaries and scatter plot, the choice of classification method depends on the distribution and separability of X1 and X2 between the two groups:
+### Implications for Classification
+The observed numerical summaries and scatter plot highlight several key points:
 
-The data and grouping appears to have non-linear decision boundary, as group 1 semi-circularly surrounds group 0. Taking the numerical summary and data relationship into account, we can believe that the following methods are suitable:
+- The differences in distributions and notable overlap suggest that the classes are not linearly separable.
+- The variability, particularly in X1, suggests complex interactions or non-linear boundaries between groups.
 
-1. Quadratic Discriminant Analysis - The quadratic nature of the QDA means the decision boundaries can capture complex non-linear separation between classes.
+### Recommended Classification Methods
+Given the distribution and structure of the data, suitable classification methods include:
 
-2. K-Nearest Neighbours (KNN) - This method is very good for classifying data with non-linear decision boundaries. The boundary is determined by K, this method is flexible, but can make you prone to over fitting if K is too high. That being said, it K can also be optimized through cross validation. 
+1. **K-Nearest Neighbors (KNN):** 
+   - Flexible in handling non-linear boundaries.
+   - The optimal choice of neighbors (K) can be tuned to balance flexibility and overfitting risks.
 
-3. Support Vector Machines (SVM) - SVM can handle both linear and nonlinear boundaries by utilizing kernel methods. Nonlinear kernels (e.g., polynomial or radial basis function) allow SVM to effectively classify complex datasets by mapping data into higher-dimensional spaces, enabling separation of classes that aren't linearly separable in the original feature space. The central idea behind SVM is finding an optimal hyperplane that maximizes the margin—the distance between the nearest points (support vectors) of the two classes.
+2. **Quadratic Discriminant Analysis (QDA):**
+   - Effective at modeling non-linear class boundaries if the assumption of normality holds.
 
-4. Random Forests (RF) - Random forests are particularly suitable due to their robust handling of nonlinear and complex decision boundaries. RF generally achieves stable, high-quality predictions and is suitable for complex datasets with potential nonlinear relationships between predictors and the target class​
+3. **Random Forest (RF):** 
+   - Capable of capturing complex interactions and nonlinear patterns in the data without strong assumptions.
+
+4. **Support Vector Machines (SVM):**
+   - Suitable for data where clear linear boundaries do not exist, leveraging kernels to create non-linear separations.
+
+Each of these methods accommodates the observed complexity and variability, offering a balanced approach between flexibility and generalizability.
 
 
 
@@ -898,37 +927,103 @@ library(dplyr)
  library(e1071)
 ```
 ```{r}
- # Define function that will split the data into training and test sets
+# Define function that will split the data into training and test sets
  trainTestSplit <- function(df, trainPercent,seed1){
- ## Sample size percent
+# Sample size percent
  smp_size <- floor(trainPercent/100 * nrow(df))
- ## set the seed
+# set the seed
  set.seed(seed1)
  train_ind <- sample(seq_len(nrow(df)), size = smp_size)
  train_ind
  }
 
-#Split as training and test sets
+# Split as training and test sets
  train_ind <- trainTestSplit (Classification, trainPercent = 75, seed = 123)
  train <- Classification[train_ind ,]
  test <- Classification[-train_ind ,]
+ 
+# Convert 'Group' to a factor in both train and test sets, as this represents the class.
+ train$Group <- factor(train$Group)
+ test$Group <- factor(test$Group)
+
+ train_X <- train[, c("X1", "X2")]
+ test_X <- test[, c("X1", "X2")]
+ 
+ train_y <- train$Group
+ 
+ 
+ 
+# Checking dimensions:
+dim(train) 
+dim(test)
 ```
+
+The function **trainTestSplit** is employed to divide the dataset into training and test subsets to facilitate model evaluation in Part B. It randomly partitions the dataset based on a specified training percentage (**trainPercent**), with a fixed random seed (**seed1**) to ensure reproducibility. The training subset is used for model fitting, while the test subset provides an unbiased measure of predictive performance. This approach ensures a rigorous assessment of model generalization to new data.
 
 
 ## 3. 
 
+theory behind how the classification method classifies the data:
+
+present the results of an evaluation of the method:
+Describe findings:
+
+Detailed description of model performance:
+
+optimize the (hyper) parameters of the method.
+
+### **K-Nearest Neighbors (KNN):**
+
+```{r}
+library(class) # This is the package which has the KNN function
+```
+theory behind how the classification method classifies the data:
+
+The KNN classifier is a supervised classification algorithm. It classifies a new observation by examining the classes of its **k** nearest neighbours, and assigning  the class by through a "majority vote" (most common class of neighbours). 
+
+The value of k controls the **flexibility** of the model:
+
+- Smaller k leads to a flexible decision boundary (low bias but high variance, prone to overfitting).
+
+- Larger k smooths the decision boundary (high bias but lower variance, risk underfitting).
+
+The goal is to select an **optimal k** that balances bias and variance, typically done via cross-validation.
+
+### **Fitting the model**
+```{r fitting knn1}
+knn_fit1 = knn(train=train_X, test=test_X, cl=train$Group, k=5)
+
+# Confusion Matrix
+confusionMatrix(knn_fit1, test$Group)
+```
+Wth K = 5, we get an accuracy result of 79.2%. This is quite good, but we should optimise K withing the K-Fold cross validation method to get the highest possible accuracy.
+
+### Now we tune the **hyperparameters**
+
+Tuning hyperparameters essentially means improve a machine learning algorithm's structure, so it can be flexible enough to fit the data but constrained enough to not fit the noise. In **KNN 'K'** is a hyperparameter. 
+
+We use the **K-Fold cross validation**
+
+Explain ^
+Impliement
+Discuss new results and compare
+Evalaute method and performace.
+
+present the results of an evaluation of the method:
+Describe findings:
+
+Detailed description of model performance:
+
+optimize the (hyper) parameters of the method.
 
 
-### **Quadratic Discriminant Analysis**
+### **Quadratic Discriminant Analysis (QDA):**
 
 
-### **K-Nearest Neighbours**
+### **Random Forest (RF):** 
 
 
-### **Support Vector Machines**
-
-
-### **Random Forests**
+### **Support Vector Machines (SVM):**
 
 
 

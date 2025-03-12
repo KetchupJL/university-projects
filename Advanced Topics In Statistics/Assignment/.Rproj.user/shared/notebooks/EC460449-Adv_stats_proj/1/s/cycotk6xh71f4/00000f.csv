@@ -1,6 +1,0 @@
-"0","pos_lambda <- substr(rownames(jags.mod.fit$BUGSoutput$summary), 1, 6) == ""lambda"""
-"0","lambda_mean <- jags.mod.fit$BUGSoutput$summary[pos_lambda, 1]"
-"0","lambda_median <- jags.mod.fit$BUGSoutput$summary[pos_lambda, 5]"
-"0","lambda2.5 <- jags.mod.fit$BUGSoutput$summary[pos_lambda,3]"
-"0","lambda97.5 <- jags.mod.fit$BUGSoutput$summary[pos_lambda,7]"
-"0",""

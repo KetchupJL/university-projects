@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999996 (MiKTeX 24.4) (preloaded format=xelatex 2025.2.23)  10 MAR 2025 12:57
+This is XeTeX, Version 3.141592653-2.6-0.999996 (MiKTeX 24.4) (preloaded format=xelatex 2025.2.23)  11 MAR 2025 15:22
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1125,6 +1125,30 @@ File: Adv_stats_proj_files/figure-latex/post distri-1.pdf Graphic file (type pd
 f)
 <use Adv_stats_proj_files/figure-latex/post distri-1.pdf>
 
+Overfull \hbox (12.68076pt too wide) in paragraph at lines 805--805
+[]\TU/lmtt/m/n/10.95 ##             mean         sd       2.5%       25%       
+50%       75%     97.5%[] 
+ []
+
+
+Overfull \hbox (12.68076pt too wide) in paragraph at lines 805--805
+[]\TU/lmtt/m/n/10.95 ## beta   0.3181462 0.08436591 0.14833526 0.2647345 0.3180
+889 0.3721589 0.4878396[] 
+ []
+
+
+Overfull \hbox (12.68076pt too wide) in paragraph at lines 805--805
+[]\TU/lmtt/m/n/10.95 ## lambda 0.1198850 0.02818665 0.06948152 0.1001758 0.1178
+340 0.1378933 0.1801819[] 
+ []
+
+
+Overfull \hbox (12.68076pt too wide) in paragraph at lines 805--805
+[]\TU/lmtt/m/n/10.95 ## mu     5.7183935 0.05033801 5.61767490 5.6864151 5.7187
+429 5.7507063 5.8162062[] 
+ []
+
+
 
 [11]
 
@@ -1133,94 +1157,97 @@ f)
 [13]
 
 [14]
-Overfull \hbox (190.89194pt too wide) in paragraph at lines 1079--1079
+
+[15]
+Overfull \hbox (190.89194pt too wide) in paragraph at lines 1154--1154
 []\TU/lmtt/m/n/10.95 ## Inference for Bugs model at "C:/Users/james/AppData/Loc
-al/Temp/RtmpCypwik/model5db87158506c", fit using jags,[] 
+al/Temp/RtmpSmpds3/model3af84f283d29", fit using jags,[] 
  []
 
 
 
-[15]
-Overfull \hbox (328.86194pt too wide) in paragraph at lines 1122--1122
+[16]
+Overfull \hbox (328.86194pt too wide) in paragraph at lines 1197--1197
 []\TU/lmtt/m/n/10.95 ## Warning in geom_point(aes(x = raw_min_sd, y = raw_max_s
 d), color = "red", : All aesthetics have length 1, but the data has 2000 rows.[
 ] 
  []
 
 
-Overfull \hbox (18.4295pt too wide) in paragraph at lines 1122--1122
+Overfull \hbox (18.4295pt too wide) in paragraph at lines 1197--1197
 []\TU/lmtt/m/n/10.95 ## i Please consider using []annotate()[] or provide this 
 layer with data containing[] 
  []
 
-File: Adv_stats_proj_files/figure-latex/unnamed-chunk-17-1.pdf Graphic file (ty
+File: Adv_stats_proj_files/figure-latex/unnamed-chunk-20-1.pdf Graphic file (ty
 pe pdf)
-<use Adv_stats_proj_files/figure-latex/unnamed-chunk-17-1.pdf>
-
-
-[16]
-Missing character: There is no 𝜎 in font [lmroman10-regular]:mapping=tex-text;!
-Missing character: There is no 𝑦 in font [lmroman10-regular]:mapping=tex-text;!
-Missing character: There is no σ in font [lmroman10-regular]:mapping=tex-text;!
-Missing character: There is no 𝜎 in font [lmroman10-regular]:mapping=tex-text;!
-Missing character: There is no 𝑦 in font [lmroman10-regular]:mapping=tex-text;!
-Missing character: There is no σ in font [lmroman10-regular]:mapping=tex-text;!
+<use Adv_stats_proj_files/figure-latex/unnamed-chunk-20-1.pdf>
 
 
 [17]
-File: Adv_stats_proj_files/figure-latex/unnamed-chunk-18-1.pdf Graphic file (ty
-pe pdf)
-<use Adv_stats_proj_files/figure-latex/unnamed-chunk-18-1.pdf>
-LaTeX Font Info:    Calculating math sizes for size <7.5> on input line 1209.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 7.5pt on input line 1209.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 5.24997pt on input line 1209.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 3.75pt on input line 1209.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 7.50069pt on input line 1209.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 5.25044pt on input line 1209.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 3.75034pt on input line 1209.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 7.49919pt on input line 1209.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 5.2494pt on input line 1209.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 3.74959pt on input line 1209.
+Missing character: There is no 𝜎 in font [lmroman10-regular]:mapping=tex-text;!
+Missing character: There is no 𝑦 in font [lmroman10-regular]:mapping=tex-text;!
+Missing character: There is no σ in font [lmroman10-regular]:mapping=tex-text;!
+Missing character: There is no 𝜎 in font [lmroman10-regular]:mapping=tex-text;!
+Missing character: There is no 𝑦 in font [lmroman10-regular]:mapping=tex-text;!
+Missing character: There is no σ in font [lmroman10-regular]:mapping=tex-text;!
 
 
 [18]
-Overfull \hbox (49.1521pt too wide) in paragraph at lines 1284--1284
+File: Adv_stats_proj_files/figure-latex/unnamed-chunk-21-1.pdf Graphic file (ty
+pe pdf)
+<use Adv_stats_proj_files/figure-latex/unnamed-chunk-21-1.pdf>
+LaTeX Font Info:    Calculating math sizes for size <7.5> on input line 1287.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
+(Font)              scaled to size 7.5pt on input line 1287.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
+(Font)              scaled to size 5.24997pt on input line 1287.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
+(Font)              scaled to size 3.75pt on input line 1287.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
+(Font)              scaled to size 7.50069pt on input line 1287.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
+(Font)              scaled to size 5.25044pt on input line 1287.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
+(Font)              scaled to size 3.75034pt on input line 1287.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
+(Font)              scaled to size 7.49919pt on input line 1287.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
+(Font)              scaled to size 5.2494pt on input line 1287.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
+(Font)              scaled to size 3.74959pt on input line 1287.
+
+
+[19]
+
+[20]
+Overfull \hbox (49.1521pt too wide) in paragraph at lines 1419--1419
 [][]\TU/lmr/bx/n/12 2. Select75%ofthedatatoactasatrainingset,withtheremaining25
 %fortesting/evaluation. 
  []
 
 
-
-[19]
-
 LaTeX Font Warning: Font shape `TU/lmtt/bx/it' in size <10.95> not available
-(Font)              Font shape `TU/lmtt/b/sl' tried instead on input line 1322.
+(Font)              Font shape `TU/lmtt/b/sl' tried instead on input line 1457.
 
 
 
 
-[20] (Adv_stats_proj.aux)
+[21]
+
+[22] (Adv_stats_proj.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 22947 strings out of 408644
- 416051 string characters out of 5744893
- 991754 words of memory out of 5000000
- 45681 multiletter control sequences out of 15000+600000
+ 22955 strings out of 408644
+ 416263 string characters out of 5744893
+ 992300 words of memory out of 5000000
+ 45689 multiletter control sequences out of 15000+600000
  614285 words of font info for 166 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 90i,9n,114p,1013b,531s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 90i,9n,114p,1013b,529s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on Adv_stats_proj.pdf (20 pages).
+Output written on Adv_stats_proj.pdf (22 pages).
