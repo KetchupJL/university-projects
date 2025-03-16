@@ -1,7 +1,7 @@
 ---
 title: "**MTHM017 - Advanced Topics in Statistics, Assignment**"
 author: "**James R Lewis**"
-date: "**00-00-2025**"
+date: "**14-03-2025**"
 output:
   pdf_document:
     latex_engine: xelatex
@@ -23,6 +23,9 @@ output:
   - \geometry{a4paper, margin=1in}
   - \usepackage{setspace}
   - \onehalfspacing
+knitr:
+  opts_chunk:
+    cache: FALSE
 
 classoption: a4paper,11pt
 ---
@@ -71,11 +74,9 @@ custom_theme <- theme_minimal(base_size = 12) +
 
 # A. Bayesian Inference
 
-## 1.
+## 1. Schizophrenic and Non-Schizophrenic individual's reaction times
 
-[6 marks] Read in the data, then for each person produce a histogram of that given person’s reaction times. The range of the x axis should be the same on each histogram. Visually compare the reaction time distributions of schizophrenic and non-schizophrenic individuals. What differences/similarities can you observe? Reference the histograms of specific individuals to support your conclusions.
-
-I will begin by making the dataset more usable and clear.
+We begin by making the wrangling the data into a more useable structure.
 
 ```{r, data wrangling rtimes, include=TRUE}
 # Renaming first column
@@ -104,7 +105,7 @@ x_max <- 1714
 
 Below, we can observe two sets of histograms, the first containing the eleven non-schizophrenic patients, and the seconds containing the 6 schizophrenic patients.
 
-We reshape to data frame to long format, as having the reaction time data in one column (a list) makes much easier to code the histogram. To create a separate plot for each patient, we use facet_wrap() to group data by PatientID.
+We reshaped to data frame to long format, as having the reaction time data in one column (a list) makes much easier to code the histogram. To create a separate plot for each patient, we use facet_wrap() to group data by PatientID.
 
 ```{r histo format, include=TRUE}
 # Reshaping to long format
@@ -147,30 +148,30 @@ print(hist1)
 print(hist2)
 ```
 
-In Figure 1 we can see that Non-schizophrenic patients such as patient 1 have a narrower and concentrated histogram, with reaction times completely clustered around the second bin (150-300ms). For example, every Non-schizophrenic patient's results show that at least two thirds of their reaction times were faster than 300ms.
+\newpage
 
-In contrast, the Schizophrenic patients histograms in Figure 2 exhibit a much wider spread of reaction times, with some patients having reactions times exceeding 1500ms. This indicates greater variability, for instance, patient 14 has a wide range of reaction times with many being greater than 1000ms, whilst also having a significant count below 500ms. This suggests that Schizophrenic patients have a mixture of normal and delayed responses, and this aligns with the theory of attention deficits and motor retardation in schizophrenics. This is generally observed by their inconsistent distributions and right skew, compared to the tighter uniform distributions of non-schizophrenics
+In Figure 1, non-schizophrenic patients, such as **Patient 1**, display histograms with denser distributions and lower variability. Reaction times are clustered around the second bin (**150–300ms**), with most patients having at least **two-thirds** of their reaction times falling below **300ms**. This indicates consistent and faster reaction times within this group.
 
-Nonetheless, both groups share similarities in their distributions. They both have peaks within the first two bins 0-500ms, as you can see when comparing patient 8 (non) to 13 (schizophrenic). However, only schizophrenics have reaction time values in the higher bands (greater than 800ms)
+In contrast, the histograms for schizophrenic patients in Figure 2 show a much wider spread of reaction times, with some exceeding **1500ms**. For instance, **Patient 14** demonstrates significant variability, with a large proportion of reaction times exceeding **1000ms**, but also a notable count below **500ms**. This suggests a mixture of both normal and delayed responses, aligning with the theory of attention deficits and motor retardation in schizophrenic individuals. These characteristics are reflected in their inconsistent distributions, right-skewed shapes, and greater variance.
 
-Overall, these histograms support the hypothesis that schizophrenics experience attention deficits and motor reflex retardation, as seen by the wider spread of values and more irregular histograms for schizophrenic individuals.
+Despite these differences, both groups share some similarities. Both have peaks within the first two bins **(0–500ms**), as seen when comparing **Patient 8** (non-schizophrenic) to **Patient 13** (schizophrenic). However, only schizophrenic patients display reaction times in the higher bands (greater than **800ms**), indicating greater variability and more extreme delays.
 
-## 2. [5 marks] The above model uses the logarithm of measured reaction times. Explain why taking the
+Overall, these histograms support the hypothesis that schizophrenic patients experience attention deficits and motor reflex retardation. This is evidenced by the wider spread of values, higher maximum reaction times, and the more irregular, skewed distributions observed in the schizophrenic group.
 
-logarithm is necessary here (referencing the relevant output), then perform the transformation yourself. For each person compute the standard deviation of the log transformed reaction times of that individual.
+## 2. Preparing the Data
 
--Calculate standard deviations: For each of the 17 people, compute the standard deviation of their 30 log-transformed reaction times.
+Log-transforming the reaction times is necessary for two key reasons. Firstly, log transformation **stabilises variance**, as reaction times $y_{ij}$ are positively skewed. Applying log($y_{ij}$) helps to approximate a normal distribution, which is essential for meeting the model's assumptions. This skewness is evident in the histograms of schizophrenic patients, particularly **Patients 14** and **15**, where right-skewed distributions with extreme values (exceeding **1500ms**) are observed. By reducing skewness, the data better align with the model's assumption of normality.
 
-Log-transforming the reaction times is necessary for the model above for two main reasons. Firstly, there is skewness in the data as seen in the Schizophrenic reaction times histograms, for example, Patient 14 and 15 are right-skewed distributions with extreme values (over 1500ms), whilst non-schizophrenic's have a tighter distribution. Following this, schizophrenics don't seems to follow a normal distribution, thus, log transforming reduces the skewness and helps stabilise the variance from the effect of outliers/skew. This enambles the data to fit the models normal distributions assumption better. Finally, the log-transformation scales the data, making the mean and variance more interpretable. For example, the original range of 204ms to 1714ms, becomes 5.31 to 7.44 (3 s.f.) when log-transformed. Put simply, handling smaller numbers is easier.
+Secondly, log transformation scales the data, making the **mean** and **variance** more interpretable. For example, the original range of **204ms** to **1714ms** becomes **5.31** to **7.44** (to three significant figures) when log-transformed. This makes the data easier to interpret and handle, as working with smaller numbers simplifies analysis and reduces the influence of extreme values.
 
 ```{r log transforming, include=TRUE}
-log_rtimes_long <- rtimes_long %>%
+log_rtimes_long <- rtimes_long %>% # Log Transforming
   mutate(LogReactionTime = log(ReactionTime))
 range(log_rtimes_long$LogReactionTime) 
-# checking the range also lets us knowif any observations are negative.
+# Checking the range also lets us know if any observations are negative.
 ```
 
-Now we compute the standard deviation of each patients 30 log-transformed reaction times. This is useful as it measures the within personal variability on the log scale.
+Now we compute the standard deviation of each Patient's 30 log-transformed reaction times. This is useful as it measures the within personal variability on the log scale.
 
 ```{r sd log, include = TRUE}
 # Compute standard deviation of log-transformed reaction times for each person
@@ -182,36 +183,41 @@ sd_log <- log_rtimes_long %>%
 head(sd_log)
 ```
 
-## 3. [5 marks] List the parameters of the model and assign non-informative uniform prior distributions to each parameter, paying attention to the values these parameters are allowed take.
+## 3. Parameters and Prior Distributions
 
-The reason we are using non-informative uniform prior distributions is because we lack prior knowledge about the parameters. Thus, having a reasonable range of values that are equally likely gives a non-bias estimation and allows the data to strong influence the posterior distribution.
+**Non-informative uniform prior distributions** are used due to the lack of prior knowledge about the parameters. By specifying a broad and equally likely range of values, these priors **minimise bias** and allow the data to strongly influence the posterior distribution, ensuring that the model is driven by the observed evidence rather than subjective assumptions.
 
-**Parameters and Priors:**
-
-## **For Non-Schizophrenic Individuals:**
+### For Non-Schizophrenic Individuals:
 
 -   $\alpha_i$ (for $i = 1$ to 17): Person-specific means on the log scale.
 
 ```{r echo=TRUE, results = "hide"}
 alpha[i] ~ dunif(0, 10)
+
 ```
 
 ------------------------------------------------------------------------
 
--   $\mu$: Mean of $\alpha_i$ for non-schizophrenics, which represents the mean log reaction time. with most values between 200ms and 1800ms), when log transformed they equal, 5.3 and 7.5.. A wide range of -10 - 10 to avoid bias and cover potential outliers.
+-   $\mu$: **Mean** of $\alpha_i$ for **non-schizophrenics**, which represents the mean log reaction time.
+
+A broad range of [**-10,10**] was selected to remain non-informative and capture outliers, as the transformed log reaction times realistically range between approximately 5.3 and 7.5.
 
 ```{r echo=TRUE, results = "hide"}
 mu ~ dunif(-10, 10)
 ```
 
--   (\sigma\_y\^2): Varience of log-reaction times.
+------------------------------------------------------------------------
+
+-   (\sigma\_y\^2): Varience of log-reaction times. The lower bound (**0.001** rather than 0) avoids computational instability from precision going to infinity. An upper bound of **5** is sufficiently large to accommodate considerable variability.
 
 ```{r echo=TRUE, results = "hide"}
 sigma_y2 ~ dunif(0.001, 5)
 # tau_y <- 1 / sigma_y2 
 ```
 
--   (\sigma\_\alpha\^2): Varience of $\alpha_i$.
+------------------------------------------------------------------------
+
+-   (\sigma\_\alpha\^2): Varience of $\alpha_i$. The same reasoning as sigma_y2.
 
 ```{r echo=TRUE, results = "hide"}
 sigma_alpha2 ~ dunif(0.001, 5)
@@ -221,27 +227,31 @@ sigma_alpha2 ~ dunif(0.001, 5)
 
 **For Schizophrenic Individuals:**
 
--   $\beta$: Additional variable in $\alpha_i$ mean for schizophrenics, which represents the increase in reaction time due to schizophrenia. Although we expect schizophrenics to be slower, there is still the possibility of motor retardation having no difference, or faster reactions (unlikely, but possible). A range of -10 - 10 is wide enough for the data to determine the direction.
+-   $\beta$: Additional variable in $\alpha_i$ mean for **schizophrenics**, which represents the increase in reaction time due to schizophrenia. Although we expect schizophrenics to be slower, there is still the possibility of motor retardation having no difference, or faster reactions (unlikely, but possible). The chosen range [**0, 10**] ensures positivity while being wide enough to accommodate large variations in reaction times.
 
 ```{r echo=TRUE, results = "hide"}
 beta ~ dunif(0, 10)
 ```
 
--   $\tau$: Log-transformed delay parameter for schizophrenics ($\tau > 0$). This is a wide range, but remains uninformative and is contrained to positive values.
+------------------------------------------------------------------------
+
+-   $\tau$: Log-transformed **delay parameter** for **schizophrenics** ($\tau > 0$). This is a wide range covers all reasonable values, but remains uninformative and is contained to positive values.
 
 ```{r echo=TRUE, results = "hide"}
 tau ~ dunif(0, 10)
 ```
 
--   $\lambda$: Probability of delay ($0 \leq \lambda \leq 1$). Value must lie between 0 and 1, as $\lambda$ is a probability.
+------------------------------------------------------------------------
+
+-   $\lambda$: **Probability of delay** ($0 \leq \lambda \leq 1$). Value must lie between **0** and **1**, as $\lambda$ is a probability.
 
 ```{r echo=TRUE, results = "hide"}
 lambda ~ dunif(0, 1)
 ```
 
-## 4.
+## 4. JAGS Setup
 
-```{r, include = FALSE}
+```{r, include = TRUE}
  library(R2jags)
  library(coda)
  library(lattice)
@@ -249,7 +259,7 @@ lambda ~ dunif(0, 1)
  library(tidyverse)
 ```
 
-First we need to create a data matrix which JAGS can process. We extracting the raw reaction times in the original wide format, and then Log-transforming them. After this, we can create our data list for our JAGS model. Defining separate matrixs for Schizophrenic and non-Schizophrenic reaction times, the number of patients in each group, and the number of trials. It is important to define these now, as we call upon them in the model definition.
+First, a data matrix is created for JAGS processing. The raw reaction times are extracted in their original wide format and log-transformed to meet model assumptions. A data list is then constructed, defining separate matrices for schizophrenic and non-schizophrenic reaction times, the number of patients in each group, and the number of trials. Defining these components at this stage is essential, as they will be referenced in the model definition.
 
 ```{r, setting up data, include=TRUE}
 extractedRtimes <- rtimes[, 2:31] 
@@ -267,31 +277,32 @@ data_list <- list(
 
 ### **Model Specification**
 
-Now we define the hierarchical Bayesian model. The model is account for the two groups of patients, their individual variability.
+Now we define the Hierarchical Bayesian model. The model is accounting for the two groups of patients, and their individual variability.
 
-**Reaction times for Non-Schizophrenic patients (N.S)** ($i$th individual) are modeled as:
+### **Reaction times for Non-Schizophrenic patients (N.S)** are modeled as:
 
-($i = 1, 2, \ldots, 11$) $$y_{ij} \sim N(\alpha_i, \sigma_y^2), \quad i = 1, 2, \ldots, 11, \quad j = 1, 2, \ldots, 30$$ Where: 
+($i = 1, 2, \ldots, 11$) $$y_{ij} \sim N(\alpha_i, \sigma_y^2), \quad i = 1, 2, \ldots, 11, \quad j = 1, 2, \ldots, 30$$ Where:
 
-- $y^{ns}_{ij}$ is the **reaction time** for individual $i$ and trial $j$ 
-- $\alpha_i$ is individual specific **mean** reaction time 
-- $\sigma_y^2$ is the shared **varience** across all trials.
+-   $y^{ns}_{ij}$ is the **reaction time** for individual $i$ and trial $j$
+-   $\alpha_i$ is individual specific **mean** reaction time
+-   $\sigma_y^2$ is the shared **varience** across all trials.
 
-Individuals **mean** ($\alpha_i$) reaction time is: $$\alpha_i \sim N(\mu, \sigma_\alpha^2), \quad i = 1, 2, \ldots, 11$$ - $\mu$ is the mean reaction time for N.S - $\sigma_\alpha^2$ is the intragroup variance in reaction times
+Individuals **mean** ($\alpha_i$) reaction time is: $$\alpha_i \sim N(\mu, \sigma_\alpha^2), \quad i = 1, 2, \ldots, 11$$
 
+-   $\mu$ is the mean reaction time for N.S - $\sigma_\alpha^2$ is the intragroup variance in reaction times
 
-**Reaction times for Schizophrenic patients (S)**
+### **Reaction times for Schizophrenic patients (S):**
 
-$$y_{ij} \sim N(\alpha_i + \tau z_{ij}, \sigma_y^2) \quad i = 12, 13, \ldots, 17, \quad j = 1, 2, \ldots, 30$$ Where: 
+$$y_{ij} \sim N(\alpha_i + \tau z_{ij}, \sigma_y^2) \quad i = 12, 13, \ldots, 17, \quad j = 1, 2, \ldots, 30$$ Where:
 
-- $\tau$ is the extra delay 
-- $z_{ij}$ is an indicator (one or zero)
+-   $\tau$ is the extra delay
+-   $z_{ij}$ is an indicator (one or zero)
 
-$$z_{ij} \sim \text{Bernoulli}(\lambda), \quad i = 12, 13, \ldots, 17, \quad j = 1, 2, \ldots, 30$$ Schizophrenic patients can have delayed responses due to attention deficit. This is modeled through the above Bernoulli distributed indicator function. $\lambda$ is the probability of a trial being delayed.
+$$z_{ij} \sim \text{Bernoulli}(\lambda), \quad i = 12, 13, \ldots, 17, \quad j = 1, 2, \ldots, 30$$ Schizophrenic patients can have delayed responses due to **attention deficit**. This is modelled through the Bernoulli distributed indicator function. $\lambda$ is the probability of a trial being delayed.
 
-Schizophrenics mean reaction time: $$\alpha_i \sim N(\mu + \beta, \sigma_\alpha^2), \quad i = 12, 13, \ldots, 17$$ Where: 
+Schizophrenics mean reaction time: $$\alpha_i \sim N(\mu + \beta, \sigma_\alpha^2), \quad i = 12, 13, \ldots, 17$$ Where:
 
-- $\beta$ is the increase in mean reaction time for S
+-   $\beta$ is the increase in mean reaction time for Schizophrenic patients
 
 ### **Defining the JAGS Model**
 
@@ -311,18 +322,19 @@ jags.model <- function(){
      for (i in 1:N_s){
         for (j in 1:T) {
             z[i,j] ~ dbern(lambda)  # Bernoulli for delay indicator
-            y.s[i,j] ~ dnorm(alpha.s[i] + tau * z[i,j], p.y) # Corrected indexing
+            y.s[i,j] ~ dnorm(alpha.s[i] + tau * z[i,j], p.y) 
+            # Used ChatGPT  to bug fix indentation error.
         }
         alpha.s[i] ~ dnorm(mu + beta, p.alpha)
     }
   
     # Priors
-    mu ~ dunif(-10, 10) # Mean for non-schizophrenics
-    sigma_y2 ~ dunif(0.001, 5) # Avoiding exact 0 for stability
-    sigma_alpha2 ~ dunif(0.001, 5) # Avoiding exact 0 for stability
-    beta ~ dunif(0, 10) # Schizophrenics should have longer reaction times
-    tau ~ dunif(0, 10) # Delay parameter
-    lambda ~ dunif(0, 1) # Probability of delay
+    mu ~ dunif(-10, 10) 
+    sigma_y2 ~ dunif(0.001, 5)
+    sigma_alpha2 ~ dunif(0.001, 5) 
+    beta ~ dunif(0, 10) 
+    tau ~ dunif(0, 10) 
+    lambda ~ dunif(0, 1)
   
     # Precision parameters
     p.y <- 1 / sigma_y2   
@@ -352,12 +364,12 @@ inits2 <- list(
 jags.inits <- list(inits1, inits2)
 
 ```
-Explain the thought process behind picking these initial values
 
+Two sets of initial values were chosen to help the model explore different starting points and ensure proper convergence. Parameters `mu`, `beta`, `tau`, `lambda`, `sigma_y2`, and `sigma_alpha2` were given different realistic values to cover a broad range. The `z` matrix, which indicates delayed responses, was initialized with zeros to start with the assumption of no delays, allowing the model to update this based on the data.
 
 ### **Fitting the JAGS Model**
 
-In the first JAGS model, we are running two MCMC chains, with 10000 iterations and discarding the first 5000 iterations to view the convergence. We are also computing the Deviance Information Criterion (DIC), so we can compare this model to future ones later.
+In the first JAGS model, we are running two MCMC chains, with **10,000** iterations and discarding the first **5000** iterations to view the convergence.
 
 ```{r fitting jags1, include=TRUE}
  jags.mod.fit <- jags(data = data_list, inits = jags.inits,
@@ -365,16 +377,16 @@ In the first JAGS model, we are running two MCMC chains, with 10000 iterations a
   n.burnin = 5000, n.thin = 1 , model.file = jags.model, DIC = FALSE)
 ```
 
-## 5. Monte Carlo Marcov Chain
+## 5. Monte Carlo Markov Chain
 
 ```{r}
 jagsfit.mcmc <- as.mcmc(jags.mod.fit)
  MCMCtrace(jagsfit.mcmc,type = 'trace',ind = TRUE, pdf = FALSE)
 ```
 
-We can see from the trace plots above, that the chains have converged and look like "fuzzy caterpillars". The alpha.s and alpha.ns (mean reaction time for both groups), seem to have converged for every individual, with values ranging from 5.6 to 5.75 (log transformed mean reaction time) for non-schizophrenics, and 5.9 to 6.3 for schizophrenics.
+The trace plots for all key parameters (`beta`, `lambda`, `mu`, `sigma_alpha2`, `sigma_y2`, and `tau`) show good overall mixing and convergence. The parameters `beta`, `mu`, `tau`, and `sigma_y2` display well-mixed chains with stable fluctuations around a consistent mean, indicating effective exploration of the posterior distribution. The `lambda` trace plot shows slightly more fluctuation at the start but quickly stabilizes, suggesting successful convergence after the burn-in period. Although `sigma_alpha2` shows a bit more variability with some occasional spikes, the chain still appears well-distributed and doesn’t indicate any major convergence issues. Overall, the absence of clear trends or poor mixing across all parameters suggests that the **MCMC algorithm has converged effectively**.
 
-To check for convergence more accurately, we can extract the Gelman-Rubin test statistic values. This is in the code below.
+To check for convergence more accurately, we can extract the **Gelman-Rubin** test statistic values. This is in the code below.
 
 ```{r, include=TRUE}
 gelman_stats<- gelman.diag(jagsfit.mcmc,multivariate=FALSE)
@@ -382,43 +394,20 @@ gelman_df <- as.data.frame(gelman_stats$psrf)
 gelmam.params <- c("mu", "beta", "tau", "lambda", "sigma_y2", "sigma_alpha2")
 gelman_subset <- gelman_df[gelmam.params, , drop = FALSE]
 ```
-```{r gelman table, fig.width=7, fig.height=5, fig.align="center", echo=FALSE}
+
+```{r gelman table, fig.width=7, fig.height=5, fig.align="center", warning = FALSE, echo=FALSE}
 library(gt)
 library(dplyr)
 
-gelman.diag(jagsfit.mcmc, multivariate = FALSE)$psrf %>%
-  as.data.frame() %>%
-  tibble::rownames_to_column(var = "Parameter") %>%
-  filter(Parameter %in% c("mu", "beta", "tau", "lambda", "sigma_y2", "sigma_alpha2")) %>%
-  select(Parameter, `Point est.`, `Upper C.I.`) %>%
-  gt() %>%
-  tab_header(title = "Gelman-Rubin Statistics for Key Parameters") %>%
-  fmt_number(
-    columns = c("Point est.", "Upper C.I."), # Original column names here
-    decimals = 3
-  ) %>%
-  cols_label(
-    `Point est.` = "Point Estimate",
-    `Upper C.I.` = "Upper CI"
-  ) %>%
-  tab_options(
-    table.font.size = px(14),
-    heading.title.font.size = px(16),
-    heading.title.font.weight = "bold"
-  )
+gelman.diag(jagsfit.mcmc, multivariate = FALSE)
 
 ```
 
+The Gelman-Rubin diagnostics show values close to 1 for all parameters, indicating good convergence. The slight deviation for `sigma_alpha2` (1.01) is minimal and not concerning. If a value was above 1.1, this would suggest a lack of convergence.
 
-As you can see above, the value of all the upper confidence intervals are 1 or very close to 1. This indicates convergence. If a value was above 1.1, this would suggest a lack of convergence.
+## 6. Posterior Distributions
 
-Interestingly, looking at the traceplots for alpha.s[4] (Upper CI of 1.01) and lambda (Upper CI of 1.01), their traceplots look slightly less concentrated and dense around the center, indicating that they aren't as strongly converged as the other nodes.
-
-Since chains have converged, there is no need to update the model to draw new samples.
-
-## 6. **Posterior Distributions**
-
-### Plots
+### 
 
 ```{r post distri, fig.width=7, fig.height=5, fig.align="center", include=TRUE}
 library(MCMCvis)
@@ -437,13 +426,15 @@ Next, we check to summary statistics.
 ```{r, include=TRUE, }
 print(jags.mod.fit$BUGSoutput$summary[c("beta", "lambda", "mu"), ])
 ```
-The n.eff statistics in the table above is a crude measurement for effective sample size, if the value is above 1000, it indicates that you have sample adequacy, enough independent samples for posterior inference. In our case, we can confidently assume that our model has plenty of valid samples shown by the n.eff values greater than 1000(3000, 3000, 2500).
 
-To confirm this, we can check to see if the MCMC standard error is 1-5% of the posterior standard deviation. We do this by dividing Time-series SD by SD.
+The **n.eff** statistics in the table above is a crude measurement for **effective sample size**, if the value is above 1000, it indicates that you have sample adequacy, enough independent samples for posterior inference. In our case, we can confidently assume that our model has plenty of valid samples shown by the n.eff values greater than 1000(**3000, 3000, 2500**).
 
-```{r }
+To confirm this, the **MCMC Standard Error** should be within 1-5% of the posterior standard deviation, indicating reliable and stable estimates. This is calculated by dividing the Time-series Standard Error by the posterior Standard Deviation and expressing it as a percentage.
+
+```{r results='hide'}
 summary(jagsfit.mcmc)
 ```
+
 ```{r}
 SampleCheck <- summary(jagsfit.mcmc)
 stats <- SampleCheck$statistics
@@ -458,13 +449,13 @@ MC_Error <- (se_values / sd_values) * 100
 MC_Error[c("beta", "lambda", "tau")]
 ```
 
+The **MC errors** for Beta, Lambda and Tau range from **1.6**% to **2.1**%. This falls within the acceptable threshold, suggesting that the MCMC chains have **converged sufficiently**, and the number of iterations provided **reliable posterior estimates**.
 
-Now we extract the relevant statistics for Beta, Lamba and Tau. It is important to note that Beta and Tau have been in log scale up until this point, so by multiplying them by exponential, we return them to their true values.
+### Summary Statistics
 
+Now we extract the relevant statistics for **Beta**, **Lamba** and **Tau**. It is important to note that Beta and Tau have been in log scale up until this point, so we multiply them by the exponential function.
 
-
-
-This can be seen in the code below.
+This is done in the code below.
 
 ### Beta
 
@@ -512,26 +503,43 @@ df_stats <- data.frame(
 )
 ```
 
-```{r stargazer table 1, echo=FALSE}
-stargazer(df_stats, type = "text", summary = FALSE, title = "Reaction Time Parameters", digits = 3 )
+```{r echo=FALSE}
+# Create the gt table
+df_stats %>%
+  gt() %>%
+  tab_header(
+    title = "Posterior Summaries for Key Parameters"
+  ) %>%
+  fmt_number(
+    columns = c(Median, Lower_95_CI, Upper_95_CI),
+    decimals = 3
+  ) %>%
+  cols_label(
+    Parameter = "Parameter",
+    Median = "Median",
+    Lower_95_CI = "Lower 95% CI",
+    Upper_95_CI = "Upper 95% CI"
+  ) %>%
+  tab_options(
+    table.font.size = px(14),
+    heading.title.font.size = px(16),
+    heading.title.font.weight = "bold"
+  )
 ```
-Based on the "Reaction Time Parameters" table, conclusions about schizophrenic versus non-schizophrenic reaction times emerge, aligning with motor retardation and attention deficit theories. The median \(\beta\) of 1.374 (95% CI: 1.169–1.626) indicates schizophrenic mean reaction times are 37% longer, with the CI above 1 confirming significant slowing, as seen in Person 14’s wide histogram spread (Question 1). 
-This supports motor retardation across all trials. The median \(\lambda\) of 0.118 (CI: 0.070–0.181) suggests 11.8% of trials are delayed (7.0%–18.1%), consistent with attention deficits, matching mixed fast/slow times in Person 15. The median \(\tau\) of 2.337 (CI: 2.082–2.643) shows delayed responses are 2.34 times longer, reinforcing significant delays. 
 
-Compared to non-schizophrenics’ tighter distributions (Person 1), schizophrenics’ dual effects (\(\beta\), \(\tau\), \(\lambda\)) validate the model’s two-component structure.
+Based on the "**Posterior Summaries**" table, conclusions about schizophrenic versus non-schizophrenic reaction times emerge, aligning with **motor retardation and attention deficit theories**. The median $\beta$ of **1.374** (95% CI: 1.169–1.626) indicates schizophrenic mean reaction times are **37**% longer, with the CI above **1** confirming significant slowing, as seen in **Person 14**’s wide histogram spread (Question 1a). This supports motor retardation across all trials.
 
+The median $\lambda$ of **0.118** (CI: 0.070–0.181) suggests **11.8**% of trials are delayed (**7.0%–18.1%**), consistent with attention deficits, matching mixed fast/slow times in Person 15.
 
-## 7. 
+The median $\tau$ of **2.337** (CI: 2.082–2.643) shows delayed responses are **2.34** times longer, reinforcing significant delays.
 
-To predict 30 additional log response time measurement **y.pred**.
+Compared to the tighter distributions seen in non-schizophrenic individuals, such as **Person 1**, the combined effects of $\beta$, $\tau$, $\lambda$ among schizophrenics validate the model's two-component structure, capturing both **consistent and delayed response patterns**.
 
-HERE I SHOULD EDIT THIS TO DEFINE Y PRED
-$$y_{ij} \sim N(\alpha_i + \tau z_{ij}, \sigma_y^2) \quad i = 12, 13, \ldots, 17, \quad j = 1, 2, \ldots, 30$$ Where: 
+## 7. Preditions
 
-- $\tau$ is the extra delay 
-- $z_{ij}$ is an indicator (one or zero)
+### A. Predicting Additional Reaction Times
 
-
+To evaluate the model's predictive performance, additional reaction times should be simulated for each schizophrenic individual. This is done by extending the model to **generate predicted values** (`y_pred`) while accounting for the possibility of independant delayed responses through the use of an indicator variable (`z_pred`).
 
 ```{r 7a, include=TRUE}
 set.seed(123) # Setting Seed for reproducibility
@@ -576,24 +584,24 @@ jags.model2 <- function(){
 
 ```
 
-Explain what ive added here
-new lists
-y.pred, we use the poterior distribution of alpha.s[i]
-z.pred + inits
+`y_pred` represents the predicted log-transformed reaction times. We use z_pred instead of z, as it ensures that the delayed reaction times are **independent** from the observed information. Even with the same initial values, this extra step can reduce bias within the model.
 
-########################################################
+### B.
 
-### b. 
+To assess the variability in the predicted reaction times, the model includes nodes to track the **standard deviations of the 30 predicted measurements for each schizophrenic individual**. Specifically, `sd_pred[i]` calculates the standard deviation of the 30 predicted reaction times for individual `i`, using the formula:
 
-The nodes below track the standard deviations of the 30 predicted measurements for the Schizophrenic individuals. In the JAGS model below, we place sd_pred[i] in the predicted reaction times node, and the min/max are defined separetly as they are logical(?).
+sd_pred[i] \<- sd(y_pred[i, ])
 
-- **sd_pred[i] <- sd(y_pred[i, ])** This node tracks the SD of the thirty predicted measurements of each individual
+This allows the model to capture **within-individual variability** in the predictions.
 
-The nodes below track the minimum and maximum standard deviation of predicted measurement across all individuals.
-- **Smin <- min(sd_pred[])**
-- **Smax <- max(sd_pred[])**
-    
-    
+Additionally, to summarise this variability across all individuals, two nodes were defined to track the minimum and maximum standard deviations:
+
+-   `Smin` captures the smallest standard deviation across all individuals:
+
+-   `Smax` captures the largest standard deviation across all individuals:
+
+These values (`Smin` and `Smax`) provide a summary of the range of variability in the predicted reaction times, which will be used to compare against the observed variability in the original data.
+
 ```{r adding sd and min/max, include=TRUE}
 set.seed(123) # Setting Seed for reproducibility
 
@@ -640,10 +648,7 @@ jags.model2 <- function(){
 }
 ```
 
-
-### c. 
-
-Adding new standard deviation parameters to track.
+### C. Fitting the Extended Model
 
 ```{r inits2, include=TRUE}
 jags.param2 <- c("mu", "beta", "tau", "lambda", "p.y", "p.alpha", "Smin", "Smax")
@@ -665,27 +670,24 @@ inits2 <- list(
 jags.inits <- list(inits1, inits2)
 ```
 
-Now we run the model, with two chains, 6000 iterations, but discarding 5000 as burnin.
+The extended model, which includes the prediction of additional reaction times and the tracking of standard deviations (`sd_pred`, `Smin`, and `Smax`), is fitted using two MCMC chains. The model ran for **6,000** iterations, discarding the first **5,000** as burn-in to ensure convergence and reliable posterior samples.
+
+The same initial values and prior distributions from the original model were used to maintain consistency, with additional initial values specified for the new `z_pred` matrix. This matrix was initialized with zeros, allowing the model to determine the occurrence of delays in the predictions based on the posterior estimate of `lambda`.
 
 ```{r fitting jags2, include=TRUE, results='hide'}
  jags.mod.fit2 <- jags(data = data_list, inits = jags.inits,
   parameters.to.save = jags.param2, n.chains = 2, n.iter = 6000,
   n.burnin = 5000, n.thin = 1 , model.file = jags.model2, DIC = FALSE)
 ```
+
 ```{r}
 # Display results
 print(jags.mod.fit2)
 ```
 
-## d. 
+## D. Interpreting Predicted Variability
 
-Extract the minimum and maximum standard deviation values from the fitted model, and produce
- a scatterplot of the (Smin,Smax) pairs. (Note that each iteration of the model fit will produce
- a minimum-maximum pair). Find the minimum and maximum of the raw standard deviation
- estimates obtained in Question 2, and add an additional point to your scatterplot showing this
- raw minimum-maximum pair.
- 
-Now we extract the minimum and maximum standard deviation values from the fitted model.
+To assess the model's ability to capture variability in predicted reaction times, the minimum and maximum standard deviations (`Smin` and `Smax`) were extracted from the MCMC samples of the fitted model.
 
 ```{r, fig.width=7, fig.height=5, fig.align="center"}
 # Extract Smin and Smax from MCMC samples
@@ -710,40 +712,21 @@ ggplot(scatter_data, aes(x = Smin, y = Smax)) +
   custom_theme
 ```
 
-The scatterplot in Figure X displays the relationship between the minimum (Smin) and maximum (Smax) standard deviations of the predicted response times for schizophrenic individuals, obtained from the posterior samples of the JAGS model. Each blue point represents an (Smin, Smax) pair from a single iteration of the Markov Chain Monte Carlo (MCMC) sampling process. The red point corresponds to the empirical minimum and maximum standard deviations computed from the original dataset.
+The scatterplot above displays the relationship between the predicted minimum (**`Smin`**) and maximum (**`Smax`**) standard deviations of schizophrenic individuals, obtained from the posterior samples of the JAGS model. Each **blue point** represents an (`Smin`, `Smax`) pair from a single MCMC iteration, while the **red point** corresponds to the minimum and maximum standard deviations calculated from the observed data.
 
-Interpretation of the Scatterplot
-The majority of the posterior samples (blue points) form a dense cluster, indicating the range of predicted variability for within-person reaction times. However, the red point lies outside this main distribution, suggesting that the observed reaction time variability is greater than what the model predicts. This discrepancy indicates that the model may underestimate the true within-person variability of schizophrenic individuals.
+Most of the posterior samples (blue points) form a dense cluster, indicating the range of predicted within-person variability. However, the red point lies outside this distribution, suggesting that the model may underestimate the true variability observed in the original data.
 
-Possible reasons for this underestimation include:
+### **Conclusion**
 
-Restrictive prior assumptions on the variance parameter 
-𝜎
-𝑦
-σ 
-y
-​
- , which may be limiting the spread of predicted reaction times.
-The mixture model structure may not fully capture the extent of individual differences in reaction time delays.
-Potential bias in the assumed normal distributions, which may not sufficiently accommodate extreme reaction times observed in schizophrenic individuals.
-Conclusion: Can the Model Explain the Variability?
-The positioning of the red point outside the cloud of posterior samples suggests that the model does not fully explain the observed variability in schizophrenic reaction times. While the model captures general trends, it likely underestimates reaction time dispersion. Refinements to the prior distributions, particularly on 
-𝜎
-𝑦
-σ 
-y
-​
- , or adjustments to the model structure (such as incorporating a more flexible variance structure) may be necessary to improve model fit.
+The position of the red point outside the cloud of posterior samples suggests that the model **does not** fully explain the observed variability in schizophrenic reaction times. While the model captures general trends, it appears to **underestimate** the true dispersion of reaction times.
 
+However, this conclusion should be treated with caution. With only a single point of comparison, it is difficult to confidently assess the model's accuracy. If a larger dataset were available—such as 1,000 observed standard deviation pairs—it is possible that the observed distribution would align more closely with the model's predictions. Therefore, while the current results suggest some underestimation, more observed data would be needed to validate this conclusively.
 
-## 8.  **double check**
-
-
+\newpage
 
 # B. Classification
 
-
-The following figure shows the information in the dataset Classification.csv- it shows two different groups, plotted against two explanatory variables. This is simulated data - the groupings are determined by a known function of X1 and X2 with added noise/random error.
+The following figure shows the information in the dataset Classification.csv. It shows two different groups, plotted with two explanatory variables. This is simulated data - the groupings are determined by a known function of **X1** and **X2** with added **noise/random error**.
 
 ```{r  fig.width=7, fig.height=5, fig.align="center"}
 ggplot(Classification, aes(x = X1, y = X2, color = as.factor(Group))) + 
@@ -756,32 +739,16 @@ ggplot(Classification, aes(x = X1, y = X2, color = as.factor(Group))) +
   custom_theme
 ```
 
-
-## 1. Create meaningful summaries
+## 1. Numerical Summary
 
 First, we use the summary function to get a brief overview of the dataset. We can see that the X1 and X2 are the explanatory variables. To understand how the groups are classified, we will create a more detailed numerical summary.
+
 ```{r results='hide'}
 summary(Classification)
 ```
 
-```{r include=FALSE}
-num_summary <- Classification %>%
-  group_by(Group) %>%
-  summarise(
-    Mean_X1 = mean(X1),
-    SD_X1 = sd(X1),
-    Median_X1 = median(X1),
-    Min_X1 = min(X1),
-    Max_X1 = max(X1),
-    Mean_X2 = mean(X2),
-    SD_X2 = sd(X2),
-    Median_X2 = median(X2),
-    Min_X2 = min(X2),
-    Max_X2 = max(X2)
-  )
-```
-```{r include=FALSE}
-# Load necessary libraries
+```{r include=TRUE}
+# Load libraries
 library(gt)
 library(dplyr)
 
@@ -810,8 +777,11 @@ classification_summary_X2 <- Classification %>%
   mutate(Group = ifelse(Group == 0, "Group 0", "Group 1")) %>%
   relocate(Group)
 ```
-```{r echo=FALSE}
-# GT table for X1 only
+
+```{r include=TRUE}
+# Code to create Summary stat table
+
+# GT table for X1 
 gt_table_X1 <- classification_summary_X1 %>%
   gt() %>%
   tab_header(
@@ -841,7 +811,7 @@ gt_table_X1 <- classification_summary_X1 %>%
   opt_table_lines() %>%
   opt_row_striping()
 
-# GT table for X2 only
+# GT table for X2
 gt_table_X2 <- classification_summary_X2 %>%
   gt() %>%
   tab_header(
@@ -870,140 +840,134 @@ gt_table_X2 <- classification_summary_X2 %>%
   ) %>%
   opt_table_lines() %>%
   opt_row_striping()
+
+# Used ChatGPT here to suggest improvements on how to improve the tables formatting.
 ```
 
-```{r  fig.width=7, fig.height=5, fig.align="center"}
+\newpage
+
+```{r  fig.width=7, fig.height=5, fig.align="center", echo=FALSE}
 gt_table_X1
 
 ```
 
-```{r fig.width=7, fig.height=5, fig.align="center"}
+```{r fig.width=7, fig.height=5, fig.align="center", echo=FALSE}
 gt_table_X2
 
 ```
+
 ### **Numerical Summaries and Interpretation**
 
 #### Variable X1:
-- **Mean and Variability:** Group 1 shows higher variability in X1 (SD = 1.12) compared to Group 0 (SD = 0.59), indicating greater dispersion around its mean.
-- **Median and Range**: The median of Group 1 (-0.30) is lower than that of Group 0 (0.06), suggesting a shift towards lower values for Group 1. Group 1 also exhibits more extreme values with a broader range (Min = -3.06, Max = 3.29) compared to Group 0 (Min = -1.09, Max = 1.64).
 
-### Summaries for Variable X2
+-   **Mean and Variability:** Group 1 shows higher variability in X1 with a standard deviation of **1.12**, compared to **0.59** for Group 0. This suggests that Group 1 has greater dispersion around its mean.
+-   **Median and Range**: The median for Group 1 is -**0.30**, which is lower than Group 0's median of **0.06**, indicating a shift towards lower values for Group 1. Additionally, Group 1 exhibits a broader range (**-3.06 to 3.29**) compared to Group 0 (**-1.09 to 1.64**), suggesting more extreme values and greater variability.
+
+### Variable X2
+
 X2 shows greater similarity between the two groups compared to X1:
-- **Central Tendency**: The median X2 value of Group 1 (0.31) is higher than Group 0 (-0.05), indicating that Group 1 typically has higher X2 values.
-- **Spread and Range:** Both groups have similar variability, indicated by their standard deviations (0.93 for Group 1 vs. 0.89 for Group 0). However, Group 1 again has a wider range (-3.41 to 3.94) compared to Group 0 (-3.39 to 1.84).
+
+-   **Central Tendency**: The median value for Group 1 is **0.31**, slightly higher than Group 0's median of -**0.05**, suggesting that Group 1 tends to have higher X2 values.
+
+-   **Spread and Range:** Both groups display similar variability in terms of standard deviation (**0.93** for Group 1 vs. **0.89** for Group 0). However, Group 1 again exhibits a wider range (**-3.41 to 3.94**) compared to Group 0 (**-3.39 to 1.84**), indicating that Group 1 includes more extreme values.
 
 ### Implications for Classification
+
 The observed numerical summaries and scatter plot highlight several key points:
 
-- The differences in distributions and notable overlap suggest that the classes are not linearly separable.
-- The variability, particularly in X1, suggests complex interactions or non-linear boundaries between groups.
+-   The differences in distributions and notable overlap suggest that the classes are not linearly separable.
+
+-   The variability, particularly in X1, suggests complex interactions or non-linear boundaries between groups.
 
 ### Recommended Classification Methods
+
 Given the distribution and structure of the data, suitable classification methods include:
 
-1. **K-Nearest Neighbors (KNN):** 
-   - Flexible in handling non-linear boundaries.
-   - The optimal choice of neighbors (K) can be tuned to balance flexibility and overfitting risks.
+1.  **K-Nearest Neighbors (KNN):**
+    -   Flexible in handling non-linear boundaries.
+    -   The optimal choice of neighbors (K) can be tuned to balance flexibility and overfitting risks.
+2.  **Quadratic Discriminant Analysis (QDA):**
+    -   Effective at modeling non-linear class boundaries if the assumption of normality holds.
+3.  **Random Forest (RF):**
+    -   Capable of capturing complex interactions and nonlinear patterns in the data without strong assumptions.
+4.  **Support Vector Machines (SVM):**
+    -   Suitable for data where clear linear boundaries do not exist, leveraging kernels to create non-linear separations.
 
-2. **Quadratic Discriminant Analysis (QDA):**
-   - Effective at modeling non-linear class boundaries if the assumption of normality holds.
+Linear Discriminant Analysis (LDA) is not ideal here as it assumes linear boundaries and equal covariance across groups, which is unsuitable for this dataset given the observed overlap and variability.
 
-3. **Random Forest (RF):** 
-   - Capable of capturing complex interactions and nonlinear patterns in the data without strong assumptions.
+## 2. Training and Test Data
 
-4. **Support Vector Machines (SVM):**
-   - Suitable for data where clear linear boundaries do not exist, leveraging kernels to create non-linear separations.
-
-Each of these methods accommodates the observed complexity and variability, offering a balanced approach between flexibility and generalizability.
-
-
-
-
-## 2. Select75%ofthedatatoactasatrainingset,withtheremaining25%fortesting/evaluation.
-
-```{r}
+```{r message=FALSE}
 library(dplyr)
  library(caret)
  library(e1071)
 ```
-```{r}
-# Define function that will split the data into training and test sets
- trainTestSplit <- function(df, trainPercent,seed1){
-# Sample size percent
- smp_size <- floor(trainPercent/100 * nrow(df))
-# set the seed
- set.seed(seed1)
- train_ind <- sample(seq_len(nrow(df)), size = smp_size)
- train_ind
- }
 
-# Split as training and test sets
- train_ind <- trainTestSplit (Classification, trainPercent = 75, seed = 123)
- train <- Classification[train_ind ,]
- test <- Classification[-train_ind ,]
- 
-# Convert 'Group' to a factor in both train and test sets, as this represents the class.
- train$Group <- factor(train$Group)
- test$Group <- factor(test$Group)
+```{r training/test split}
+Classification <- Classification %>%
+dplyr::select(Group, X1, X2) %>% # Explicitly calling dplyr here as I was
+  # getting a package clash error. ChatGPT helped bug fix this.
+  mutate(Group = as.factor(Group))
 
- train_X <- train[, c("X1", "X2")]
- test_X <- test[, c("X1", "X2")]
- 
- train_y <- train$Group
- 
- 
- 
-# Checking dimensions:
-dim(train) 
-dim(test)
+y <- Classification[, "Group"]
+x <- Classification[, c("X1", "X2")]
+
+set.seed(123) # Setting seed ensures reproducible splits
+
+# 75% training data
+ii <- createDataPartition(y, p = 0.75, list = FALSE)
+
+# Creating train and test sets
+xTrain <- x[ii, ]
+yTrain <- y[ii]
+
+xTest <- x[-ii, ]
+yTest <- y[-ii]
+
+# Final training dataframe
+df <- data.frame(xTrain,yTrain)
 ```
 
-The function **trainTestSplit** is employed to divide the dataset into training and test subsets to facilitate model evaluation in Part B. It randomly partitions the dataset based on a specified training percentage (**trainPercent**), with a fixed random seed (**seed1**) to ensure reproducibility. The training subset is used for model fitting, while the test subset provides an unbiased measure of predictive performance. This approach ensures a rigorous assessment of model generalization to new data.
+The dataset was split into **training and test subsets** to support model evaluation. The data was randomly partitioned with **75%** allocated for training and **25%** for testing. A fixed random seed (set.seed(123) is used to ensure reproducibility. The training data is used to fit the models, while the test data provides an unbiased evaluation of model performance.
 
+## 3. Classification Methods
 
-## 3. 
+To determine the best classification method, it's crucial to evaluate and compare the performance, strengths, and weaknesses of each method applied: K-Nearest Neighbors (KNN), Quadratic Discriminant Analysis (QDA), Random Forest (RF), and Support Vector Machines (SVM).
 
-theory behind how the classification method classifies the data:
-
-present the results of an evaluation of the method:
-Describe findings:
-
-Detailed description of model performance:
-
-optimize the (hyper) parameters of the method.
-
-## **K-Nearest Neighbors (KNN):**
+## 3.1 K-Nearest Neighbors (KNN):
 
 ```{r}
 library(class) # This is the package which has the KNN function
 ```
 
-The KNN classifier is a supervised, non- parametric classification algorithm. It classifies a new observation by examining the classes of its **k** nearest neighbours, and assigning  the class by through a "majority vote" (most common class of neighbours). 
+The **KNN classifier** is a supervised, non- parametric classification algorithm. It classifies a new observation by examining the classes of its **k** nearest neighbours, and assigning the class by through a "majority vote" (most common class of neighbours).
 
 The value of k controls the **flexibility** of the model:
 
-- Smaller k leads to a flexible decision boundary (low bias but high variance, prone to overfitting).
+-   Smaller k leads to a flexible decision boundary (low bias but high variance, prone to overfitting).
 
-- Larger k smooths the decision boundary (high bias but lower variance, risk underfitting).
+-   Larger k smooths the decision boundary (high bias but lower variance, risk underfitting).
 
 The goal is to select an **optimal k** that balances bias and variance, typically done via cross-validation.
 
 ### **Fitting the model**
+
 ```{r fitting knn1}
-knn_fit1 = knn(train=train_X, test=test_X, cl=train$Group, k=7)
+knn_fit1 = knn(train=xTrain, test=xTest, cl=yTrain, k=7)
 
 # Confusion Matrix
-confusionMatrix(knn_fit1, test$Group)
+confusionMatrix(knn_fit1, yTest)
 ```
-Initially, the model was fitted using an arbitrary choice of **k = 7**, resulting in an accuracy of 79.6%. Although this initial accuracy was good, further hyperparameter tuning was necessary to achieve the best predictive performance.
+
+Initial testing with an arbitrary choice of **k = 7**, resulted in an accuracy of **81.53**%. Although this initial accuracy was good, further hyperparameter tuning is necessary to optimise model performance.
 
 ### **Hyperparameters Optimisation**
 
-Tuning hyperparameters essentially means improve a machine learning algorithm's structure, so it can be flexible enough to fit the data but constrained enough to not fit the noise. In **KNN 'K'** is a hyperparameter. 
+Hyperparameter tuning improves the structure of a machine learning model to balance flexibility and overfitting. For KNN, this involves selecting the optimal value of **k**.
 
-We use the **K-Fold cross validation**. This divides the dataset into K Folds, then the ML model is trained on K-1 folds and tested on Kth fold. This method estimates the average prediction error from the K runs and optiaml values for hyper parameters to build the final model.
+A **10-fold cross-validation, repeated 5 times**, is used to estimate prediction error and identify the optimal k value. This method ensures robust performance evaluation by averaging results across multiple partitions.
 
-We use the train() function here which does the fitting and tuning simultaenously.
+We use the train() function here which does the fitting and tuning simultaneously.
 
 ```{r warning=FALSE}
 set.seed(123)
@@ -1011,217 +975,286 @@ set.seed(123)
 # Repeat 5-fold cross-validation, ten times
 opts <- trainControl(method='repeatedcv', number=10, repeats=5)
 # Find optimal k (model)
-mdl <- train(x=train_X, y=train$Group, # training data
+mdl <- train(x=xTrain, y=yTrain, # training data
 method='knn', # machine learning model
 trControl=opts, # training options
-tuneGrid=data.frame(k=seq(4, 20))) # range of k's to try
+tuneGrid=data.frame(k=seq(4, 30))) # range of k's to try
 print(mdl) # print the outcome
 ```
-The cross-validation results indicated an optimal value at k = 9, which achieved the highest average accuracy (82.0%).
+
+Cross-validation identified an optimal value of **k = 11**, slightly increasing accuracy.
 
 ### **Optimised KNN Model**
+
 ```{r}
-knn_fit2 = knn(train=train_X, test=test_X, cl=train$Group, k=9)
+set.seed(123)
+knn_fit2 = knn(train=xTrain, test=xTest, cl=yTrain, k=11)
 # Confusion Matrix
-confusionMatrix(knn_fit2, test$Group)
+confusionMatrix(knn_fit2, yTest)
 ```
 
-### Evaluation and Model Comparison: K-Nearest Neighbour (KNN)
+### Interpretation of Results
 
-The optimized KNN classifier performed well overall, producing an accuracy of 78.8%, demonstrating strong specificity (88.1%) and acceptable balanced accuracy (75.2%). However, sensitivity (62.2%) was relatively lower, indicating some limitations in correctly classifying positive cases. The moderate Cohen’s kappa (0.52) also suggests moderate agreement beyond random chance, affirming good but not excellent classifier stability.
+The optimized KNN model achieved an overall accuracy of **82.3**%, with high specificity (**0.917**), effectively minimizing false positives. However, sensitivity (**0.62**) was lower, indicating limitations in correctly identifying positive instances. This trade-off is important in contexts where false negatives carry significant consequences.
 
-### Comparison of Models
+## 3.2 Quadratic Discriminant Analysis (QDA):
 
-Interestingly, the single train-test evaluation initially favored k = 7 (accuracy 79.6%), while cross-validation identified k = 9 as optimal. However, due to the greater reliability and robustness of cross-validation, which provides more dependable estimates of a model’s generalization capability, **k = 9**remains the preferred choice, as cross-validation offers a more comprehensive indication of how well the model will perform with unseen data.
+Quadratic Discriminant Analysis (QDA) is a classification method that extends Linear Discriminant Analysis (LDA) by allowing each class to have its own covariance matrix. Like LDA, QDA assumes observations within each class are generated from a multivariate Gaussian distribution; however, unlike LDA, QDA does not assume these covariance matrices to be equal across classes. Due to this flexibility, QDA produces **quadratic decision boundaries**, enabling it to capture more complex, non-linear separations between classes effectively. Consequently, QDA is particularly suitable when the classes exhibit differing covariance structures, as it can adapt to variability within individual classes to achieve improved classification accuracy.
 
-
-## **Quadratic Discriminant Analysis (QDA):**
-
-Quadratic Discriminant Analysis (QDA) is a classification method that extends Linear Discriminant Analysis (LDA) by allowing each class to have its own covariance matrix. Like LDA, QDA assumes observations within each class are generated from a multivariate Gaussian distribution; however, unlike LDA, QDA does not assume these covariance matrices to be equal across classes. Due to this flexibility, QDA produces quadratic decision boundaries, enabling it to capture more complex, non-linear separations between classes effectively. Consequently, QDA is particularly suitable when the classes exhibit differing covariance structures, as it can adapt to variability within individual classes to achieve improved classification accuracy.
-
-### **Fitting the model**
+### **Fitting the Model**
 
 ```{r}
 library(MASS)
 set.seed(123)
 # Fitting QDA model
-qda_fit1 <- qda(Group ~ ., data=train) # Used '.' syntax to call all other variables in the data set.
+qda_fit1 <- qda(yTrain ~ ., data=xTrain)
 
 # Predicting classes using fitted model
-qda_predict <- predict(qda_fit1,test)
-confusionMatrix(qda_predict$class, test$Group)
+qda_predict <- predict(qda_fit1,xTest)
+confusionMatrix(qda_predict$class, yTest)
 ```
 
-
+No hyperparameter tuning is required for QDA, as it does not involve adjustable parameters.
 
 ### **Interpretation of Results**
 
-The QDA model demonstrated strong specificity (93.1%), indicating excellent performance in correctly classifying negative cases. However, the sensitivity was notably lower (52.2%), suggesting a limitation in correctly identifying positive cases. Balanced accuracy (72.7%) indicates that the model provides good predictive capability overall, though with an imbalance in classification effectiveness between positive and negative instances. A moderate Cohen’s Kappa value (0.49) reflects acceptable performance beyond chance, but room for improvement remains, particularly in sensitivity.
+QDA achieved an accuracy of 81.1%, with high specificity (94%), making it reliable for correctly identifying negative cases. However, its lower sensitivity (53%) indicates limitations in detecting positive instances, which could be a concern in contexts where false negatives are costly.
 
-###  **Evaluation of Model**
+## 3.3 Random Forest (RF):
 
-Unlike KNN, QDA does not have hyperparameters (such as k) that require optimization. The method directly estimates distinct covariance matrices for each class based on training data, leaving no flexibility for tuning beyond potential transformations or feature selection strategies.
+**Random Forests (RF)** is an ensemble learning method that enhances classification accuracy by constructing multiple decision trees and aggregating their predictions. It extends **bagging** by de-correlating the trees, reducing model variance and improving generalisation.
 
-In summary, the QDA classifier provided a robust classification performance, excelling in specificity but demonstrating limitations in sensitivity. Given its inherent lack of hyperparameters, further performance improvements would likely involve feature engineering or combining QDA with complementary classification techniques.
+**Bagging**: RF builds multiple trees using **bootstrap samples** (sampling with replacement) from the original dataset. Each tree is unpruned, reducing variance through averaging. Predictions are aggregated using majority voting for classification.
 
-
-
-## **Random Forest (RF):** 
-
-Random Forests (RF) is an ensemble learning method that enhances classification accuracy by constructing multiple decision trees and aggregating their predictions. It extends **bagging** by de-correlating the trees, reducing model variance and improving generalisation.
-
-**Bagging**: RF builds multiple trees using bootstrap samples (sampling with replacement) from the original dataset. Each tree is grown deep and unpruned, reducing variance through averaging. Predictions are aggregated using majority voting for classification.
-
-**Random Feature Selection**: To reduce correlation between trees, each split considers only a random subset of predictors (typically \(\sqrt{p}\)). This de-correlates trees, enhancing model robustness and lowering variance.
+**Random Feature Selection**: To reduce correlation between trees, each split considers only a random subset of predictors (typically $\sqrt{p}$). This **de-correlates** trees, enhancing model robustness and lowering variance.
 
 **Out-of-Bag (OOB) Error**: On average, one-third of observations are left out of each bootstrap sample. These "out-of-bag" observations provide a natural method for estimating model error without a separate validation set.
 
-
 ### **Fitting the model**
 
-```{r warning=FALSE}
+```{r message = FALSE, warning=FALSE}
 library(randomForest)
 
 # Fitting random forest model
 set.seed(123)
 
-mdl <- train(x=train_X, y=train$Group,
+mdl <- train(x=xTrain, y=yTrain,
              method='rf',
              ntree=200,
              tuneGrid=data.frame(mtry=2))
 print(mdl)
 ```
 
-We can try to optimise hyperparameters. By adjusting the number of trees from 200 to 500, resampling accuracy fell 0.002. Adjusting the mtry parameter (number of predictors randomly samples at each split) showed no effect on the accuracy, so it will remain at the value 2.  
+### **Optimised RF Model**
 
+Further optimization by adjusting the number of trees and mtry yielded minimal improvements. Therefore, the initial model with **200 trees** and **mtry = 2** was retained.
 
 ```{r}
 set.seed(123)
 # Test model on testing data
-TestPred <- predict(mdl, newdata=test_X)
-confusionMatrix(TestPred, test$Group) # predicted/true
+TreePred <- predict(mdl, newdata=xTest)
+confusionMatrix(TreePred, yTest) # predicted/true
 ```
+
 ```{r}
 # Variable importance by mean decrease in gini index
 varImp(mdl$finalModel)
 ```
 
 ### **Variable Importance**
-  Variable importance, assessed by the mean decrease in Gini index, indicated that `X1` (175.67) contributed more significantly to the model’s classification decisions compared to `X2` (141.44). This suggests that `X1` is the most influential predictor in distinguishing between the target classes.
 
+Variable importance, assessed by the mean decrease in **Gini index**, indicated that X1 (**178.75**) contributed more significantly to the classification compared to X2 (**146.93**), suggesting that X1 is the most influential predictor.
 
 ### **Interpretation of Results**
 
-The optimized Random Forest model achieved an overall accuracy of 75.2%, with high specificity (83.1%) indicating strong performance in correctly identifying negative cases. However, sensitivity was comparatively lower (61.1%), highlighting some limitations in classifying positive cases. The balanced accuracy of 72.1% reflects moderate but balanced classification performance across both classes. The Cohen's Kappa statistic (0.45) suggests moderate agreement beyond chance.
+Random Forest provides good accuracy (**79.5**%) and insightful interpretability, highlighting predictor X1 as particularly influential. While accuracy and specificity were good, its lower sensitivity compared to KNN and QDA suggests potential limitations in classifying positive cases. RF's interpretability via variable importance remains valuable for understanding the predictive dynamics.
 
-### **Conclusion**
+## 3.4 Support Vector Machines (SVM):
 
-Random Forests provided a powerful and stable classification approach by reducing variance through bagging and random feature selection. However, its accuracy is around 3% lower than KNN and QDA.
+Support Vector Machines (SVM) are supervised classification algorithms designed to find the **optimal hyperplane** that best separates data points belonging to different classes. SVM seeks the hyperplane that maximizes the margin between groups 0 and 1 while minimizing classification errors.
 
+When data cannot be separated linearly, SVM uses **kernel functions** to map the data into a higher-dimensional space where a linear separator can be found. This is known as the kernel trick, which allows SVM to handle complex, non-linear relationships efficiently without explicitly increasing dimensionality. Common kernel types include **linear, polynomial, and radial basis function (RBF)**. The choice of kernel is a hyperparameter that can significantly affect model performance and is typically optimized through cross-validation.
 
-
-
-
-
-## **Support Vector Machines (SVM):**
-
-Support Vector Machines (SVM) are supervised classification algorithms designed to find the optimal hyperplane that best separates data points belonging to different classes. SVM seeks the hyperplane that maximizes the margin between groups 0 and 1 while minimizing classification errors.
-
-When even more complex data structures arise, where linear separation is infeasible, SVM generalizes through the use of kernel functions. Kernels implicitly map the original feature space to a higher-dimensional space where a linear separator can be found. Although it might seem counter-intuitive to increase dimensionality, the kernel trick ensures this is done implicitly, allowing SVM to handle non-linear relationships efficiently. Kernels can be considered as generalized distance measures, and common types include the linear, polynomial, and radial basis function (RBF) kernels. Kernel choice is a hyperparameter that can be optimized via cross-validation. However, in caret, each kernel is treated as a separate model, requiring manual cross-validation when comparing kernels.
-
-Since we already know the data displays non-linear relationships, we wont fit the linear kernal as we alrady know it wont classify the data well., but will fit the Polynomial and Radial Basis Function (RFB) kernal.
-
+Since the data exhibits non-linear relationships, linear kernels are excluded. Instead, Radial Basis Function (RBF), Polynomial, and Sigmoid kernels will be evaluated to determine the most suitable option.
 
 ### **Fitting the model**
 
-1. **RFB Kernal**
+1.  **RFB Kernal**
 
-First we will fit the RFB Kernal. This is a strong option does to its versatility and flexibility.
-We will also perform hyperparamater stuning in this, using 5-fold cross-validation method.
+The RBF kernel is chosen first due to its flexibility and ability to handle non-linear boundaries. We will also perform hyperparamater tuning, using 5-fold cross-validation method.
 
-```{r warning=FALSE}
-library(caret)
+```{r message = FALSE, warning=FALSE}
 library(kernlab)
 set.seed(123)
 
-# Initial Model (without manual hyperparameter tuning)
-rbf_mdl <- train(x = train_X, y = train$Group, 
-                 method = 'svmRadial',
-                 trControl = trainControl(method = "cv", number = 5))
+mdl_rad <- svm(yTrain~., data = df, kernel = "radial")
 
-# View the best tuning parameters
-print(rbf_mdl$bestTune)
+print(mdl_rad)
 
-# Plot model accuracy vs different values of Cost and Sigma
-plot(rbf_mdl)
+plot(mdl_rad, df, X2 ~ X1)
+
+yTestPred_rad <- predict(mdl_rad, newdata=xTest)
+confusionMatrix(yTestPred_rad, yTest) # predicted/true
 
 ```
 
-Implementing the optimal hyperparameter values:
+2.  **Polynomial Kernal**
+
 ```{r warning=FALSE}
-# Manually tuning the hyperparameters C and sigma
-rbf_mdl2 <- train(x = train_X, y = train$Group,
+set.seed(123)
+
+mdl_poly <- svm(yTrain~., data = df, kernel = "polynomial")
+
+print(mdl_poly)
+
+plot(mdl_poly, df, X2 ~ X1)
+
+yTestPred_poly <- predict(mdl_poly, newdata=xTest)
+confusionMatrix(yTestPred_poly, yTest) # predicted/true
+```
+
+3.  **Sigmoid Kernel**
+
+```{r}
+set.seed(123)
+
+mdl_sig <- svm(yTrain~., data = df, kernel = "sigmoid")
+
+print(mdl_sig)
+
+plot(mdl_sig, df, X2 ~ X1)
+
+yTestPred_sig <- predict(mdl_sig, newdata=xTest)
+confusionMatrix(yTestPred_sig, yTest) # predicted/true
+```
+
+### **Kernel Evaluation:**
+
+The RBF kernel achieved the highest accuracy (**82.33**%) with strong sensitivity and specificity, demonstrating its effectiveness in handling non-linear class separations. The Polynomial kernel showed moderate accuracy (**71.08**%), while the Sigmoid kernel performed poorly (**58.23**%), indicating it is less suited to this dataset.
+
+Based on the decision boundaries and the original scatter plot, the **RBF kernel** provided the best fit, effectively capturing the non-linear relationships. While the Polynomial kernel performed reasonably, it was less effective than the RBF, and the Sigmoid kernel produced a poor decision boundary with low accuracy.
+
+### **Optimised SVM Model**
+
+Implementing the optimal hyper parameter values:
+
+```{r warning=FALSE}
+set.seed(123)
+# Tuning the hyperparameter C
+rbf_mdl2 <- train(x = xTrain, y = yTrain,
                   method = "svmRadial",
                   trControl = trainControl(method = "cv", number = 5),
-                  tuneGrid = expand.grid(C = seq(0, 1, length = 20),
-                                         sigma = seq(0.01, 2, length = 10)))
-
-# View the best tuning parameters
-print(rbf_mdl2$bestTune)
+                  tuneGrid = expand.grid(C = seq(0, 2, length = 20), sigma = 1))
 
 # Plot model accuracy vs different values of Cost and Sigma
 plot(rbf_mdl2)
 
-# Evaluate the optimized model on the test data
-yTestPred_rbf <- predict(rbf_mdl2, newdata = test_X)
-confusionMatrix(yTestPred_rbf, test$Group)
+print(rbf_mdl2$bestTune)
 
+# Evaluate the optimized model on the test data
+yTestPred_rbf2<- predict(rbf_mdl2, newdata = xTest)
+confusionMatrix(yTestPred_rbf2, yTest)
 ```
 
+Hyperparameter tuning through cross-validation identified an optimal cost parameter (C = **0.421**), further increasing accuracy to **82.73**%. Sigma is set to one, as the model wouldn't run unless it was set to a value.
 
-2. **Polynomial Kernal**
+### **Interpretation of Results**
 
-We will also fit an this model, and fit its optimised version to see if this can create a better fitted decsion boundary.
+The optimized SVM with radial kernel achieved the highest accuracy (**82.7**%) and excellent specificity (**92.9**%) among tested kernels, effectively minimizing false positives. While sensitivity decreased slightly after optimisation, the increase in specificity and overall accuracy suggests a more reliable model. This trade-off is beneficial in scenarios where minimizing false positives is critical. The clear and effective non-linear boundary produced by this kernel underscores its suitability for this dataset.
 
-```{r warning=FALSE}
+## 4. Model Comparison
+
+This section aims to compare the classification results obtained from the four methods evaluated previously—KNN, QDA, Random Forest, and SVM—and select the best method(s) according to different modeling objectives.
+
+### **Model Performance Table**
+
+| Model | Accuracy (%) | Specificity (%) | Sensitivity (%) | Balanced Accuracy (%) | Cohen’s Kappa |
+|------------|:----------:|:----------:|:----------:|:----------:|:----------:|
+| **KNN (k=11)** | 82.33 | 91.76 | **62.03** | 76.90 | 0.57 |
+| **QDA** | 81.12 | **94.12** | 53.16 | 73.64 | 0.52 |
+| **Random Forest** | 79.52 | 87.65 | **62.03** | 74.84 | 0.51 |
+| **SVM (Radial)** | **82.73** | 92.94 | 60.76 | **76.85** | **0.57** |
+
+This table clearly summarises the performance metrics for each classification model, highlighting the optimized SVM with the radial kernel as achieving the highest overall accuracy and specificity, demonstrating a robust predictive performance.
+
+### **Consideration of Modelling Objectives**
+
+The selection of a classification method strongly depends on practical and contextual requirements:
+
+**1. Prioritizing High Specificity (Minimizing False Positives):** When minimizing false positives is critical, QDA and SVM (Radial) are the top choices.
+
+-   QDA achieved the highest specificity (**94.12**%), making it suitable for scenarios where false positives carry significant costs, such as in medical diagnostics or fraud detection.
+-   SVM (Radial) also performed well in specificity (**92.94**%) while maintaining high overall accuracy.
+
+**2. Prioritizing Balanced Accuracy (Balancing Sensitivity and Specificity):** If the goal is to balance the correct identification of both classes, SVM (Radial) and KNN are preferable.
+
+-   Both achieved similar balanced accuracy (**77**%) and Cohen’s Kappa (**0.57**), indicating consistent classification performance across both positive and negative cases.
+
+**3. Interpretability and Insight into Variable Importance:**
+
+-   Although Random Forest had slightly lower accuracy, it provided valuable variable importance measures, offering insights into which features contribute most to classification decisions.
+
+### Best Method
+
+Considering these objectives, the **SVM with the Radial Kernel** is recommended as the overall best classification method. It achieved the highest accuracy, strong specificity, and solid balanced accuracy, demonstrating reliability and robustness for this classification task.
+
+The radial kernel effectively handles complex, non-linear class boundaries, reinforcing its suitability. While the model showed slightly lower sensitivity, its superior specificity ensures fewer false positives, which is crucial in contexts where misclassification is costly.
+
+However, potential limitations, such as reduced sensitivity, should be acknowledged. For future improvements, exploring additional feature engineering, alternate kernel functions, or ensemble methods could enhance performance further.
+
+## 5. Evaluation against True Classification
+
+To evaluate the models against the **true classification** (without noise), the ClassificationTrue.csv dataset was used. This comparison helps assess each model's robustness in differentiating true class boundaries from noisy variations.
+
+```{r}
+# Loading data
+true_class <- read.csv("ClassificationTrue.csv")
+yTrue <- as.factor(true_class$Group)
+
 set.seed(123)
+ii <- createDataPartition(y, p = 0.75, list = FALSE) 
+# Explicitly defining this again to make sure its correct
+# I was getting an bug here when i first tried, so i used ChatGPT to help problem solve this.
 
-poly_mdl <- train(x = train_X, y = train$Group,
-                  method = "svmPoly")
+# Ensuring True data is the same length as the predicted (249)
+yTrue_test <- yTrue[-ii]
 
-# View the best tuning parameters
-print(poly_mdl$bestTune)
-
-# Plot the accuracy vs hyperparameters to visualize performance
-plot(poly_mdl)
-
-# Evaluate the optimized model on the test data
-yTestPred_poly <- predict(poly_mdl, newdata = test_X)
-confusionMatrix(yTestPred_poly, test$Group)
+# Prediction Against True Class
+KNN_CM <- confusionMatrix(knn_fit2, yTrue_test)
+QDA_CM <- confusionMatrix(qda_predict$class, yTrue_test)
+TREE_CM <- confusionMatrix(TreePred, yTrue_test)
+SVM_CM <- confusionMatrix(yTestPred_rbf2, yTrue_test)
 ```
 
+### Comparison to True Classification and Final Recommendation
 
+| Model             | Accuracy (with noise) (%) | Accuracy (true labels) (%) |
+|-------------------|:-------------------------:|:--------------------------:|
+| **KNN (k=11)**    |           82.33           |           90.36            |
+| **QDA**           |           81.12           |         **92.37**          |
+| **Random Forest** |           79.52           |           89.96            |
+| **SVM (Radial)**  |         **82.73**         |           90.76            |
 
+-   QDA achieved the highest accuracy with true labels (**92.37**%), suggesting it can effectively classify clean, noise-free data. However, its performance drops when noise is introduced, indicating susceptibility to data variability.
 
+-   SVM (Radial) showed consistent accuracy across both noisy (**82.73**%) and noise-free (**90.76**%) conditions, highlighting its robustness and better generalization to real-world, noisy scenarios.
 
+-   KNN and Random Forest also improved when evaluated against true labels, but the increase was less pronounced compared to SVM.
 
+### **Final Recommendation**
 
+Considering performance across both noisy and noise-free datasets, SVM (Radial Kernel) emerges as the most reliable and robust classification method. Its consistent accuracy demonstrates strong generalization, making it well-suited for practical applications where data variability is expected.
 
+\newpage
 
+ChatGPT Prompts: A range of different prompts I used:
 
+1.  Here is an error in my code “ “, What is the issue and how can I fix it?
 
+2.  Can you help improve the format of this GT table?
 
+3.  Is my code clear and reproducible?
 
+4.  Can you check my writing and suggest corrrections/improvements?
 
-
-
-
-
-
-
-
-
-
-
-
-
+5.  Can you give me feedback on my work " ", and suggest ways I could improve it.

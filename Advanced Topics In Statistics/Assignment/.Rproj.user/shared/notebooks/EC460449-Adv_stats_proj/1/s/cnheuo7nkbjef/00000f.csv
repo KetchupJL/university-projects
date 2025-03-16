@@ -1,7 +1,0 @@
-"0","# Compute standard deviation of log-transformed reaction times for each person"
-"0","sd_log <- log_rtimes_long %>%"
-"0","  group_by(PatientID) %>%"
-"0","  summarise(SD_Log_RT = sd(LogReactionTime))"
-"0",""
-"0","# Print results"
-"0","head(sd_log)"

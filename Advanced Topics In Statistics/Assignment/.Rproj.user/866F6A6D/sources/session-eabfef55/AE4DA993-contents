@@ -1,0 +1,7 @@
+par(mfrow = c(1,3), mar = c(2.5,2.5,2,1))
+
+plot(mdl_poly, df, X2 ~ X1, main = "Polynomial SVM")
+plot(mdl_rad, df, X2 ~ X1, main = "Radial SVM")
+plot(mdl_sig, df, X2 ~ X1, main = "Sigmoid SVM")
+
+par(mfrow = c(1, 1))

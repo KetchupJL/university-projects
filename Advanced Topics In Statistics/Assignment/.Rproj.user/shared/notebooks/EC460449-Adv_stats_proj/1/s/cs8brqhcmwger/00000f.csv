@@ -1,4 +1,0 @@
-"0","gelman_stats<- gelman.diag(jagsfit.mcmc,multivariate=FALSE)"
-"0","gelman_df <- as.data.frame(gelman_stats$psrf)"
-"0","gelmam.params <- c(""mu"", ""beta"", ""tau"", ""lambda"", ""sigma_y2"", ""sigma_alpha2"")"
-"0","gelman_subset <- gelman_df[gelmam.params, , drop = FALSE]"
