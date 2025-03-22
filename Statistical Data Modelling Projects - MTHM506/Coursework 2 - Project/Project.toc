@@ -1,0 +1,32 @@
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}%
+\contentsline {section}{\numberline {2}Exploratory Data Analysis (EDA)}{3}{section.2}%
+\contentsline {section}{\numberline {3}Methodology}{3}{section.3}%
+\contentsline {section}{\numberline {4}Model Fitting}{3}{section.4}%
+\contentsline {section}{\numberline {5}Results}{4}{section.5}%
+\contentsline {section}{\numberline {6}Critial Review}{4}{section.6}%
+\contentsline {section}{\numberline {7}Conclusion}{4}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Appendix:}{5}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}\textbf {2. Initial Model Fitting (GAMs)}}{7}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Model Specification}{7}{subsection.7.3}%
+\contentsline {subsubsection}{\numberline {7.3.1}\textbf {Choice of Distribution: Poisson vs.~Negative Binomial}}{8}{subsubsection.7.3.1}%
+\contentsline {paragraph}{\numberline {7.3.1.1}\textbf {Limitations of the Poisson Model}}{8}{paragraph.7.3.1.1}%
+\contentsline {paragraph}{\numberline {7.3.1.2}\textbf {Evidence of Overdispersion}}{8}{paragraph.7.3.1.2}%
+\contentsline {paragraph}{\numberline {7.3.1.3}\textbf {Why the Negative Binomial Model is More Appropriate}}{8}{paragraph.7.3.1.3}%
+\contentsline {paragraph}{\numberline {7.3.1.4}\textbf {Justification for Directly Using a Negative Binomial GAM}}{9}{paragraph.7.3.1.4}%
+\contentsline {subsection}{\numberline {7.4}3. Offset for Population}{9}{subsection.7.4}%
+\contentsline {subsection}{\numberline {7.5}\textbf {Negative Binomial GAM for TB Case Counts}}{9}{subsection.7.5}%
+\contentsline {subsubsection}{\numberline {7.5.1}\textbf {Mathematical Formulation}}{9}{subsubsection.7.5.1}%
+\contentsline {subsection}{\numberline {7.6}\textbf {Transforming Predictions to TB Incidence Rates}}{10}{subsection.7.6}%
+\contentsline {subsection}{\numberline {7.7}\textbf {Understanding the Model Output}}{10}{subsection.7.7}%
+\contentsline {subsubsection}{\numberline {7.7.1}\textbf {Mathematical Formulation}}{10}{subsubsection.7.7.1}%
+\contentsline {subsubsection}{\numberline {7.7.2}\textbf {Implication}}{10}{subsubsection.7.7.2}%
+\contentsline {subsection}{\numberline {7.8}\textbf {2. Why Does This Happen Despite the Offset?}}{11}{subsection.7.8}%
+\contentsline {subsubsection}{\numberline {7.8.1}\textbf {Key Insights}}{11}{subsubsection.7.8.1}%
+\contentsline {subsubsection}{\numberline {7.8.2}\textbf {Fitting the Model in R}}{11}{subsubsection.7.8.2}%
+\contentsline {subsection}{\numberline {7.9}\textbf {3. Model Refinement and Improvement}}{11}{subsection.7.9}%
+\contentsline {subsection}{\numberline {7.10}\textbf {4. Model Diagnostics}}{11}{subsection.7.10}%
+\contentsline {subsection}{\numberline {7.11}\textbf {5. Covariate Effect Plots} (Already created)}{11}{subsection.7.11}%
+\contentsline {subsection}{\numberline {7.12}\textbf {6. Spatial and Temporal Structure Analysis}}{12}{subsection.7.12}%
+\contentsline {subsection}{\numberline {7.13}\textbf {7. Geospatial Plots}}{12}{subsection.7.13}%
+\contentsline {subsection}{\numberline {7.14}\textbf {9. Model Comparison}}{12}{subsection.7.14}%
+\contentsline {subsection}{\numberline {7.15}\textbf {10. Conclusion and Recommendations}}{12}{subsection.7.15}%

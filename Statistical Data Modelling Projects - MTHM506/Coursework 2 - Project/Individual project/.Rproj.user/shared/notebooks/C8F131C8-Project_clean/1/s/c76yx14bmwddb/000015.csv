@@ -1,0 +1,7 @@
+"2","Warning in gzfile(file, ""wb"") :"
+"2","
+ "
+"2"," cannot open compressed file 'C:/Users/james/OneDrive/Documents/GitHub/university-projects/Statistical Data Modelling Projects - MTHM506/Coursework 2 - Project/Individual project/.Rproj.user/shared/notebooks/C8F131C8-Project_clean/1/866F6A6D3a7f7477/c76yx14bmwddb_t/b33cac7e634a4e5e8a4bea9a0cf99eca.snapshot', probable reason 'No such file or directory'
+"
+"2","Error in gzfile(file, ""wb"") : cannot open the connection
+"

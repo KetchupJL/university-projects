@@ -1,0 +1,4 @@
+"0","## Check residuals"
+"0","par(mfrow=c(1,2))"
+"0","# QQplot"
+"0","qq.gam(gam_model_tw,pch=20)"

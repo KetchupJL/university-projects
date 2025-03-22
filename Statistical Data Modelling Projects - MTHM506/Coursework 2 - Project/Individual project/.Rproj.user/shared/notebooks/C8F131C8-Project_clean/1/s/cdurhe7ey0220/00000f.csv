@@ -1,0 +1,4 @@
+"0","# Smooth terms from Tweedie GAM"
+"0",""
+"0","# Extract smooth terms from the GAM model (gam_model_tw)"
+"0","smooth_terms <- plot(gam_model_tw, pages = 1, all.terms = TRUE, shade = TRUE, seWithMean = TRUE)"

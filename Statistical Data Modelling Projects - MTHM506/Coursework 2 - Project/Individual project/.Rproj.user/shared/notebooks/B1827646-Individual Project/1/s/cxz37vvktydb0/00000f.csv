@@ -1,0 +1,3 @@
+"0","# Compute 95% prediction intervals"
+"0","lower_bound <- fitted_mu - 1.96 * mle_params[""sigma""]"
+"0","upper_bound <- fitted_mu + 1.96 * mle_params[""sigma""]"

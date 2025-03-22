@@ -1,0 +1,39 @@
+"0","smooth_terms <- plot(gam_model_tw, pages = 1, all.terms = TRUE, shade = TRUE, seWithMean = TRUE)
+
+# Data frame to store all covariates smooth predictions
+smooth_plot_data <- map_dfr(1:length(smooth_terms), function(i) {
+  data.frame(
+    Covariate = smooth_terms[[i]]$xlab,
+    x = smooth_terms[[i]]$x,
+    fit = smooth_terms[[i]]$fit,
+    se = smooth_terms[[i]]$se
+  )
+})
+
+# Compute confidence intervals
+smooth_plot_data <- smooth_plot_data %>%
+  mutate(lower_CI = fit - 1.96 * se,
+         upper_CI = fit + 1.96 * se)
+
+# Define clear and informative facet labels
+facet_labels <- c(
+  ""s(Urbanisation)"" = ""Urbanisation (%)"",
+  ""s(Density)"" = ""Dwelling Density (Dwellers/Room)"",
+  ""s(Unemployment)"" = ""Unemployment (%)"",
+  ""s(Poor_Sanitation)"" = ""Poor Sanitation (Higher = Worse)"",
+  ""s(Poverty)"" = ""Poverty (%)"",
+  ""s(Timeliness)"" = ""TB Notification Delay (Days)"",
+  ""s(lon,lat)"" = ""Spatial Effect (Longitude & Latitude)""
+)
+
+# Filter out the 2-dimensional smooth (lon,lat), which needs separate treatment
+smooth_plot_data_filtered <- smooth_plot_data %>%
+  filter(Covariate != ""s(lon,lat)"")
+"
+"2","Warning in gzfile(file, ""wb"") :"
+"2","
+ "
+"2"," cannot open compressed file 'C:/Users/james/OneDrive/Documents/GitHub/university-projects/Statistical Data Modelling Projects - MTHM506/Coursework 2 - Project/Individual project/.Rproj.user/shared/notebooks/C8F131C8-Project_clean/1/s/c6a0xud1o1c8p_t/0d0ffcd7b8b84432bf901d97ca76e14c.snapshot', probable reason 'No such file or directory'
+"
+"2","Error in gzfile(file, ""wb"") : cannot open the connection
+"

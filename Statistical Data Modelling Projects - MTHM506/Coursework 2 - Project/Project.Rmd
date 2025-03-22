@@ -1,0 +1,478 @@
+---
+title: "MTHM506 - Statistical Data Modelling: Individual Project"
+author: "James R Lewis"
+date: "March 2025"
+output:
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+    toc_depth: 2
+    number_sections: true
+    keep_tex: true
+    includes:
+      in_header: preamble.tex
+    extra_dependencies: ["amsmath", "amssymb", "mathtools", "bm", "caption", "hyperref", "geometry", "setspace"]
+  html_document:
+    css: style.css
+    toc: true
+    toc_depth: 2
+    number_sections: true
+  word_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+header-includes:
+  - \usepackage{geometry}
+  - \geometry{a4paper, margin=1in}
+  - \usepackage{setspace}
+  - \onehalfspacing
+  - \usepackage{parskip}          # Adds space between paragraphs for readability
+  - \setlength{\parindent}{0pt}   # Removes paragraph indentation for a cleaner look
+  - \hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue, citecolor=blue} # Consistent link colours in PDF
+knitr:
+  opts_chunk:
+    cache: false
+    echo: true
+    message: false
+    warning: false
+classoption: a4paper,11pt
+fontsize: 11pt
+link-citations: yes
+---
+
+```{r loading datasets and libraries, include=FALSE}
+load("~/GitHub/university-projects/Statistical Data Modelling Projects - MTHM506/Coursework 2 - Project/datasets_project.RData")
+TBdata <- TBdata
+
+library(tidyverse)
+library(ggplot2)
+library(rmarkdown)
+library(mgcv)
+
+```
+
+**Declaration of AI Assistance**: I have used OpenAI’s ChatGPT tool in creating this report.
+
+AI-supported/AI-integrated use is permitted in this assessment. I acknowledge the following uses of GenAI tools in this assessment:
+
+1.  I have used GenAI tools to check and debug my code.
+2.  I have used GenAI tools to proofread and correct grammar or spelling errors.
+3.  I have used GenAI tools to give me feedback on a draft.
+
+I declare that I have referenced use of GenAI outputs within my assessment in line with the University referencing guidelines.
+
+```{r setting plot theme, include = FALSE}
+custom_theme <- theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 14),  # Centered title
+    axis.title = element_text(face = "bold", size = 12),
+    axis.text = element_text(size = 11), 
+    panel.grid.major = element_line(color = "gray85"),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.8)
+  )
+```
+
+\newpage
+
+# Introduction
+
+-   **Objective:** Clearly state the aim of the analysis—to quantify TB risk across Brazil (2012-2014), identify socio-economic covariates affecting TB rates, and understand spatial, temporal, and spatio-temporal structures.
+
+<!-- -->
+
+-   **Relevance:** Discuss the public health importance and resource allocation implications.
+
+<!-- -->
+
+-   **Data Overview:** Briefly introduce the dataset, its source, and key variables (e.g., TB counts, socio-economic covariates, spatial and temporal identifiers).
+
+# Exploratory Data Analysis (EDA)
+
+-   **Descriptive Statistics:** Summarise key covariates and TB rates (use one table for this).
+
+<!-- -->
+
+-   **Visual Exploration:** Present maps or graphs that show:
+
+    -   TB case distributions over time and across regions.
+
+    -   Potential relationships between TB rates and socio-economic covariates.
+
+<!-- -->
+
+-   **Spatial-Temporal Trends:** Use the provided `plot.map` function to visualise spatial TB distributions across years.
+
+# Methodology
+
+-   **GAM Framework:**
+
+    -   Introduce GAMs as an extension of GLMs (refer to Topic 3 notes).
+
+    -   Discuss the semi-parametric nature, choice of smoothing, and penalisation for smoothness.
+
+    -   Explain the model structure, including:
+
+        -   Response variable: TB rate (TB cases per unit population).
+
+        -   Covariates: Socio-economic factors and spatial-temporal indicators.
+
+        -   Link function and distribution assumption (likely Poisson or Negative Binomial, given count data)
+
+<!-- -->
+
+-   **Model Formulation:** Provide the mathematical formulation of your GAMs, including how spatial and temporal structures are modelled.
+
+<!-- -->
+
+-   **Justification of Choices:** Explain why GAMs are appropriate, especially for non-linear, spatial-temporal relationships.
+
+# Model Fitting
+
+-   **Model Development Steps:**
+
+    -   **Initial Model:** Fit a base model with socio-economic covariates.
+
+    -   **Spatial and Temporal Effects:** Extend the model to include smooth terms for spatial (latitude, longitude) and temporal (year) effects.
+
+    -   **Spatio-Temporal Interaction:** Test for interactions if appropriate.
+
+<!-- -->
+
+-   **Model Selection and Evaluation:** Discuss criteria used for selecting the best model (e.g., AIC, GCV, residual analysis).
+
+<!-- -->
+
+-   **Diagnostics:** Present key diagnostics (e.g., residual plots, deviance explained).
+
+# Results
+
+-   **Summary of Findings:** Interpret the key model outputs:
+
+    -   Which covariates significantly influence TB rates?
+
+    -   How do spatial and temporal trends appear?
+
+    -   Are there high-risk regions or periods for TB?
+
+<!-- -->
+
+-   **Visual Representation:**
+
+    -   Include maps showing predicted TB risks.
+
+    -   Temporal trend plots.
+
+    -   Any significant interaction effects (if modelled).
+
+<!-- -->
+
+-   **Implications:** Discuss practical implications, particularly for resource allocation.
+
+# Critial Review
+
+-   **Model Limitations:** Reflect on any limitations (e.g., assumptions, data gaps, potential overfitting).
+
+<!-- -->
+
+-   **Alternative Approaches:** Briefly discuss other modelling approaches that could be considered in the future.
+
+<!-- -->
+
+-   **Uncertainty Discussion:** Highlight any uncertainties in parameter estimation, especially regarding smooth terms.
+
+# Conclusion
+
+-   **Summary of Key Insights:** Recap significant findings and their implications.
+
+<!-- -->
+
+-   **Policy Recommendations:** Suggest actionable steps for health authorities based on the analysis.
+
+## Appendix:
+
+-   **Commented R Code:** Include all key code used for analysis and modelling.
+
+<!-- -->
+
+-   **Additional Figures/Tables:** Any extra plots or results not included in the main text.
+
+<!-- -->
+
+-   **Model Summaries:** Full output of final model summaries.
+
+The aim of this project is to use this data set to quantify TB risk across Brazil over the 3 years, where risk is defined as the rate of TB cases per unit population.
+
+**Tables**:
+
+1.  Summary Stats Table (gt table, look at website) done
+2.  Model Comparison (Tweedie vs nb) done
+3.  Table for regions iwth highest rate of TB, and infers from this
+
+**Plots**:
+
+1.  Residual Diagnostic plots: Residual vs fitted QQ plots and 1 other? Influece plot?
+
+2.  Covariate plot 1-8 covaraite impact on rate of TB per unit pop. Compare the raw mean to predicted mean.
+
+3.  Spatial structure explaining risk: plot.map for this. General plot without temporal noise
+
+4.  Temporal structure explaining risk: Covariate charts/significance for each year
+
+5.  temporal-Spatial structure explaining risk: plot.map for this. 3 of them, Look at differences
+
+6.  
+
+The health authorities want to allocate resources for hospitals to cope with the TB cases , so they would like to know if there are regions where the rate of TB per unit population is high and where you would recommend allocating these resources.
+
+```{r}
+ library(fields)
+ library(maps)
+ library(sp)
+ # PLotting map of cases
+ plot.map(TBdata$TB[TBdata$Year==2014],n.levels=7,main="TB counts for 2014")
+```
+
+Structure:\
+\
+\## **1. Exploratory Data Analysis (EDA)**
+
+-   **Descriptive Statistics:** Summary of key covariates and TB case rates (per unit population).
+
+Write about Table 1
+
+And implications going into this.
+
+## **2. Initial Model Fitting (GAMs)**
+
+-   **Base Model:** Fit an initial GAM including socio-economic covariates.
+
+-   **Model Structure Explanation:** Detail the mathematical formulation and rationale for including each covariate.
+
+-   **Model Summary:** Present key outputs (e.g., significant predictors, smooth terms).
+
+We will model **TB case counts** $Y_{i}​$ as a function of socio-economic covariates and spatial-temporal effects using **Generalized Additive Models (GAMs)**. Since TB cases are **count data**, they follow a **Poisson or Negative Binomial (NB) distribution**, which makes the following GAM structure appropriate:
+
+## Model Specification
+
+We assume that the observed TB case counts $Y_i$ follow either a Poisson or a Negative Binomial distribution:
+
+$$
+Y_i \sim \text{Poisson}(\mu_i) \quad \text{or} \quad Y_i \sim \text{NB}(\mu_i, \theta)
+$$
+
+where the expected mean $\mu_i$ is modeled as:
+
+$$
+\log(\mu_i) = \beta_0 + f_1(\text{Indigenous}_i) + f_2(\text{Illiteracy}_i) + \dots + f_p(\text{Timeliness}_i) + f_{\text{spatial}}(\text{lon}_i, \text{lat}_i) + f_{\text{temporal}}(\text{Year}_i) + \log(\text{Population}_i)
+$$
+
+Here:
+
+\- $f_j(\cdot)$ represents smooth functions capturing non-linear effects of the socio-economic covariates.
+
+\- $f_{\text{spatial}}(\text{lon}, \text{lat})$ models spatial variability.
+
+\- $f_{\text{temporal}}(\text{Year})$ accounts for temporal trends.
+
+\- The $\log(\text{Population}_i)$ term acts as an offset to adjust for population size.
+
+This formulation allows us to estimate the impact of socio-economic factors on TB case counts while incorporating spatial and temporal structures in the data.
+
+### **Choice of Distribution: Poisson vs. Negative Binomial**
+
+#### **Limitations of the Poisson Model**
+
+The Poisson model assumes that the mean and variance of the response variable are equal:
+
+$$
+E[Y] = \text{Var}(Y)
+$$
+
+However, this assumption is often violated in real-world count data due to **overdispersion**, where the variance exceeds the mean. Overdispersion can lead to:
+
+\- **Inflated test statistics**, increasing the risk of Type I errors (false positives).
+
+\
+- **Misleading inferences**, as confidence intervals may be too narrow.
+
+#### **Evidence of Overdispersion**
+
+The computed dispersion statistic for the TB data is **2223.535**, which is significantly greater than 1. This confirms severe overdispersion, violating the equidispersion assumption of the Poisson model:
+
+$$
+\text{Var}(Y) \gg E[Y]
+$$
+
+Using a Poisson model under such conditions would underestimate variability, leading to unreliable statistical conclusions.
+
+#### **Why the Negative Binomial Model is More Appropriate**
+
+The **Negative Binomial (NB) model** extends the Poisson distribution by introducing an **overdispersion parameter** $\theta$, which adjusts the variance function to account for excess dispersion:
+
+$$
+\text{Var}(Y_i) = \mu_i + \frac{\mu_i^2}{\theta}
+$$
+
+where:
+
+\- $\mu_i$ is the expected number of TB cases for region $i$, - $\theta$ controls the degree of overdispersion, allowing for greater variability than the Poisson model.
+
+Given the extreme overdispersion in the TB data, the Negative Binomial model is the **statistically robust choice**, as it:
+
+\- **Relaxes the restrictive assumption of equal mean-variance** while remaining within the exponential family framework.
+
+\- **Provides more reliable parameter estimates** by accounting for unobserved heterogeneity across microregions.
+
+\- **Prevents misleading inference** by correcting for variance inflation.
+
+#### **Justification for Directly Using a Negative Binomial GAM**
+
+Rather than initially fitting a Poisson GAM and later diagnosing overdispersion, we **directly proceed with a Negative Binomial GAM**. This ensures:
+
+\- **Model validity**, by selecting an appropriate variance structure from the outset.
+
+\- **Robust inference**, reducing the risk of biased estimates and misleading conclusions.
+
+\- **Improved accuracy**, as the model better captures the heterogeneity in TB case counts across microregions.
+
+By making this adjustment, we ensure a more reliable and interpretable analysis of TB risk in Brazil.
+
+## 3. Offset for Population
+
+Since TB cases depend on the **population size** in each region, we introduce an **offset** to model TB risk per capita:
+
+$$
+\log(\mu_i) = \text{linear predictor} + \log(\text{Population}_i)
+$$
+
+This ensures that the response variable is scaled appropriately, effectively modeling the **rate of TB cases per 100,000 people** rather than just raw counts.
+
+## **Negative Binomial GAM for TB Case Counts**
+
+Given the substantial **overdispersion** in the TB case counts, we proceed with a **Negative Binomial (NB) GAM**. The model accounts for **spatial, temporal, and socio-economic effects** while incorporating an **offset term** to model TB risk per unit population.
+
+### **Mathematical Formulation**
+
+The **Negative Binomial GAM** assumes that the response variable $Y_i$ (TB case count in region $i$) follows a **Negative Binomial distribution**:
+
+$$
+Y_i \sim \text{NB}(\mu_i, \theta)
+$$
+
+where:
+
+\- $\mu_i$ is the expected number of TB cases in region $i$. - $\theta$ is the **overdispersion parameter**.
+
+The **log link function** ensures a **multiplicative relationship** between the covariates and the expected count:
+
+$$
+\log(\mu_i) = \beta_0 + f_1(\text{Indigenous}_i) + f_2(\text{Illiteracy}_i) + \dots + f_p(\text{Timeliness}_i) + f_{\text{spatial}}(\text{lon}_i, \text{lat}_i) + f_{\text{temporal}}(\text{Year}_i) + \log(\text{Population}_i)
+$$
+
+The **offset term** $\log(\text{Population}_i)$ ensures that the model accounts for diffent population sizes.
+
+------------------------------------------------------------------------
+
+## **Transforming Predictions to TB Incidence Rates**
+
+Since the **Negative Binomial GAM** inherently predicts **TB case counts**, we manually convert the **fitted values** into **TB incidence rates per 100,000 population** using:
+
+$$
+\text{Predicted TB Rate} = \left( \frac{\text{Predicted TB Cases}}{\text{Population}} \right) \times 100000
+$$
+
+This transformation ensures that the estimated values are correctly **interpreted as TB incidence rates** rather than raw counts.
+
+\########################
+
+## **Understanding the Model Output**
+
+Even though we include an **offset term** $\log(\text{Population})$ in the model to account for different **population sizes**, the model still fundamentally **predicts TB case counts**.
+
+### **Mathematical Formulation**
+
+The mathematical form of the model is:
+
+$$
+\log(E[Y_i]) = \beta_0 + f_1(\text{Indigenous}_i) + f_2(\text{Illiteracy}_i) + \dots + f_p(\text{Timeliness}_i) + f_{\text{spatial}}(\text{lon}_i, \text{lat}_i) + f_{\text{temporal}}(\text{Year}_i) + \log(\text{Population}_i)
+$$
+
+where: - $E[Y_i]$ = expected **TB case count** in microregion $i$, - $f_j(\cdot)$ = **smooth functions** of socio-economic covariates, - $f_{\text{spatial}}(\cdot)$ = **spatial effect**, - $f_{\text{temporal}}(\cdot)$ = **temporal effect**, - $\log(\text{Population}_i)$ = **offset term** to adjust for population differences.
+
+Since the model uses a **log link function**, the expected case count is given by:
+
+$$
+E[Y_i] = \text{Population}_i \times e^{\text{Linear Predictor}}
+$$
+
+### **Implication**
+
+-   The model’s predictions are in terms of **TB case counts**, adjusted for population.
+-   It **does not directly predict TB incidence rates**.
+-   To obtain **TB rates**, we must **manually convert** the predicted case counts.
+
+------------------------------------------------------------------------
+
+## **2. Why Does This Happen Despite the Offset?**
+
+The **offset does not change** the response variable from **counts to rates**. Instead, it ensures that the estimated **case counts are proportional to the population size**.
+
+### **Key Insights**
+
+-   If two regions have the **same covariate values** but **different populations**, the model will predict **higher TB case counts** for the region with the larger population.
+-   The offset ensures that **TB risk per person is correctly estimated**, but the raw predictions remain in **case counts**.
+
+Thus, while the model **adjusts for population**, it does not inherently provide **incidence rates**, requiring us to **explicitly transform** the predictions.
+
+\##########################
+
+### **Fitting the Model in R**
+
+We use the `mgcv` package to fit a **Negative Binomial GAM**, specifying the **offset for population size**:
+
+## **3. Model Refinement and Improvement**
+
+-   **Add Complexity:** Introduce spatial and temporal smooths to capture unexplained variation.
+
+-   Explain why some terms are included and some not. why some are formatted as they as.. Illitercy seems to have no significant correlation as seen from a plot.
+
+-   **Interaction Terms:** If necessary, test for spatio-temporal interactions.
+
+-   **Summary Table:** Present a table comparing models (AIC, deviance explained, etc.) to show the progression and improvements.
+
+## **4. Model Diagnostics**
+
+-   **Residual Diagnostics:** Plot residuals to assess model fit (QQ plots, residual vs fitted, etc.).
+
+-   **Check Assumptions:** Comment on model assumptions like distributional assumptions, independence, and overfitting.
+
+## **5. Covariate Effect Plots** (Already created)
+
+-   **Effect Plots for Covariates:** Show smooth effect plots (e.g., `plot.gam` in R) for key socio-economic variables to visualise their impact on TB risk.
+
+-   **Interpretation:** Discuss how each covariate affects TB risk and the strength of their influence.
+
+## **6. Spatial and Temporal Structure Analysis**
+
+-   **Spatial Smoother Visualization:** Plot the estimated spatial effects to identify regions with high or low TB risk.
+
+-   **Temporal Smoother Visualization:** Show how TB rates have evolved over time.
+
+## **7. Geospatial Plots**
+
+-   **Risk Maps:** Use the `plot.map` function to produce maps of predicted TB risks across microregions.
+
+-   **Highlight High-Risk Areas:** Identify and discuss regions with consistently higher TB rates.
+
+## **9. Model Comparison**
+
+-   **Performance Summary:** Compare final models based on criteria like AIC, deviance explained, and residual diagnostics.
+
+-   **Final Model Selection:** Clearly state which model is preferred and why.
+
+## **10. Conclusion and Recommendations**
+
+-   **Key Insights:** Summarise the main findings regarding socio-economic influences, spatial-temporal risks, and high-risk areas.
+
+-   **Policy Implications:** Discuss recommendations for health authorities, such as where to allocate resources.

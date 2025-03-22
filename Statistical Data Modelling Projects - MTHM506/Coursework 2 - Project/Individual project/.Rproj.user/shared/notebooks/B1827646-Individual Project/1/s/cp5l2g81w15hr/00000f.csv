@@ -1,0 +1,4 @@
+"0","ggplot(nlmodel, aes(x = x, y = y)) +"
+"0","       geom_point() +"
+"0","       theme_minimal(base_size = 12) +"
+"0","  custom_theme"
