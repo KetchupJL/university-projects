@@ -30,7 +30,7 @@ This repository showcases key projects completed during my Masters studies, high
    - **Description**: 
    - **Technologies Used**: R - .
    - **.
-   - **Module MTHM506**: Grade - NA%
+   - **Module MTHM506**: Grade - 84%
 
 
 ### 4. [Advanced Topics in Statistics - Coursework Assignment](https://github.com/KetchupJL/university-projects/tree/main/Advanced%20Topics%20In%20Statistics)
