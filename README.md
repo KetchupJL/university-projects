@@ -26,21 +26,21 @@ This repository showcases key projects completed during my Masters studies, high
    - **Module MTHM503**: Grade - 74%
 
 
-### 3. [Statistical Data Modelling - Coursework 1](https://github.com/KetchupJL/university-projects/tree/main/Statistical%20Data%20Modelling%20Projects%20-%20MTHM506/Coursework%201%20-%20Practical%20Modelling%20Excersises%20and%20Theoretical%20Problems)
+### 3. [Comparative Modelling of AIDS Case Trends Using Poisson and Gaussian Regression](https://github.com/KetchupJL/university-projects/tree/main/Statistical%20Data%20Modelling%20Projects%20-%20MTHM506/Coursework%201%20-%20Practical%20Modelling%20Excersises%20and%20Theoretical%20Problems)
    - **Description**: 
    - **Technologies Used**: R - .
    - **.
    - **Module MTHM506**: Grade - 84%
 
 
-### 4. [Advanced Topics in Statistics - Coursework Assignment](https://github.com/KetchupJL/university-projects/tree/main/Advanced%20Topics%20In%20Statistics)
-   - **Description**: Two sets of tasks. One requiring Bayesian inference and the other usings various supervised machine learning techniques.
-   - **Technologies Used**: R - (JAGS, ...).
+### 4. [Advanced Statistical Modelling: Inference and Classification](https://github.com/KetchupJL/university-projects/tree/main/Advanced%20Topics%20In%20Statistics)
+   - **Description**: This project is divided into two core sections. The first involves fitting a hierarchical Bayesian mixture model to assess cognitive reaction times in schizophrenic and non-schizophrenic patients using MCMC methods in JAGS. The second applies a suite of supervised machine learning techniques to classify simulated data into two groups, evaluating the predictive performance of each model.
+   - **Technologies Used**: R – (JAGS, ggplot2, rjags, MASS, class, e1071, randomForest, caret).
    - **Classification (Machine Learning) methods used**: Linear/Quadratic Discriminant Analysis, K-Nearest Neighbours, Support Vector Machines andRandom Forests.
    - **Module MTHM017**: Grade - NA%
 
-### 5. Statistical Data Modelling – Coursework 2
 
+### 5. [Quantifying Spatio-Temporal Tuberculosis Risk in Brazil using GAMs](https://github.com/KetchupJL/university-projects/tree/main/Advanced%20Topics%20In%20Statistics)
 - **Description**: A independent project assessing TB risk in Brazil using Generalized Additive Models. Focus is on fitting spatial, temporal, and spatio-temporal models to identify key covariates and risk structures.
 - **Technologies Used**: R (`mgcv`, `fields`, `maps`, `sp`, `gt`, `ggplot2`)
 - **Methods Used**: Poisson and Tweedie GAMs, spatial and temporal smoothers, tensor product interactions, model selection using AIC/GCV, risk mapping.
