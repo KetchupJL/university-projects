@@ -26,11 +26,11 @@ This repository showcases key projects completed during my Masters studies, high
    - **Module MTHM503**: Grade - 74%
 
 
-### 3. [Comparative Modelling of AIDS Case Trends Using Poisson and Gaussian Regression](https://github.com/KetchupJL/university-projects/tree/main/Statistical%20Data%20Modelling%20Projects%20-%20MTHM506/Coursework%201%20-%20Practical%20Modelling%20Excersises%20and%20Theoretical%20Problems)
-   - **Description**: 
-   - **Technologies Used**: R - .
-   - **.
+### 3. [Comparative Modelling of AIDS Case Trends Using Poisson and Gaussian Regression](https://github.com/KetchupJL/university-projects/tree/main/Statistical%20Data%20Modelling%20Projects%20-%20MTHM506/Coursework%201%20-%20Practical%20Modelling%20Excersizes%20and%20Theoretical%20Problems)
+   - **Description**: This project compares Poisson and Gaussian regression models to analyze the trends in AIDS cases in the UK, extending them with polynomial terms to address non-linearity. The final model, a Negative Binomial cubic model, is recommended due to its ability to handle overdispersion and non-linear trends effectively.
+   - **Technologies Used**: R (glm, ggplot2, AIC, deviance, bptest, glm.nb).
    - **Module MTHM506**: Grade - 84%
+
 
 
 ### 4. [Advanced Statistical Modelling: Inference and Classification](https://github.com/KetchupJL/university-projects/tree/main/Advanced%20Topics%20In%20Statistics)
