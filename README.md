@@ -38,3 +38,19 @@ This repository showcases key projects completed during my Masters studies, high
    - **Technologies Used**: R - (JAGS, ...).
    - **Classification (Machine Learning) methods used**: Linear/Quadratic Discriminant Analysis, K-Nearest Neighbours, Support Vector Machines andRandom Forests.
    - **Module MTHM017**: Grade - NA%
+
+### 5. [Statistical Data Modelling - Coursework 2](https://github.com/KetchupJL/university-projects/tree/main/Advanced%20Topics%20In%20Statistics)
+   - **Description**: Two sets of tasks. One requiring Bayesian inference and the other usings various supervised machine learning techniques.
+   - **Technologies Used**: R - (JAGS, ...).
+   - **Classification (Machine Learning) methods used**: Linear/Quadratic Discriminant Analysis, K-Nearest Neighbours, Support Vector Machines andRandom Forests.
+   - **Module MTHM506**: Grade - NA%
+
+### 6. [Long-Term Phytoplankton Disruption in the Gulf of Mexico: A Zonal Time-Series Analysis of the Deepwater Horizon Spill](https://github.com/KetchupJL/university-projects/tree/main/Communicating%20Data)
+- **Description**:  
+  A scientific investigation into the ecological impact of the 2010 Deepwater Horizon oil spill on phytoplankton productivity in the Gulf of Mexico. Using satellite-derived chlorophyll-a data and zonal time-series decomposition, the study analyses seasonal disruption, recovery trajectories, and spatial anomaly patterns across control and impacted regions. Comparative analysis of over 120 additional oil spills is also included to evaluate the exceptionalism of DWH.
+- **Technologies Used**:  
+  R (terra, sf, stars, dplyr, ggplot2, forecast, patchwork, gt, lubridate, purrr, ggridges, zoo)
+- **Classification (Machine Learning) methods used**:  
+  None (this project applied time-series decomposition and spatial statistics, not supervised classification)
+- **Module MTHM507**: Grade - NA%
+
