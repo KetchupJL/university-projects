@@ -1,4 +1,4 @@
-# 🌿 Long-Term Phytoplankton Disruption in the Gulf of Mexico  
+# Long-Term Phytoplankton Disruption in the Gulf of Mexico  
 ### *A Zonal Time-Series Analysis of the Deepwater Horizon Oil Spill*
 
 This MSc research project investigates the long-term ecological impact of the 2010 Deepwater Horizon (DWH) oil spill on phytoplankton productivity in the Gulf of Mexico. Leveraging satellite-derived chlorophyll-a data, spatial analysis, and advanced time-series decomposition techniques, this study identifies how phytoplankton dynamics were disrupted—and to what extent they recovered—following one of the most significant marine pollution events in history.
