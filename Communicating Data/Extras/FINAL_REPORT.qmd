@@ -1,0 +1,605 @@
+---
+format: 
+  pdf:
+    documentclass: article
+    toc: true
+    include-before-body: cover.tex
+    number-sections: true
+    keep-tex: true
+    latex-engine: xelatex
+fontsize: 11pt
+mainfont: Times New Roman
+geometry: margin=2.5cm
+editor: visual
+citation: true
+csl: harvard.csl
+bibliography: references.bib
+---
+
+\newpage
+
+# Introduction
+
+Phytoplankton are microscopic, photosynthetic organisms that form the base of marine food webs and play a critical role in regulating the global carbon cycle. Although they comprise less than 1% of the Earth's photosynthetic biomass, phytoplankton account for approximately half of global primary production, driving oceanic carbon fixation and oxygen generation (Hu et al. (2011)). Their rapid responsiveness to environmental change makes them sensitive indicators of ecosystem perturbation. Shifts in phytoplankton abundance, composition, or bloom timing can signal broader disruptions in marine systems, with cascading effects on higher trophic levels, including fish and invertebrates of economic and ecological importance (Li et al. (2019)).
+
+The Gulf of Mexico (GoM) represents a dynamic and ecologically complex marine basin, shaped by the interplay of natural drivers and anthropogenic stressors. Offshore waters are typically oligotrophic, with productivity peaking in winter due to wind-driven nutrient entrainment, whereas the northern shelf experiences spring and summer phytoplankton blooms fuelled by nutrient discharge from the Mississippi–Atchafalaya River system (Sutton et al., 2022). These seasonal cycles are modulated by stratification, upwelling, and climate oscillations such as ENSO. Overlaying this natural variability is the intensive hydrocarbon infrastructure of the northern GoM, which contributes to \~14% of U.S. crude oil production and \~48% of petroleum refining (O’Connor et al., 2016), placing key marine ecosystems at risk from oil contamination.
+
+This vulnerability was realised during the Deepwater Horizon (DWH) oil spill in 2010, which released an estimated 4.9 million barrels of oil over 87 days into the northeastern Gulf. Satellite observations recorded anomalously high surface chlorophyll concentrations within the spill zone in August 2010—deviating from typical summer oligotrophic conditions (Hu et al., 2011). In parallel, in situ measurements detected a near-collapse in phytoplankton abundance on the Louisiana shelf, alongside a shift in community structure (Parsons et al., 2015). These contrasting responses—offshore bloom versus nearshore decline—highlight the spatial heterogeneity of oil spill effects. Subsequent years (2011–2014) showed continued suppression of surface productivity before apparent recovery, raising questions about ecosystem resilience and the duration of oil-induced impacts (Li et al., 2019; Sutton et al., 2022).
+
+Previous studies have leveraged remote sensing (e.g., MODIS-Aqua chlorophyll-a and normalised fluorescence line height, nFLH), in situ sampling, ecological modelling, and statistical time-series analysis to assess these impacts. However, gaps remain. Most analyses have focused on the DWH event in isolation, without systematic comparison to other oil spills in the region. Moreover, few studies have quantified shifts in seasonal structure or tested recovery trajectories against pre-spill baselines using formal decomposition and spatial methods.
+
+This study addresses these gaps by applying a suite of ecological time-series and spatial techniques to satellite chlorophyll-a data spanning 2002–2024. Our objectives are to:
+
+-   Characterise baseline seasonal phytoplankton dynamics across spatial zones;
+
+-   Detect and quantify anomalies associated with the DWH event using STL decomposition and residual mapping;
+
+-   Evaluate signal structure and recovery using zonal trend analysis;
+
+-   Compare phytoplankton responses across 127 oil spills, including the 15 largest by volume.
+
+By integrating zonal time-series decomposition, spatial anomaly detection, and event-aligned spill analysis, this study contributes a novel perspective on how large-scale oil pollution affects marine primary producers. It provides a data-driven characterisation of disturbance and recovery dynamics in the Gulf of Mexico, with broader implications for ecological resilience and remote sensing–based monitoring frameworks.
+
+------------------------------------------------------------------------
+
+# Literature Review
+
+Phytoplankton in the Gulf of Mexico (GoM) exhibit strong seasonal and spatial variability in biomass and composition, modulated by physical forcing, nutrient inputs, and climate oscillations such as ENSO and AMO. Winter wind mixing in offshore waters brings nutrients into the euphotic zone, producing seasonal chlorophyll-a peaks (\~0.2–0.4 mg·m⁻³), while summer stratification suppresses productivity to oligotrophic levels (\~0.1 mg·m⁻³)(Sutton et al., 2022; Rabalais et al., 2014).In contrast, the northern shelf receives large spring and summer nutrient pulses from the Mississippi–Atchafalaya River system, generating high chlorophyll concentrations and occasional secondary blooms when the plume extends eastward. This dynamic seasonal structure, underpinned by both riverine and oceanographic processes, defines the ecological baseline against which spill-induced disruptions must be assessed.
+
+The 2010 Deepwater Horizon (DWH) oil spill represented an unprecedented perturbation to this system, coinciding spatially and temporally with high-productivity zones on the northern shelf. Satellite observations recorded a striking surface chlorophyll bloom (\>11,000 km²) in August 2010, with concentrations exceeding all previous August values in the northeastern Gulf since 2002 (Hu et al., 2011; Li et al., 2019). Although initially interpreted as a possible spill-stimulated bloom, subsequent modelling studies highlighted the role of exceptional Mississippi River discharge and Bonnet Carré spillway opening in delivering nutrients to the eastern shelf (O’Connor et al., 2016). These competing mechanisms underscore the challenge of attributing causality in dynamic coastal systems.
+
+In situ observations added clarity. A shelf-wide survey found an 85% reduction in phytoplankton abundance on the Louisiana shelf relative to pre-spill decades, with a shift from flagellates to large diatoms and cyanobacteria (Parsons et al., 2015). These assemblages likely reflected both toxic exposure and altered trophic interactions — including reduced grazing pressure and marine snow formation via the MOSSFA pathway (Quigg et al., 2021; Walsh et al., 2015). Crucially, this collapse was confirmed using long-term ecological monitoring, allowing statistical identification of 2010 as a significant outlier even after controlling for natural variability.
+
+Beyond the initial event, multiple studies have used MODIS-Aqua time-series to evaluate longer-term changes. Chlorophyll-a and normalised fluorescence line height (nFLH) metrics showed persistent suppression of surface phytoplankton productivity from 2011 to 2014 within the spill footprint, with values falling below the range predicted by environmental models (Li et al., 2019). This prolonged depression has been attributed to chronic sublethal effects such as residual hydrocarbon toxicity, microbial shifts, or altered nutrient cycling (Li et al., 2019; Paul et al., 2013). Nonetheless, by \~2015, both chlorophyll and nFLH appeared to return to baseline levels, suggesting a recovery facilitated by phytoplankton’s short turnover times and regional connectivity.
+
+Remote sensing was central to these insights, despite key limitations. Chlorophyll retrieval algorithms are restricted to the surface layer and cannot distinguish taxa or physiological states. In 2010, surface oil contamination further complicated ocean colour signals, requiring the use of alternative proxies such as fluorescence or exclusion masking (Hu et al., 2011; Sutton et al., 2022). Nonetheless, satellite monitoring provided a consistent long-term view, enabling researchers to identify the spatial footprint, anomaly duration, and zonal variability of spill impacts.
+
+These findings have been supported and contextualised by ecological modelling. Simulations of trophic responses suggested that grazer suppression could account for the offshore bloom, while sedimentation modelling helped estimate increased vertical export during the bloom-collapse sequence. Other scenario analyses have examined the role of dispersants like Corexit, which were applied at scale (\~2.1 million gallons) during the DWH response (Almeda et al., 2013; Bretherton et al., 2018). Laboratory studies suggest these may have selectively affected phytoplankton groups, with dinoflagellates particularly sensitive to oil-plus-dispersant exposure (Bretherton et al., 2018).
+
+Collectively, the literature shows that phytoplankton responses to DWH were regionally heterogeneous and temporally extended. A transient offshore bloom was followed by shelf-wide biomass collapse, then by several years of suppressed productivity before apparent system rebound (Graham et al., 2010; Parsons et al., 2015; Walsh et al., 2015; Sutton et al., 2022). These complex patterns motivate the present study’s use of time-series decomposition, spatial anomaly detection, and event-aligned spill analysis to more precisely characterise the magnitude, spatial distribution, and recovery trajectory of oil spill impacts on phytoplankton in the Gulf of Mexico.
+
+------------------------------------------------------------------------
+
+# **Methodology**
+
+## Analytical Objectives
+
+This study applies time-series decomposition, spatial stratification, and event-aligned trend analysis to evaluate how oil spills—particularly the Deepwater Horizon (DWH) event—have affected phytoplankton productivity and seasonality in the Gulf of Mexico. The methodological framework is designed to:
+
+-   Characterise baseline seasonal dynamics of phytoplankton biomass (chlorophyll-a),
+
+-   Detect and quantify localised anomalies associated with spill events,
+
+-   Distinguish anthropogenic disturbance from natural variability,
+
+-   Compare the magnitude and duration of impacts across zones and spill events,
+
+-   Evaluate evidence of system recovery over time.
+
+All analyses were conducted in R using MODIS-Aqua satellite data. Methods draw on prior ecological studies (Hu et al., 2011; Li et al., 2019; Parsons et al., 2015; Muller-Karger et al., 2015) and the data science techniques introduced in MTHM507.
+
+## Data Acquisition and Preprocessing
+
+Monthly Level 3 chlorophyll-a concentration data (2002–2024) were obtained from NASA’s MODIS-Aqua satellite archive at \~4 km spatial resolution. These data serve as proxies for near-surface phytoplankton biomass and form the basis for all time-series analyses. The study domain was stratified into three spatial zones:\
+- **DWH Core Zone**: exposed to \>30 days of surface oil in 2010 (Li et al., 2019),\
+- **Wider Shelf Zone**: the full 2010 surface slick footprint,\
+- **Offshore Control Zone**: located \>500 km from the spill centre.
+
+Zonal averages were extracted using the `terra`, `sf`, and `stars` packages in R, and converted into monthly time-series. Climatological baselines (2002–2009) were computed for each zone to support seasonal anomaly detection and STL decomposition (Li et al., 2019).
+
+In addition, a curated set of high-resolution MODIS-Aqua NetCDF files (NASA OceanColor, 2024) was downloaded from NASA’s OceanColor repository. These monthly composites were used to construct a raster stack spanning 2002–2024, which enabled pixel-level anomaly mapping, spill-aligned chlorophyll trend extraction, and STL-based residual calculations for spatial plotting (e.g., Figures 3–6). The stack was organised chronologically and aligned with incident dates using the `rast()` and `extract()` functions from the `terra`
+
+Oil spill metadata were obtained from the NOAA IncidentNews archive (NOAA, 2024), comprising 127 unique spill records between 2006 and 2021. These were cleaned to remove entries with missing coordinates, ambiguous dates, or non-oil classifications. Latitude, longitude, and spill onset date were extracted for each valid entry and used to align MODIS raster layers relative to spill onset. The 15 largest spills by maximum potential release (gallons) were selected for focused composite analysis, enabling evaluation of broader spill impacts on phytoplankton productivity.
+
+Together, these datasets enabled zonal time-series construction, spatial residual mapping, and comparative spill trend analysis across both impacted and control regions.
+
+## Seasonality and Anomaly Decomposition
+
+Chlorophyll-a time series for each zone were log-transformed and decomposed using STL (Seasonal-Trend decomposition via Loess). This method separates trend, seasonal, and remainder components, enabling quantification of temporal anomalies and structural disturbances (Sutton et al., 2022; Walsh et al., 2015).
+
+Seasonal amplitude loss and trend depression were used as indicators of ecological disruption. Residual volatility was evaluated across time windows (pre-spill, 2010–2014, post-2015) to assess system instability, in line with approaches used in Li et al. (2019) and Sutton et al. (2022).
+
+## Event-Based Spill Analysis
+
+To evaluate whether the DWH impact was exceptional or representative, we applied a comparative, event-aligned analysis across 127 oil spill sites (2006–2021). For each event, chlorophyll-a values were extracted from a 4-year window before and after the spill onset, and aligned by relative month.
+
+We focused in particular on the 15 largest spills by potential volume (in gallons), filtering for events with adequate location and date metadata. Composite time-series were generated, and confidence intervals computed across the relative month index. This enabled visual and statistical assessment of whether other spills triggered biomass disruption comparable to DWH.
+
+## Recovery Trajectory Assessment
+
+To evaluate long-term recovery, STL-derived **trend components** were compared to pre-spill baselines. For each zone, a linear regression was fitted to the post-spill trend segment (2011–2014), and slope estimates were compared. This approach identified whether recovery was directional, stagnant, or incomplete.
+
+Baseline deviations were also visualised using horizontal reference lines in trend plots, helping to contextualise whether phytoplankton activity had returned to climatological norms.
+
+## Methodological Limitations
+
+This study is constrained by several methodological considerations:
+
+-   **Surface-only observations**: MODIS data capture upper-ocean chlorophyll but miss subsurface biomass, including deep chlorophyll maxima or benthic blooms.
+
+-   **Taxonomic blind spots**: Satellite chlorophyll cannot distinguish between species or functional groups, limiting insight into community restructuring or physiological shifts.
+
+-   **Causal attribution**: While spatial and temporal patterns suggest oil-related impacts, confounding drivers (e.g. river discharge, upwelling) may contribute. No environmental covariates were explicitly modelled.
+
+-   **Data gaps in spill metadata**: Incomplete spill records limited the ability to assess many smaller events or explore dispersant effects explicitly.
+
+Nonetheless, the data-driven, spatially resolved design of this analysis offers robust insight into the dynamics and legacy of oil spill disturbance on phytoplankton systems.
+
+------------------------------------------------------------------------
+
+# Results
+
+## Monthly Climatology of Chlorophyll-a (2002–2024)
+
+To contextualise spatial variability across the Gulf of Mexico, **Figure 1** presents monthly mean chlorophyll-a concentrations (MODIS-Aqua, 4 km resolution) averaged from 2002 to 2024. Productivity is consistently elevated along the northern continental shelf, particularly in spring and summer months, while offshore regions remain oligotrophic. This seasonal backdrop informs the zonal definitions used in subsequent analysis. These consistent spatial gradients support the decision to analyse spill impacts within defined geographic zones, each with distinct seasonal characteristics.
+
+::: cell
+```{r}
+#| label: fig:chlmap
+#| fig-cap: "Monthly chlorophyll-a climatology (mg/m³) for the Gulf of Mexico (MODIS-Aqua, 2002–2024). Coastal productivity peaks in spring and summer, especially along the northern shelf. Offshore regions remain low year-round. This spatial baseline supports interpretation of zone-based seasonal patterns and impact anomalies."
+#| echo: false
+#| warning: false
+#| message: false
+
+knitr::include_graphics("figures/chlorophyll_facet.pdf")
+```
+:::
+
+------------------------------------------------------------------------
+
+## Zonal Seasonal Patterns
+
+To assess regional differences in baseline chlorophyll seasonality, climatological means were extracted from three zones: a Deepwater Horizon (DWH) core area (28–29°N, 88–89°W), a wider spill-influenced region (27–30°N, 87–90.5°W), and a remote offshore control zone (23–24°N, 91–93°W). As seen in **Figure 2**.
+
+The DWH-wide zone (Yellow) exhibits consistently elevated chlorophyll (\~2.5–3.2 mg/m³), likely reflecting sustained riverine nutrient inputs. The control zone (Blue) remains oligotrophic year-round (\<0.2 mg/m³). In contrast, the DWH core zone (Pink) displays a pronounced summer peak (\~1.3 mg/m³), suggestive of a seasonal bloom potentially linked to ecological feedbacks or legacy effects from the 2010 spill. These zonal distinctions highlight the spatial heterogeneity of phytoplankton dynamics in the Gulf and justify localised impact assessment.
+
+::: cell
+```{r}
+#| label: fig:zonalseason
+#| fig-cap: "Seasonal chlorophyll-a climatology (mg/m³) for three spatial zones: Deepwater Horizon core, wider spill-affected region, and offshore control (MODIS-Aqua, 2002–2024). The DWH core shows a distinct mid-summer peak, contrasting with the year-round productivity of the wider shelf and the oligotrophic offshore region."
+#| fig-width: 8
+#| fig-height: 6
+#| echo: false
+#| warning: false
+#| message: false
+
+knitr::include_graphics("figures/monthly_chlorophyll_climatology.pdf")
+
+```
+:::
+
+------------------------------------------------------------------------
+
+## STL Analysis of Phytoplankton Seasonality and Disturbance Signals
+
+To detect temporal disruptions in phytoplankton productivity linked to the Deepwater Horizon (DWH) oil spill, seasonal-trend decomposition using Loess (STL) was applied to log-transformed chlorophyll-a time series across three zones: the spill’s core area, a wider affected shelf region, and an offshore control. STL decomposes time series into trend, seasonal, and residual (remainder) components, enabling detection of ecological anomalies beyond expected seasonal dynamics.
+
+```{r fig:stl-core, fig.cap="STL decomposition of log-transformed chlorophyll-a in the DWH core zone. The shaded area highlights the Deepwater Horizon spill period (2010–2014).", out.width="100%", fig.align='center'}
+#| echo: false
+#| warning: false
+#| message: false
+
+knitr::include_graphics("figures/fig_stl_core.pdf")
+```
+
+The DWH core zone (**Figure 3**) displays a marked seasonal cycle, with mid-year chlorophyll peaks reflecting riverine and thermal controls on phytoplankton growth. However, from 2010–2014, the seasonal amplitude contracts and the trend component declines sharply, bottoming out in 2012 before gradually recovering. This pattern is consistent with documented post-spill suppression of phytoplankton biomass attributed to reduced light penetration, hydrocarbon toxicity, and altered microbial competition (Hu et al., 2011; Romero et al., 2015). Residual anomalies during this period were large and variable, indicating breakdowns in typical seasonal synchrony.
+
+```{r fig:stl-wide, fig.cap="STL decomposition of log-transformed chlorophyll-a in the DWH wide zone. The shaded area highlights the Deepwater Horizon spill period (2010–2014).", out.width="100%", fig.align='center'}
+#| echo: false
+#| warning: false
+#| message: false
+knitr::include_graphics("figures/fig_stl_Wide.pdf")
+```
+
+```{r fig:stl-control, fig.cap="STL decomposition of log-transformed chlorophyll-a in the Control zone. The shaded area highlights the Deepwater Horizon spill period (2010–2014).", out.width="100%", fig.align='center'}
+#| echo: false
+#| warning: false
+#| message: false
+knitr::include_graphics("figures/fig_stl_Control.pdf")
+```
+
+In contrast, the offshore control zone maintained consistent seasonal cycles and a stable trend throughout the record (**Figure** **3**). No comparable amplitude collapse or residual volatility was observed, reinforcing the interpretation that the shelf response was not a basin-wide phenomenon driven by climate variability or ENSO. The wider spill zone (**Figure 2**) showed an intermediate response, with modest trend depression and reduced seasonal expression from 2010–2012, suggesting a spatial gradient in exposure intensity.
+
+```{r tab:stl-summary, fig.align='center', fig.cap="STL decomposition of log-transformed chlorophyll-a in the DWH wide zone. The shaded area highlights the Deepwater Horizon spill period (2010–2014).", out.width="100%"}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-height: 10
+#| fig-width: 10
+#| 
+library(tidyr)
+library(terra)
+library(sf)
+library(dplyr)
+library(lubridate)
+library(stringr)
+library(gt)
+
+chl_file <- "modis.nc"
+chl <- terra::rast(chl_file)
+names(chl) <- month.name[1:12]
+
+# Convert to dataframe for ggplot
+chl_df <- as.data.frame(chl, xy = TRUE, na.rm = TRUE)
+chl_long <- pivot_longer(chl_df, cols = month.name, names_to = "month", values_to = "chlor_a")
+
+# Define polygons
+zone_a <- st_as_sf(st_sfc(st_polygon(list(rbind(
+  c(-89, 28), c(-88, 28), c(-88, 29), c(-89, 29), c(-89, 28)
+)))), crs = 4326)
+
+zone_b <- st_as_sf(st_sfc(st_polygon(list(rbind(
+  c(-90.5, 27), c(-87, 27), c(-87, 30), c(-90.5, 30), c(-90.5, 27)
+)))), crs = 4326)
+
+zone_c <- st_as_sf(st_sfc(st_polygon(list(rbind(
+  c(-93, 23), c(-91, 23), c(-91, 24), c(-93, 24), c(-93, 23)
+)))), crs = 4326)
+
+# Optional: combine for batch processing
+zones <- list(DWH_Core = zone_a, DWH_Wide = zone_b, Control = zone_c)
+
+
+
+nc_folder <- "C:/Users/james/OneDrive/Documents/Communicating Data/Essay/choloro/requested_files 2"
+nc_files <- list.files(path = nc_folder, pattern = "\\.nc$", full.names = TRUE)
+
+# Extract start dates from filenames
+dates <- nc_files %>%
+  basename() %>%
+  str_extract("\\d{8}(?=_)") %>%
+  as.Date(format = "%Y%m%d")
+
+zones_vect <- list(
+  DWH_Core = vect(zone_a),
+  DWH_Wide = vect(zone_b),
+  Control = vect(zone_c)
+)
+
+# Initialise empty list to store results
+zone_ts_list <- list(DWH_Core = numeric(), DWH_Wide = numeric(), Control = numeric())
+
+for (i in seq_along(nc_files)) {
+  r <- rast(nc_files[i])  # Load 1-month raster
+  
+  # Extract zonal means
+  for (zone_name in names(zones_vect)) {
+    mean_val <- terra::extract(r, zones_vect[[zone_name]], fun = mean, na.rm = TRUE)[1, 2]  # second column is data
+    zone_ts_list[[zone_name]] <- c(zone_ts_list[[zone_name]], mean_val)
+  }
+}
+
+chl_ts_df <- data.frame(
+  date = dates,
+  DWH_Core = zone_ts_list$DWH_Core,
+  DWH_Wide = zone_ts_list$DWH_Wide,
+  Control = zone_ts_list$Control
+) %>%
+  arrange(date) %>%
+  mutate(
+    log_DWH_Core = log10(DWH_Core + 1e-5),
+    log_DWH_Wide = log10(DWH_Wide + 1e-5),
+    log_Control = log10(Control + 1e-5)
+  )
+
+library(ggplot2)
+library(forecast)
+library(dplyr)
+library(scales)
+library(patchwork)
+
+plot_stl_report <- function(df, zone_label, spill_start = as.Date("2010-04-01"), spill_end = as.Date("2014-12-31")) {
+  df <- df %>% 
+    filter(!is.na(log_chlor_a)) %>%
+    arrange(date)
+  
+  # Create time series object
+  ts_data <- ts(df$log_chlor_a, start = c(year(min(df$date)), month(min(df$date))), frequency = 12)
+  stl_result <- stl(ts_data, s.window = "periodic")
+  
+  # Build data frame for plotting
+  stl_df <- data.frame(
+    date = seq.Date(from = min(df$date), by = "month", length.out = length(ts_data)),
+    observed = rowSums(stl_result$time.series),
+    trend = stl_result$time.series[, "trend"],
+    seasonal = stl_result$time.series[, "seasonal"],
+    remainder = stl_result$time.series[, "remainder"]
+  )
+  
+  # Aesthetic base
+  base_theme <- theme_minimal(base_size = 12) +
+    theme(axis.title.x = element_blank(),
+          axis.text.x = element_text(angle = 45, hjust = 1),
+          plot.title = element_text(size = 14, face = "bold"),
+          strip.text = element_text(size = 12, face = "bold"))
+  
+  highlight_spill <- geom_rect(aes(xmin = spill_start, xmax = spill_end, ymin = -Inf, ymax = Inf),
+                               fill = "grey90", alpha = 0.5, inherit.aes = FALSE)
+  
+  g1 <- ggplot(stl_df, aes(x = date, y = observed)) +
+    highlight_spill +
+    geom_line(size = 0.7) +
+    labs(title = "Observed (log-transformed)", y = "log(Chl-a)") +
+    base_theme
+  
+  g2 <- ggplot(stl_df, aes(x = date, y = trend)) +
+    highlight_spill +
+    geom_line(color = "firebrick", size = 0.7) +
+    labs(title = "Trend", y = "") +
+    base_theme
+  
+  g3 <- ggplot(stl_df, aes(x = date, y = seasonal)) +
+    highlight_spill +
+    geom_line(color = "dodgerblue4", size = 0.7) +
+    labs(title = "Seasonal Component", y = "") +
+    base_theme
+  
+  g4 <- ggplot(stl_df, aes(x = date, y = remainder)) +
+    highlight_spill +
+    geom_hline(yintercept = 0, linetype = "dashed", colour = "grey30") +
+    geom_line(color = "darkgreen", size = 0.7) +
+    labs(title = "Residual (Anomaly)", x = "Date", y = "") +
+    base_theme
+  
+  # Combine
+  full_plot <- (g1 / g2 / g3 / g4) +
+    plot_annotation(
+      title = paste0("STL Decomposition of Chlorophyll-a – ", zone_label),
+      subtitle = "Shaded region indicates Deepwater Horizon impact window (2010–2014)",
+      theme = theme(plot.title = element_text(size = 16, face = "bold"))
+    )
+  
+  return(full_plot)
+}
+
+# Function to extract STL residuals and compute summary stats
+summarise_stl_residuals <- function(df, label) {
+  ts_data <- ts(df$log_chlor_a, start = c(year(min(df$date)), month(min(df$date))), frequency = 12)
+  stl_result <- stl(ts_data, s.window = "periodic")
+  
+  stl_df <- data.frame(
+    date = seq.Date(from = min(df$date), by = "month", length.out = length(ts_data)),
+    remainder = stl_result$time.series[, "remainder"]
+  ) %>%
+    mutate(
+      period = case_when(
+        date < as.Date("2010-01-01") ~ "Pre-Spill (2002–2009)",
+        date >= as.Date("2010-01-01") & date <= as.Date("2014-12-31") ~ "Spill Impact (2010–2014)",
+        date >= as.Date("2015-01-01") ~ "Post-2015 Recovery"
+      )
+    ) %>%
+    group_by(period) %>%
+    summarise(
+      `Mean Residual` = mean(remainder, na.rm = TRUE),
+      `SD Residual` = sd(remainder, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    mutate(Zone = label)
+  
+  return(stl_df)
+}
+
+# Construct input data frames for each zone
+core_df <- chl_ts_df %>% select(date, log_chlor_a = log_DWH_Core)
+wide_df <- chl_ts_df %>% select(date, log_chlor_a = log_DWH_Wide)
+control_df <- chl_ts_df %>% select(date, log_chlor_a = log_Control)
+
+# Run summaries
+summary_core <- summarise_stl_residuals(core_df, "DWH Core")
+summary_wide <- summarise_stl_residuals(wide_df, "DWH Wide")
+summary_control <- summarise_stl_residuals(control_df, "Control")
+
+# Combine all
+stl_summary_all <- bind_rows(summary_core, summary_wide, summary_control) %>%
+  relocate(Zone, .before = period) %>%
+  arrange(Zone, period)
+
+
+library(gt)
+
+gt_table <- stl_summary_all %>%
+  mutate(
+    `Mean Residual` = round(`Mean Residual`, 3),
+    `SD Residual` = round(`SD Residual`, 3)
+  ) %>%
+  gt() %>%
+  tab_header(
+    title = md("**STL Residual Summary by Zone and Time Period**"),
+    subtitle = "Mean and standard deviation of STL residuals (log-transformed chlorophyll-a)"
+  ) %>%
+  fmt_number(columns = where(is.numeric), decimals = 3) %>%
+  cols_label(
+    Zone = "Zone",
+    period = "Period",
+    `Mean Residual` = "Mean Residual",
+    `SD Residual` = "SD Residual"
+  ) %>%
+  tab_options(
+    table.font.names = "Arial",
+    heading.title.font.size = 14,
+    heading.subtitle.font.size = 12,
+    table.font.size = 12,
+    data_row.padding = px(5)
+  )
+gt_table
+
+
+```
+
+**Table 1** quantifies the STL remainder component (mean and standard deviation) across three periods: **pre-spill** (2002–2009), the **spill window** (2010–2014), and **recovery** (post-2015). The DWH core zone exhibited the highest residual volatility during the spill period (**SD = 0.201**), with a persistent signal of instability extending into the recovery years (**SD = 0.212**). These findings are consistent with ecosystem modelling studies indicating delayed trophic recovery and prolonged microbial succession (Li et al., 2019). The control zone, by contrast, showed stable residuals throughout, confirming that anomalies in the shelf zone reflect localised disruption rather than broader oceanographic variability.
+
+This decomposition provides strong evidence that phytoplankton seasonal dynamics in the northern Gulf shelf were acutely disrupted by the spill and its aftermath, supporting a view of ecosystem perturbation followed by slow re-stabilisation. These results form a foundation for subsequent spatial anomaly mapping and signal modelling (Section 4.4), and for evaluating the resilience of the system in Section 4.6.
+
+------------------------------------------------------------------------
+
+## Spatial Mapping of STL Residual Anomalies (2010–2014)
+
+The spatial STL residual anomaly map (**Figure 4**) reinforces the temporal patterns identified in Section 4.3, providing clear evidence that phytoplankton dynamics were disrupted in a geographically structured manner during the spill window (2010–2014). Mean residuals were strongly positive across much of the DWH core zone and surrounding shelf, indicating elevated chlorophyll-a levels beyond what would be expected from seasonality or long-term trend. These anomalies are centred near the Macondo wellhead, supporting the hypothesis that localised ecological disturbance occurred in direct association with oil exposure. This is consistent with previous findings that oil-induced stratification, microbial degradation of hydrocarbons, and associated nutrient fluxes can stimulate transient phytoplankton blooms (Hu et al., 2011; Romero et al., 2015).
+
+```{r}
+#| label: fig:stl-resid-map
+#| fig-cap: "Mean STL residuals (2010–2014) across the northern Gulf of Mexico. Red indicates anomalous chlorophyll peaks; blue indicates suppressed phytoplankton activity. Overlays include the Deepwater Horizon impact zones and the Macondo wellhead."
+#| fig-width: 12
+#| fig-height: 10
+#| echo: false
+#| warning: false
+#| message: false
+
+knitr::include_graphics("figures/map_stl_resid_mean_2010_14.pdf")
+
+```
+
+In contrast, residuals in offshore waters and control regions were minimal, echoing the temporal STL results which showed stable seasonal structure and low variability outside the spill footprint. Localised negative anomalies southwest of the core zone may reflect suppressed productivity due to dispersed oil or reduced light availability, highlighting the heterogeneity of ecological responses within the impacted area. Notably, areas of highest residual magnitude align with the previously defined DWH core zone, reinforcing the validity of our zonal masks and supporting their use in recovery trajectory assessment.
+
+These spatial patterns directly support the central research aim: to determine whether phytoplankton dynamics were altered by the spill, and to assess the extent, nature, and localisation of these effects. The STL anomaly map visualises this disturbance footprint with high resolution, strengthening the attribution of change to the Deepwater Horizon event.
+
+------------------------------------------------------------------------
+
+## Event-Based Assessment of Other Spills
+
+To assess whether the Deepwater Horizon (DWH) event represented a unique ecological disruption or part of a broader pattern of phytoplankton response to oil spills, chlorophyll-a time series were aligned to 127 spill events across the Gulf of Mexico between 2002 and 2025. The resulting composite mean plot (Appendix, **Figure 9**) revealed no consistent shift in chlorophyll levels following spill onset. Seasonal periodicity remained dominant, with no statistically meaningful deviation from pre-spill conditions. This suggests that, in aggregate, Gulf oil spills have not produced systematic phytoplankton bloom or suppression responses—potentially reflecting the limited size or offshore dispersion of most incidents.
+
+```{r}
+#| label: fig:Oilspill1
+#| fig-cap: "Mean chlorophyll-a concentration (mg·m⁻³) aligned to the 15 largest oil spills in the Gulf of Mexico (by potential volume). Time series represent a ±4-year window centred on each spill event. Shaded area denotes 95% confidence interval."
+#| fig-width: 8
+#| fig-height: 8
+#| echo: false
+#| warning: false
+#| message: false
+
+knitr::include_graphics("figures/mean_chlorophyll_top15_spills.pdf")
+```
+
+To explore whether this lack of signal masked heterogeneity among larger events, a refined analysis focused on the 15 largest spills by maximum potential volume. The chlorophyll-a response curve (**Figure 5**) showed slightly increased variability and a modest decline in mean concentrations in the 6–18 months following spill onset. However, no persistent shift or directional trend was observed. These findings are consistent with literature highlighting the context-dependent impacts of oil on primary producers, moderated by light attenuation, nutrient regimes, and microbial degradation rates (Abbriano et al., 2011; Ramirez-Llodra et al., 2011).
+
+The absence of a consistent aggregate response among all 127 spills may reflect both the smaller size of most events and limitations in spatial spill metadata (Appendix, **Figure 9)**. In contrast, the top-15 analysis provides clearer insight into the conditions under which satellite-detectable phytoplankton disruption occurs.
+
+Taken together, the results reinforce the conclusion that *Deepwater Horizon* was ecologically exceptional, rather than representative. Smaller and even moderately large spills appear to exert limited or highly localised influence on satellite-detectable phytoplankton productivity. This supports the view that system-wide effects of oil contamination may require threshold-level disturbances, particularly in surface extent and persistence. These findings build on the STL decomposition and anomaly analysis (Sections 4.3–4.4), which also demonstrated that only the DWH Core Zone exhibited a sustained and significant phytoplankton departure from seasonal baselines.
+
+------------------------------------------------------------------------
+
+## Phytoplankton Recovery Trajectories by Zone
+
+To evaluate the ecological recovery of phytoplankton following the Deepwater Horizon (DWH) oil spill, STL-derived trend components were extracted from log-transformed chlorophyll-a time series across three zones: the DWH core, wider affected shelf, and an offshore control. **Figure 6** shows these trend trajectories from 2002 to 2024, with the 2010 spill period shaded in red, pre-spill baseline means indicated by dashed grey lines, and LOESS smoothed fits overlaid.
+
+```{r fig:recovery-trends, fig.cap="STL-derived trend components of log-transformed chlorophyll-a by zone (2010–2024). Dashed lines represent pre-2010 baseline means. Red shading shows the Deepwater Horizon spill period (April–July 2010).", out.width="\\textwidth", fig.align="center"}
+#| echo: false
+#| message: false
+#| warning: false
+
+knitr::include_graphics("figures/recovery.pdf")
+
+# Create clean column names for formatting
+trend_slope_table <- data.frame(
+  Zone = c("DWH Core", "DWH Wide", "Offshore Control"),
+  Slope = c(1.93e-4, -2.07e-4, 4.13e-4),
+  p_value = c(0.636, 0.180, 0.002)
+)
+
+# Format and display the table
+trend_slope_table %>%
+  gt() %>%
+  tab_header(
+    title = md("**Post-Spill Trend Slopes (2011–2014)**"),
+    subtitle = md("Linear slopes fitted to STL-derived chlorophyll-a trend components")
+  ) %>%
+  fmt_scientific(
+    columns = c(Slope),
+    decimals = 2
+  ) %>%
+  fmt_number(
+    columns = c(p_value),
+    decimals = 3
+  ) %>%
+  cols_label(
+    Zone = "Zone",
+    Slope = "Trend Slope (β)",
+    p_value = "p-value"
+  ) %>%
+  tab_options(
+    table.font.size = 12,
+    heading.title.font.size = 14,
+    heading.subtitle.font.size = 12,
+    data_row.padding = px(4)
+  )
+
+```
+
+The **DWH core zone** displayed a sharp decline in trend values following the 2010 spill, reaching a minimum by mid-2012. A partial recovery is evident between 2013 and 2018, but the STL trend plateaus and begins to decline again after 2020. This secondary decline may reflect long-term alterations in microbial or nutrient dynamics following the initial post-spill response, consistent with evidence of trophic reorganisation and decoupled carbon cycling (Parsons et al., 2015).
+
+The **wider DWH shelf zone** exhibited a similar though attenuated pattern: an initial dip, followed by modest recovery, but with long-term trends remaining below baseline. In contrast, the **offshore control zone** showed no such disruption, instead demonstrating a gradual and consistent recovery in chlorophyll-a trends over the entire time series.
+
+The overlay of LOESS curves and pre-2010 baselines highlights the spatial disparity in ecosystem resilience. While the control zone continued to trend upward, both impacted zones show **suppressed or unstable recovery**, consistent with delayed microbial succession and trophic restructuring reported in post-spill ecological modelling (Li et al., 2019; Parsons et al., 2015). These STL-based findings reinforce earlier results (Sections 4.3–4.5), indicating that phytoplankton recovery in the DWH core region has remained incomplete over a decade later, in contrast to the broader Gulf system which appears to exhibit greater ecological stability.
+
+To statistically evaluate recovery trajectories, linear slopes were fitted to the STL trend components over the 2011–2014 post-spill interval (**Figure 6**). The DWH core zone exhibited a weak positive slope (*β* = 1.93e–4, *p* = 0.636), suggesting no significant rebound in phytoplankton productivity in the four years following the Deepwater Horizon spill. The wider affected zone showed a slight declining trend (*β* = –2.07e–4, *p* = 0.18), consistent with ongoing sub-lethal ecological disturbance. In contrast, the offshore control zone exhibited a significant upward trend (*β* = 4.13e–4, *p* = 0.002), indicating background productivity increases unrelated to spill exposure. These findings reinforce the visual interpretation that full recovery was not achieved in the most exposed areas during the observed period.
+
+While a partial trend recovery is evident by 2018 in some zones, satellite-derived chlorophyll measures cannot confirm restoration of species composition or ecosystem function. As such, these findings should be interpreted as indicators of productivity stability rather than complete ecological recovery.
+
+------------------------------------------------------------------------
+
+# Discussion
+
+This study set out to assess how oil spills—particularly the Deepwater Horizon (DWH) disaster—impacted phytoplankton productivity and seasonality in the Gulf of Mexico. Using time-series decomposition, spatial anomaly detection, and event-aligned analysis, we found that chlorophyll-a dynamics were significantly disrupted in the aftermath of DWH, with changes persisting for several years. These disruptions were spatially uneven, highlighting the importance of zonal analysis in understanding ecosystem resilience to hydrocarbon disturbance.
+
+The most striking result was the prolonged suppression of phytoplankton productivity in the DWH core zone. STL decomposition revealed a sharp decline in both trend and seasonal amplitude from 2010–2014, consistent with prior findings of oil-induced toxicity and altered microbial structure (Li et al., 2019; Parsons et al., 2015). By comparing STL trajectories to pre-spill baselines and spatial controls, this study was able to isolate the disturbance signal more robustly than previous work.
+
+Although chlorophyll levels appeared to recover by \~2015, the trend did not return to baseline and declined again after 2020—suggesting that recovery was incomplete and unstable. This delayed downturn illustrates the value of decomposition-based methods over simple pre/post comparisons. Where average-difference approaches might classify the system as 'recovered', STL slope analysis revealed more subtle but ecologically significant deviations.
+
+Spatial heterogeneity also emerged as a key pattern. The offshore control zone showed no comparable anomalies and trended upward, while the wider spill zone displayed a flatter, dampened trajectory. These differences reinforce the need to assess spill impacts across stratified spatial units, rather than treating the Gulf as homogeneous.
+
+The comparative analysis of 127 other Gulf oil spills further emphasised DWH’s exceptional nature. Only the largest 15 spills showed modest, variable responses—and even these lacked consistent directionality. This framing added an original dimension to the study, generalising across events at a scale rarely attempted in satellite-based ecological assessments.
+
+While these findings offer robust insight into post-spill phytoplankton dynamics, several limitations must be acknowledged. MODIS-Aqua chlorophyll-a is a surface biomass proxy and cannot detect subsurface responses such as deep chlorophyll maxima or benthic populations. In stratified conditions, these may persist or shift undetected, potentially underestimating ecological change.
+
+Chlorophyll-a also does not distinguish between taxa or physiological state. In situ studies have documented species-specific sensitivities to oil and dispersants, affecting photosynthetic efficiency and community composition (Almeda et al., 2013; Paul et al., 2013; Ozhan et al., 2014). Consequently, recovery of bulk chlorophyll does not necessarily imply functional or ecological restoration. Future work integrating pigment or molecular indicators could address this gap.
+
+Causality remains difficult to assign with certainty. Although spatial controls and baseline comparisons strengthen attribution, co-occurring drivers such as discharge or mesoscale circulation may also influence chlorophyll patterns. Without explicit covariates, oil-related impacts are inferred rather than modelled.
+
+The spill comparison was further limited by metadata inconsistencies. Many events lacked precise spatial extents, durations, or dispersant usage records, restricting analysis of cumulative effects. This likely contributed to the lack of detectable signal among smaller events. Improved reporting standards would enable more comprehensive regional assessments.
+
+These findings contribute to growing evidence that phytoplankton responses to oil are spatially and temporally variable. By integrating zonal time-series decomposition with event-aligned comparisons, this study offers a more mechanistic understanding of how productivity responds to hydrocarbon exposure. It also underscores the importance of assessing disturbance intensity and recovery quality—not just biomass rebound—when evaluating ecosystem resilience.
+
+From a data science perspective, STL decomposition and zonal trend analysis provided a scalable, interpretable alternative to black-box anomaly detection. Slope-based trend evaluation allowed subtle recovery patterns to be identified—crucial in contexts where policy depends on clear evidence of system status.
+
+This work also reinforces the value of satellite-based ecological monitoring, particularly in offshore regions where in situ sampling is limited. Composite spill analysis illustrates how remote sensing can generalise across events to detect outliers like DWH. With improved metadata and sensor resolution, these methods could support real-time ecosystem monitoring.
+
+Future work could extend this approach by integrating multispectral indicators such as nFLH or backscatter, and by incorporating environmental covariates (e.g., discharge, salinity) to disentangle drivers. Merging in situ or molecular data would further enable assessment of not just recovery, but restoration of function and composition.
+
+# Conclusion
+
+This study investigated how large-scale oil spills—especially the Deepwater Horizon event—have disrupted phytoplankton productivity and seasonal structure in the Gulf of Mexico, using a data-driven approach grounded in satellite time-series decomposition and spatial analysis.
+
+The results demonstrate that phytoplankton responses were both spatially uneven and temporally extended. In the DWH core zone, chlorophyll-a trends declined sharply and did not return to baseline, indicating incomplete recovery even a decade after the event. While smaller spills showed little detectable impact at regional scales, this analysis confirmed DWH as an ecological outlier with long-lasting consequences.
+
+Methodologically, this work shows how time-series decomposition, residual mapping, and zonal trend evaluation can offer interpretable and scalable tools for monitoring marine ecosystem resilience. By moving beyond binary classifications of ‘recovery’ or ‘disturbance’, these techniques enable more nuanced assessments of ecological stability.
+
+These findings carry broader significance for environmental monitoring and disaster response. Phytoplankton are both sensitive indicators and central actors in marine systems; understanding their disturbance trajectories is critical. Future monitoring frameworks should integrate remote sensing with in situ and spectral diagnostics, supported by open and consistent spill metadata.
+
+As oil extraction continues across vulnerable marine regions, scalable and transparent data science methods—like those applied here—will be vital to monitoring, interpreting, and responding to ecological disruption in an era of intensifying marine industrialisation.
+
+# Appendix:
+
+### Figures:
+
+```{r}
+#| label: fig:Oilspill2
+#| fig-cap: "Mean chlorophyll-a concentration (mg·m⁻³) aligned to all recent oil spills in the Gulf of Mexico. Time series represent a ±4-year window centred on each spill event. Shaded area denotes 95% confidence interval."
+#| fig-width: 8
+#| fig-height: 6
+#| echo: false
+#| warning: false
+#| message: false
+
+knitr::include_graphics("figures/mean_chlorophyll_all_spills.pdf")
+```
+
+### Code:
+
+All code and data used in this project are available at: <https://github.com/KetchupJL/university-projects/tree/main>
+
+### References
+
+The following references were used to inform background research, methodology design, and interpretation of results. While some are not explicitly cited in the main text, they contributed to the conceptual framework and analytical direction of the study:
+
+[@abbriano2011; @almeda2013interactions; @almeda2013; @bonisoli2016incorporation; @graham2010oil; @hu2011; @li2019; @oconnor2016; @10.1093/biosci/biu117; @parsons2015; @paul2013; @sutton2022; @walsh2015plankton; @lewandowska2014; @martinez2003; @mcnutt2012; @mullerkarger2015; @rabalais2014; @tunnell2010; @turner2008; @white2012; @romero2015; @ramirezllodra2011; @noaa2024; @modis2024; @lewis2025]

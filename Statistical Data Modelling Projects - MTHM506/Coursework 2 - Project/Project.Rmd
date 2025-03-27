@@ -91,17 +91,7 @@ custom_theme <- theme_minimal(base_size = 12) +
 
 -   **Descriptive Statistics:** Summarise key covariates and TB rates (use one table for this).
 
-<!-- -->
 
--   **Visual Exploration:** Present maps or graphs that show:
-
-    -   TB case distributions over time and across regions.
-
-    -   Potential relationships between TB rates and socio-economic covariates.
-
-<!-- -->
-
--   **Spatial-Temporal Trends:** Use the provided `plot.map` function to visualise spatial TB distributions across years.
 
 # Methodology
 
@@ -114,15 +104,19 @@ custom_theme <- theme_minimal(base_size = 12) +
     -   Explain the model structure, including:
 
         -   Response variable: TB rate (TB cases per unit population).
+        - The offset
 
         -   Covariates: Socio-economic factors and spatial-temporal indicators.
 
-        -   Link function and distribution assumption (likely Poisson or Negative Binomial, given count data)
+        -   Link function and distribution assumption 
+        - Why i went from NB to tw.
+        
 
 <!-- -->
 
 -   **Model Formulation:** Provide the mathematical formulation of your GAMs, including how spatial and temporal structures are modelled.
 
+Equations for Base tw model and temporal model
 <!-- -->
 
 -   **Justification of Choices:** Explain why GAMs are appropriate, especially for non-linear, spatial-temporal relationships.
@@ -188,6 +182,22 @@ custom_theme <- theme_minimal(base_size = 12) +
 <!-- -->
 
 -   **Policy Recommendations:** Suggest actionable steps for health authorities based on the analysis.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Appendix:
 

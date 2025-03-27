@@ -3,7 +3,7 @@
     "path": "~/GitHub/university-projects/Statistical Data Modelling Projects - MTHM506/Coursework 2 - Project/Individual project/Project_clean.Rmd",
     "project_path": "Project_clean.Rmd",
     "type": "r_markdown",
-    "hash": "2826158473",
+    "hash": "3346926745",
     "contents": "",
     "dirty": false,
     "created": 1742239913756.0,
@@ -13,8 +13,8 @@
         "tempName": "Untitled2",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "234,0",
-        "scrollLine": "341",
+        "cursorPosition": "0,0",
+        "scrollLine": "0",
         "rmdVisualMode": "false",
         "rmdVisualWrapConfigured": "true",
         "docOutlineVisible": "1",
@@ -22,11 +22,11 @@
         "rmdVisualModeLocation": "7703:4754.66650390625"
     },
     "folds": "",
-    "lastKnownWriteTime": 1742661642,
+    "lastKnownWriteTime": 1742663112,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1742661642449,
+    "last_content_update": 1742663471541,
     "read_only": false,
     "read_only_alternatives": []
 }

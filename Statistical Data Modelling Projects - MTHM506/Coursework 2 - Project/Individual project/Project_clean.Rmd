@@ -3,6 +3,11 @@ title: "MTHM506 - Statistical Data Modelling: Individual Project"
 author: "James R Lewis"
 date: "March 2025"
 output:
+  html_document:
+    css: style.css
+    toc: true
+    toc_depth: 2
+    number_sections: true
   pdf_document:
     latex_engine: xelatex
     toc: true
@@ -12,11 +17,6 @@ output:
     includes:
       in_header: preamble.tex
     extra_dependencies: ["amsmath", "amssymb", "mathtools", "bm", "caption", "hyperref", "geometry", "setspace"]
-  html_document:
-    css: style.css
-    toc: true
-    toc_depth: 2
-    number_sections: true
   word_document:
     toc: true
     toc_depth: 2
@@ -300,8 +300,8 @@ gam_model <- gam(TB ~
 summary(gam_model)
 k.check(gam_model)
 
-par(mfrow = c(2,2))
-gam.check(gam_model)
+# par(mfrow = c(2,2))
+# gam.check(gam_model)
 
 ```
 
@@ -378,7 +378,7 @@ AIC(gam_model_SP)
 
 **Table A.2**: Comparison between NB, Tweedie, and temporal GAMs using AIC and deviance explained.
 
-```{r Table 2, echo = FALSE, message=FALSE, fig.width=10, fig.height=14, dpi=300,fig.cap="Comparison of GAM Models"}
+```{r Table 2, echo = FALSE, message=FALSE, fig.width=10, fig.height=14, dpi=300, fig.cap="Comparison of GAM Models"}
 # GT table comparing NB, Tweedie, and spatio-temporal GAMs
 
 
@@ -724,7 +724,7 @@ for (year in years) {
 # Recreating the data, so not affect original dataset
 TBdata_new <- TBdata %>%
   dplyr::select(Region, Year, Indigenous, Illiteracy, Urbanisation, 
-                Density, Poverty, Poor_Sanitation, Unemployment, Population, Timeliness, lon, lat) %>%
+                Density, Poverty, Poor_Sanitation, Unemployment, Population, Timeliness, lon, lat, logPop) %>%
   mutate(Predicted_TB = predict(gam_model_tw, newdata = ., type = "response"),
          Predicted_TB_Scaled = (Predicted_TB / Population) * 100000)  # Scale to per 100,000 population
 

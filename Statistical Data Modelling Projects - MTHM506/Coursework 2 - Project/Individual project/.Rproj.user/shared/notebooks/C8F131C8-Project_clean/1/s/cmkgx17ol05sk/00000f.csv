@@ -9,7 +9,7 @@
 "0","                   s(Poor_Sanitation) +"
 "0","                   s(Poverty) +"
 "0","                   s(Timeliness) +"
-"0","                   s(lon,lat, k = 30) +"
+"0","                   s(lon,lat) +"
 "0","                   offset(logPop),"
 "0","                 data = TBdata, "
 "0","                 family = tw, "
@@ -87,7 +87,7 @@ Family:"
 "
 "1","    s(Poor_Sanitation) + s(Poverty) + s(Timeliness) + s(lon, 
 "
-"1","    lat, k = 30) + offset(logPop)
+"1","    lat) + offset(logPop)
 "
 "1","
 Parametric coefficients:

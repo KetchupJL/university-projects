@@ -14,3 +14,5 @@
 "0","    panel.grid.major = element_line(size = 0.3, colour = ""grey90""),"
 "0","    panel.grid.minor = element_blank()"
 "0","  )"
+"2","Warning: The `size` argument of `element_line()` is deprecated as of ggplot2 3.4.0.
+Please use the `linewidth` argument instead."
