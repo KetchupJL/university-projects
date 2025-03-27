@@ -1,8 +1,0 @@
-"0","load(""~/GitHub/university-projects/Statistical Data Modelling Projects - MTHM506/Coursework 2 - Project/datasets_project.RData"")"
-"0","TBdata <- TBdata"
-"0",""
-"0","library(tidyverse)"
-"0","library(ggplot2)"
-"0","library(rmarkdown)"
-"0","library(mgcv)"
-"0",""

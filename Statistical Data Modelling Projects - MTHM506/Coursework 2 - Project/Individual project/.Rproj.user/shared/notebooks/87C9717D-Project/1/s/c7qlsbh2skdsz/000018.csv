@@ -1,5 +1,0 @@
-"0"," library(fields)"
-"0"," library(maps)"
-"0"," library(sp)"
-"0"," # PLotting map of cases"
-"0"," plot.map(TBdata$TB[TBdata$Year==2014],n.levels=7,main=""TB counts for 2014"")"
