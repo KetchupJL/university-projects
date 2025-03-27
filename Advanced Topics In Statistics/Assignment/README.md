@@ -35,7 +35,6 @@ The second part of the project applies supervised learning algorithms to classif
 - **Quadratic Discriminant Analysis (QDA)**
 - **k-Nearest Neighbours (k-NN)**
 - **Support Vector Machines (SVM)**
-- (Results compared to **Random Forests** where relevant)
 
 ### Evaluation:
 - Models trained/tested with 75/25 train-test split.
