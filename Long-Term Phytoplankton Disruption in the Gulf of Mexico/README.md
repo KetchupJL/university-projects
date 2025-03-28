@@ -6,7 +6,7 @@ This MSc research project explores the long-term impact of the 2010 Deepwater Ho
 > MSc Communicating Data Science (MTHM507) Coursework — Grade: TBC
 
 <p align="center">
-  <img src="./figures/spill_impact_map.png" alt="Deepwater Horizon Impact Zones" width="600"/>
+  <img src="./figures and Code/map_stl_resid_mean_2010_14.pdf" alt="Deepwater Horizon Impact Zones" width="600"/>
   <br><br>
   <a href="./FINAL%20REPORT.pdf">
     <img src="https://img.shields.io/badge/View%20Full%20Report-PDF-blue?style=for-the-badge"/>
@@ -80,16 +80,16 @@ Trend slopes post-2010 were analysed using STL-derived components to determine t
 ## Visual Highlights
 
 ### STL Decomposition (DWH Core)
-![STL Core](./figures/stl_core_zone.png)
+![STL Core](./figures%20and%20Code/fig_stl_core.pdf)
 
 ### Residual Anomaly Map (2010–2014)
-![STL Residuals](./figures/residual_map.png)
+![STL Residuals](./figures%20and%20Code/map_stl_resid_mean_2010_14.pdf)
 
 ### Recovery Trajectories by Zone
-![Recovery Trends](./figures/recovery_trend.png)
+![Recovery Trends](./figures%20and%20Code/recovery.pdf)
 
 ### Oil Spill Comparison (Top 15 Events)
-![Spill Comparison](./figures/top15_spills_plot.png)
+![Spill Comparison](./figures%20and%20Code/mean_chlorophyll_top15_spills.pdf)
 
 ---
 
