@@ -1,41 +1,105 @@
-# MTHM506 - Statistical Data Modelling - Individual Project
+# Statistical Modelling of AIDS Case Trends in the UK
+### *MTHM506 – Statistical Data Modelling Individual Coursework*
 
-## Overview
-This repository contains the implementation of an individual project for the MTHM506 - Statistical Data Modelling module. The project involves exploring and modeling the AIDS case trends in the UK using various statistical methods, including Poisson, Gaussian, and Negative Binomial regression models. The primary goal is to compare these models in terms of fit, predictive performance, and statistical validity.
+This project explores temporal trends in AIDS cases in the UK using advanced Generalized Linear Models (GLMs). The analysis evaluates Poisson, Gaussian, and Negative Binomial regression approaches and culminates in the selection of a best-fitting model to address overdispersion and non-linearity in the data.
 
-## Project Structure
-- **Question 1**: Exploratory analysis, likelihood functions, maximum likelihood estimation, hypothesis testing, and predictive modeling.
-- **Question 2**: Data fitting with Poisson and Gaussian regression models, model diagnostics, hypothesis testing for model extensions, and the final selection of the Negative Binomial model.
+> 📈 Grade: 84% | MSc Applied Data Science & Statistics (2025)
 
-## Key Results
-The analysis covers:
-- Fitting Poisson, Normal, and Negative Binomial regression models.
-- Comparison of models using AIC, residuals, and overdispersion tests.
-- Identification of the best-fitting model for the dataset, which is the Negative Binomial Cubic model, addressing overdispersion and fitting the non-linear trends in the data.
-
-## Technologies Used
-- **R**: The analysis and modeling were conducted using R, leveraging various packages for data manipulation, modeling, and visualization.
-- **Packages**: `glm`, `ggplot2`, `AIC`, `deviance`, `bptest`, `glm.nb`
-
-## Methodology
-1. **Data Preprocessing**: Exploratory analysis of the AIDS case data, including transformation of the date variable for time series analysis.
-2. **Modeling**: Comparison of Poisson, Normal, and Negative Binomial models, with extensions to include polynomial terms to capture non-linearity.
-3. **Model Evaluation**: Use of AIC, residual deviance, and hypothesis testing to assess model fit and identify overdispersion.
-4. **Final Model Selection**: The Negative Binomial Cubic model, which addresses the issues of overdispersion and non-linear trends in the data, was selected as the best model.
-
-## Conclusion
-The project successfully models the AIDS case trends in the UK and compares different regression approaches, with a final recommendation to use the Negative Binomial Cubic model for better predictive accuracy.
+<p align="center">
+  <img src="./figures/nb_fit_plot.png" alt="Negative Binomial Fit Plot" width="600"/>
+  <br><br>
+  <a href="./Individual-Project.pdf">
+    <img src="https://img.shields.io/badge/View%20Full%20Report-PDF-blue?style=for-the-badge"/>
+  </a>
+</p>
 
 ---
 
-## Project Submission Details
-- **Module**: MTHM506 - Statistical Data Modelling
-- **Grade**: 84%
+## Project Summary
 
-## Files
-- `Individual-Project.pdf`: The complete report detailing the project, analysis, methodology, and results.
-- `aids_data.csv`: The AIDS case data used for modeling (if available).
-- `code.R`: The R script containing all analysis, modeling, and visualization code.
+This analysis focuses on two objectives:
+1. **Nonlinear Model Estimation via Maximum Likelihood (Question 1)**
+2. **Count Regression Model Comparison (Poisson, Gaussian, Negative Binomial) for AIDS data (Question 2)**
 
-## License
-This project is licensed under the MIT License.
+---
+
+## Key Learning Outcomes
+- Maximum Likelihood Estimation for nonlinear Gaussian models
+- Implementation of custom log-likelihood functions in R
+- Use of GLMs for count data with log-link functions
+- Detection and correction of model misspecification (overdispersion, non-linearity)
+- Model selection using AIC, deviance, diagnostic plots, and hypothesis testing
+
+---
+
+## Part A: MLE and Predictive Modelling (Simulated Dataset)
+
+- Developed a nonlinear model \( y_i \sim N\left( \frac{\theta_1 x_i}{\theta_2 + x_i}, \sigma^2 \right) \)
+- Estimated parameters \( \theta_1, \theta_2, \sigma \) using `nlm()` and custom log-likelihood in R
+- Constructed 95% confidence intervals and conducted a Z-test for hypothesis evaluation
+- Produced fitted means and prediction intervals alongside raw data for validation
+
+---
+
+## Part B: Modelling UK AIDS Cases (1983–1994)
+
+### Models Compared
+- **Poisson Regression**: Log-linear model with count assumptions
+- **Gaussian GLM**: Log-link model applied to count data
+- **Negative Binomial Regression**: Final model selected due to overdispersion
+
+### Modelling Enhancements
+- Polynomial extensions (Quadratic, Cubic, Quartic) tested via nested model comparisons
+- Overdispersion assessed using dispersion statistics and Breusch-Pagan test
+
+### Final Model:
+\[ Y_i \sim NB(\mu_i, \theta), \quad \log(\mu_i) = \beta_0 + \beta_1 x_i + \beta_2 x_i^2 + \beta_3 x_i^3 \]
+
+> The **Negative Binomial Cubic Model** provided the best fit: lowest AIC (405), random residuals, and captured heteroscedasticity.
+
+---
+
+## Selected Visuals
+
+### Model Fits and Predictions
+![NB Prediction](./figures/nb_fit_plot.png)
+
+### Deviance Residuals
+![Residuals](./figures/dev_resid_nb.png)
+
+### Model Comparison Table (AIC)
+| Model                  | AIC       |
+|------------------------|-----------|
+| Poisson Base           | 1154.09   |
+| Poisson Cubic          | 470.63    |
+| Gaussian Cubic         | 440.88    |
+| **NB Cubic (Final)**   | **405.97**|
+
+---
+
+## Project Structure
+```
+├── code.R                 # Main R script (MLE + GLMs)
+├── Individual-Project.pdf # Final report
+├── aids_data.csv          # AIDS dataset
+├── figures/               # Visual outputs (residuals, predictions, model diagnostics)
+```
+
+---
+
+## Technologies Used
+- **R** for statistical analysis
+- Packages: `glm`, `MASS`, `ggplot2`, `lmtest`, `AER`, `stats4`
+
+---
+
+## Citation
+> Lewis, J. (2025). *Statistical Modelling of AIDS Trends Using GLMs*. MSc Statistical Modelling Coursework (MTHM506), University of Exeter.
+
+---
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Best%20Model-Negative%20Binomial%20Cubic-green?style=for-the-badge"/>
+</p>
+
+> For collaboration or questions, contact **james066lewis@gmail.com**
