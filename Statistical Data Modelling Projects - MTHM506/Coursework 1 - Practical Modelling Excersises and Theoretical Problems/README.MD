@@ -6,7 +6,6 @@ This project explores temporal trends in AIDS cases using advanced Generalized L
 > 📈 Grade: 84% | MSc Applied Data Science & Statistics (2025)
 
 <p align="center">
-  <img src="./figures/nb_fit_plot.png" alt="Negative Binomial Fit Plot" width="600"/>
   <br><br>
   <a href="./Individual-Project.pdf">
     <img src="https://img.shields.io/badge/View%20Full%20Report-PDF-blue?style=for-the-badge"/>
@@ -62,10 +61,10 @@ This analysis focuses on two objectives:
 ## Selected Visuals
 
 ### Model Fits and Predictions
-![NB Prediction](./figures/nb_fit_plot.png)
+![NB Prediction](https://github.com/KetchupJL/university-projects/blob/main/Statistical%20Data%20Modelling%20Projects%20-%20MTHM506/Coursework%201%20-%20Practical%20Modelling%20Excersises%20and%20Theoretical%20Problems/Figures/NB.png)
 
 ### Deviance Residuals
-![Residuals](./figures/dev_resid_nb.png)
+![Residuals](https://github.com/KetchupJL/university-projects/blob/main/Statistical%20Data%20Modelling%20Projects%20-%20MTHM506/Coursework%201%20-%20Practical%20Modelling%20Excersises%20and%20Theoretical%20Problems/Figures/RESID.png)
 
 ### Model Comparison Table (AIC)
 | Model                  | AIC       |
