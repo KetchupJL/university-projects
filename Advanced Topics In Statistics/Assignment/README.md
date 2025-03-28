@@ -1,78 +1,115 @@
-# Advanced Statistical Modelling: Reaction Times and Classification
-## MSc Applied Data Science & Statistics – Coursework (MTHM017)
+# Long-Term Phytoplankton Disruption in the Gulf of Mexico
+### *A Zonal Time-Series Analysis of the Deepwater Horizon Oil Spill*
 
-This repository contains the full analysis and code for a two-part coursework project undertaken as part of the *Advanced Topics in Statistics* module at the University of Exeter. The project integrates Bayesian inference via JAGS with supervised machine learning classification in R, demonstrating advanced statistical modelling techniques applied to real and simulated datasets.
+This MSc research project explores the long-term impact of the 2010 Deepwater Horizon oil spill on phytoplankton productivity in the Gulf of Mexico. Using satellite-derived chlorophyll-a data and time-series decomposition, the study investigates ecological disturbance patterns and evaluates recovery trajectories across defined spatial zones.
 
----
+> MSc Communicating Data Science (MTHM507) Coursework — Grade: TBC
 
-## 🧠 Part A: Bayesian Inference – Modelling Reaction Times in Schizophrenic Patients
-
-This section applies a hierarchical Bayesian model to assess the cognitive reaction times of individuals, contrasting schizophrenic and non-schizophrenic participants. The key research question investigates whether increased variability and delayed responses in schizophrenic patients are consistent with known symptoms such as motor retardation and attention deficit.
-
-### Key Methods:
-- **Hierarchical Normal Model** for non-schizophrenics.
-- **Two-component Mixture Model** for schizophrenics incorporating:
-  - Log-transformed reaction times
-  - Latent delay indicators (Bernoulli)
-  - Delay shift parameter (τ)
-- **JAGS** used for model specification and MCMC sampling.
-
-### Analysis Includes:
-- Full JAGS model specification, with priors and likelihood structure.
-- MCMC diagnostics (trace plots, autocorrelation, convergence).
-- Posterior summaries and interval estimates for β, λ, and τ (transformed back to original scale).
-- Posterior predictive checks using simulated draws from the fitted model.
-- Scatterplot assessment of model fit via predicted versus empirical variance in reaction times.
+<p align="center">
+  <img src="./figures/spill_impact_map.png" alt="Deepwater Horizon Impact Zones" width="600"/>
+  <br><br>
+  <a href="./FINAL%20REPORT.pdf">
+    <img src="https://img.shields.io/badge/View%20Full%20Report-PDF-blue?style=for-the-badge"/>
+  </a>
+</p>
 
 ---
 
-## 🤖 Part B: Supervised Machine Learning – Group Classification
-
-The second part of the project applies supervised learning algorithms to classify a simulated dataset into two groups based on explanatory variables X1 and X2. The classification aims to discover the latent decision boundary that generated the data with added noise.
-
-### Methods Used:
-- **Linear Discriminant Analysis (LDA)**
-- **Quadratic Discriminant Analysis (QDA)**
-- **k-Nearest Neighbours (k-NN)**
-- **Support Vector Machines (SVM)**
-
-### Evaluation:
-- Models trained/tested with 75/25 train-test split.
-- Cross-validation and hyperparameter tuning (e.g. k-value, kernel type).
-- Performance evaluated using:
-  - Accuracy
-  - Confusion matrices
-  - ROC curves and AUC
-- Final performance benchmarked against true labels (from noise-free version of the dataset).
+## Project Objectives
+- Quantify the long-term chlorophyll-a suppression following the Deepwater Horizon (DWH) event
+- Assess seasonal disruption and recovery in phytoplankton productivity (2002–2024)
+- Compare impacts from DWH against 127 other oil spills across the Gulf of Mexico
+- Identify spatial heterogeneity and zonal-level ecosystem response
 
 ---
 
-## Technologies Used
-- **R**: Core analysis environment
-- **JAGS**: Bayesian model fitting via Gibbs sampling
-- **Packages**:
-  - `rjags`, `coda`, `ggplot2`, `MASS`, `class`, `e1071`, `randomForest`, `caret`
+## Key Learning Outcomes
+- Application of ecological remote sensing and ocean colour time-series
+- STL decomposition for seasonality and disturbance detection
+- Spatial zonal mapping and impact zone design
+- Handling and processing large-scale NetCDF satellite data
+- Comparative event analysis and scientific data storytelling
 
 ---
 
-## Project Context
-- **Module**: MTHM017 Advanced Topics in Statistics  
-- **Assessment**: Individual MSc Coursework  
-- **Grade**: *Pending*  
-- **Submission Date**: March 2025
+## Tools & Technologies
+| Category             | Tools & Packages                                                                  |
+|----------------------|-----------------------------------------------------------------------------------|
+| **Programming**       | R (v4.3+)                                                                         |
+| **Spatial Analysis**  | `terra`, `sf`, `stars`, `exactextractr`                                           |
+| **Time-Series**       | `forecast`, `zoo`, `tsibble`, `lubridate`                                        |
+| **Data Wrangling**    | `dplyr`, `purrr`, `tidyr`, `stringr`                                              |
+| **Visualisation**     | `ggplot2`, `ggridges`, `viridis`, `patchwork`, `gt`                               |
+| **Reporting**         | Quarto (`.qmd`) for reproducible scientific reporting                            |
 
 ---
 
-## Files Included
-- `Adv_stats_proj.Rmd` – Complete R Markdown report with code, analysis, and results
-- `Adv_stats_proj.pdf` – Compiled report in PDF format
-- `rtimes.csv` – Reaction times dataset for Bayesian modelling
-- `Classification.csv`, `ClassificationTrue.csv` – Simulated data for classification task
+## Summary of Methods
+
+### 1. Zonal STL Decomposition
+Seasonal-trend decomposition (STL) was applied to log-transformed chlorophyll-a time series across three spatial zones: 
+- **DWH Core Zone**: highest exposure (>30 days of oil)
+- **DWH-Wide Zone**: full 2010 oil slick footprint
+- **Offshore Control Zone**: remote, low-impact reference area
+
+### 2. Spatial Residual Anomaly Mapping
+Residuals from STL were averaged spatially (2010–2014) to visualise zones of suppressed or elevated phytoplankton activity.
+
+### 3. Event-Aligned Spill Analysis
+Chlorophyll time series were aligned to 127 oil spill events (2006–2021) to assess whether ecological responses similar to DWH were common or exceptional.
+
+### 4. Recovery Trajectory Assessment
+Trend slopes post-2010 were analysed using STL-derived components to determine the magnitude and direction of phytoplankton recovery.
 
 ---
 
-## Author
-**James Lewis**  
-MSc Applied Data Science and Statistics  
-University of Exeter
+## Selected Results
+<details>
+<summary>🗂 Key Insights</summary>
 
+- **DWH Core Zone** exhibited strong chlorophyll-a suppression from 2010–2014
+- **Post-2015** trends in the core zone remained below baseline, suggesting incomplete recovery
+- **Offshore Control Zone** showed stable or increasing productivity throughout
+- **No significant impact** was detected for the majority of other oil spills — DWH was ecologically unique
+- **Residual maps** visualised localised zones of both suppression and anomalous chlorophyll peaks
+
+</details>
+
+---
+
+## Visual Highlights
+
+### STL Decomposition (DWH Core)
+![STL Core](./figures/stl_core_zone.png)
+
+### Residual Anomaly Map (2010–2014)
+![STL Residuals](./figures/residual_map.png)
+
+### Recovery Trajectories by Zone
+![Recovery Trends](./figures/recovery_trend.png)
+
+### Oil Spill Comparison (Top 15 Events)
+![Spill Comparison](./figures/top15_spills_plot.png)
+
+---
+
+## Repository Structure
+```
+├── data/                # Processed chlorophyll data & zone shapefiles
+├── scripts/             # R scripts for zonal extraction, STL, and plotting
+├── figures/             # Final plots and spatial maps
+├── FINAL REPORT.pdf     # Full MSc report
+```
+
+---
+
+## Citation
+> Lewis, J. (2025). *Long-Term Phytoplankton Disruption in the Gulf of Mexico: A Zonal Time-Series Analysis of the Deepwater Horizon Spill*. MSc Communicating Data Science, University of Exeter.
+
+---
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Project%20Focus-Ecological%20Remote%20Sensing-green?style=for-the-badge"/>
+</p>
+
+> For questions or collaboration, contact **james066lewis@gmail.com**
