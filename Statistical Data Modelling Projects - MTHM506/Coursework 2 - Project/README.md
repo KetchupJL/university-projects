@@ -5,7 +5,7 @@ This project models the spread of tuberculosis (TB) across 557 microregions of B
 > MSc Statistical Modelling (MTHM506) Coursework — Grade: 82%
 
 <p align="center">
-  <img src="./figures/spatial_risk_map.png" alt="Spatial Risk Map" width="600"/>
+  <img src="https://github.com/KetchupJL/university-projects/blob/main/Statistical%20Data%20Modelling%20Projects%20-%20MTHM506/Coursework%202%20-%20Project/Figures/map.png" alt="Spatial Risk Map" width="600"/>
   <br><br>
   <a href="./report.qmd">
     <img src="https://img.shields.io/badge/View%20Full%20Report-PDF-blue?style=for-the-badge"/>
@@ -95,17 +95,14 @@ Used `s(x, by = Year)` to model changing covariate effects over time.
 
 ## Visual Gallery
 
-### Spatial Risk Map (2014)
-![Risk Map](./figures/spatial_risk_map.png)
-
 ### Smooth Effects of Covariates
-![Covariate Effects](./figures/smooth_terms.png)
+![Covariate Effects](https://github.com/KetchupJL/university-projects/blob/main/Statistical%20Data%20Modelling%20Projects%20-%20MTHM506/Coursework%202%20-%20Project/Figures/covariates.png)
 
 ### Observed vs Fitted
-![Obs vs Fitted](./figures/obs_vs_fitted.png)
+![Obs vs Fitted](https://github.com/KetchupJL/university-projects/blob/main/Statistical%20Data%20Modelling%20Projects%20-%20MTHM506/Coursework%202%20-%20Project/Figures/obv_vs_fit.png)
 
 ### Temporal Smooths (by Year)
-![Temporal Smooths](./figures/temporal_smooths.png)
+![Temporal Smooths](https://github.com/KetchupJL/university-projects/blob/main/Statistical%20Data%20Modelling%20Projects%20-%20MTHM506/Coursework%202%20-%20Project/Figures/temporal_smooths.png)
 
 ---
 
