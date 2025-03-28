@@ -1,115 +1,78 @@
-# Long-Term Phytoplankton Disruption in the Gulf of Mexico
-### *A Zonal Time-Series Analysis of the Deepwater Horizon Oil Spill*
+# Advanced Statistical Modelling: Reaction Times and Classification
+### MSc Applied Data Science & Statistics – University of Exeter
 
-This MSc research project explores the long-term impact of the 2010 Deepwater Horizon oil spill on phytoplankton productivity in the Gulf of Mexico. Using satellite-derived chlorophyll-a data and time-series decomposition, the study investigates ecological disturbance patterns and evaluates recovery trajectories across defined spatial zones.
+This project explores advanced statistical modelling through two distinct approaches: **Bayesian hierarchical modelling of cognitive reaction times** and **supervised machine learning classification**. The work demonstrates strong applied skills in R, JAGS, and statistical communication, and was submitted as part of the *Advanced Topics in Statistics (MTHM017)* module.
 
-> MSc Communicating Data Science (MTHM507) Coursework — Grade: TBC
-
-<p align="center">
-  <img src="./figures/spill_impact_map.png" alt="Deepwater Horizon Impact Zones" width="600"/>
-  <br><br>
-  <a href="./FINAL%20REPORT.pdf">
-    <img src="https://img.shields.io/badge/View%20Full%20Report-PDF-blue?style=for-the-badge"/>
-  </a>
-</p>
+> 📄 [View Full Report (PDF)](./Adv_stats_proj.pdf)
 
 ---
 
-## Project Objectives
-- Quantify the long-term chlorophyll-a suppression following the Deepwater Horizon (DWH) event
-- Assess seasonal disruption and recovery in phytoplankton productivity (2002–2024)
-- Compare impacts from DWH against 127 other oil spills across the Gulf of Mexico
-- Identify spatial heterogeneity and zonal-level ecosystem response
+## 📌 Overview
+
+### 🔹 Part A: Bayesian Modelling of Reaction Times
+This analysis models cognitive reaction times for **schizophrenic** and **non-schizophrenic** individuals using:
+- A **hierarchical normal model** for non-schizophrenics
+- A **two-component mixture model** for schizophrenics, incorporating:
+  - A Bernoulli latent delay indicator
+  - A log-transformed delay term (τ)
+  - A shift parameter (β) for reaction time inflation
+
+> Models implemented using **JAGS** with detailed MCMC diagnostics, posterior summaries, predictive simulations, and variability assessments.
+
+### 🔹 Part B: Classification of Simulated Data
+A supervised machine learning pipeline is used to classify synthetic groups from two predictors (X1, X2), using:
+- **K-Nearest Neighbours (KNN)** – tuned via cross-validation
+- **Quadratic Discriminant Analysis (QDA)**
+- **Random Forest (RF)** – with variable importance
+- **Support Vector Machines (SVM)** – tested with RBF, polynomial, and sigmoid kernels
+
+> Evaluated via accuracy, sensitivity/specificity, ROC-AUC, and confusion matrices.
 
 ---
 
-## Key Learning Outcomes
-- Application of ecological remote sensing and ocean colour time-series
-- STL decomposition for seasonality and disturbance detection
-- Spatial zonal mapping and impact zone design
-- Handling and processing large-scale NetCDF satellite data
-- Comparative event analysis and scientific data storytelling
+## 🧠 Key Learning Outcomes
+- Bayesian hierarchical modelling using JAGS
+- MCMC simulation, convergence diagnostics, and posterior inference
+- Probabilistic modelling of latent processes (delay likelihood)
+- Practical experience with classification algorithms and tuning
+- Interpretation and communication of statistical models
 
 ---
 
-## Tools & Technologies
-| Category             | Tools & Packages                                                                  |
-|----------------------|-----------------------------------------------------------------------------------|
-| **Programming**       | R (v4.3+)                                                                         |
-| **Spatial Analysis**  | `terra`, `sf`, `stars`, `exactextractr`                                           |
-| **Time-Series**       | `forecast`, `zoo`, `tsibble`, `lubridate`                                        |
-| **Data Wrangling**    | `dplyr`, `purrr`, `tidyr`, `stringr`                                              |
-| **Visualisation**     | `ggplot2`, `ggridges`, `viridis`, `patchwork`, `gt`                               |
-| **Reporting**         | Quarto (`.qmd`) for reproducible scientific reporting                            |
+## 🛠️ Tools & Technologies
+
+| Category             | Tools & Packages                                             |
+|----------------------|--------------------------------------------------------------|
+| **Bayesian Modelling** | `rjags`, `coda`, `MCMCvis`, `R2jags`, `tidyverse`             |
+| **Machine Learning**   | `class`, `e1071`, `caret`, `randomForest`, `MASS`             |
+| **Visualisation**     | `ggplot2`, `gt`, `lattice`                                   |
+| **Report**            | RMarkdown & PDF (Quarto-compatible structure)               |
 
 ---
 
-## Summary of Methods
+## 🧪 Project Components
 
-### 1. Zonal STL Decomposition
-Seasonal-trend decomposition (STL) was applied to log-transformed chlorophyll-a time series across three spatial zones: 
-- **DWH Core Zone**: highest exposure (>30 days of oil)
-- **DWH-Wide Zone**: full 2010 oil slick footprint
-- **Offshore Control Zone**: remote, low-impact reference area
-
-### 2. Spatial Residual Anomaly Mapping
-Residuals from STL were averaged spatially (2010–2014) to visualise zones of suppressed or elevated phytoplankton activity.
-
-### 3. Event-Aligned Spill Analysis
-Chlorophyll time series were aligned to 127 oil spill events (2006–2021) to assess whether ecological responses similar to DWH were common or exceptional.
-
-### 4. Recovery Trajectory Assessment
-Trend slopes post-2010 were analysed using STL-derived components to determine the magnitude and direction of phytoplankton recovery.
-
----
-
-## Selected Results
-<details>
-<summary>🗂 Key Insights</summary>
-
-- **DWH Core Zone** exhibited strong chlorophyll-a suppression from 2010–2014
-- **Post-2015** trends in the core zone remained below baseline, suggesting incomplete recovery
-- **Offshore Control Zone** showed stable or increasing productivity throughout
-- **No significant impact** was detected for the majority of other oil spills — DWH was ecologically unique
-- **Residual maps** visualised localised zones of both suppression and anomalous chlorophyll peaks
-
-</details>
-
----
-
-## Visual Highlights
-
-### STL Decomposition (DWH Core)
-![STL Core](./figures/stl_core_zone.png)
-
-### Residual Anomaly Map (2010–2014)
-![STL Residuals](./figures/residual_map.png)
-
-### Recovery Trajectories by Zone
-![Recovery Trends](./figures/recovery_trend.png)
-
-### Oil Spill Comparison (Top 15 Events)
-![Spill Comparison](./figures/top15_spills_plot.png)
-
----
-
-## Repository Structure
 ```
-├── data/                # Processed chlorophyll data & zone shapefiles
-├── scripts/             # R scripts for zonal extraction, STL, and plotting
-├── figures/             # Final plots and spatial maps
-├── FINAL REPORT.pdf     # Full MSc report
+├── Adv_stats_proj.Rmd      # Reproducible code + write-up
+├── Adv_stats_proj.pdf      # Full coursework report
+├── rtimes.csv              # Reaction time dataset
+├── Classification.csv      # Training data for classification task
+├── ClassificationTrue.csv  # Ground truth for classification evaluation
 ```
 
 ---
 
-## Citation
-> Lewis, J. (2025). *Long-Term Phytoplankton Disruption in the Gulf of Mexico: A Zonal Time-Series Analysis of the Deepwater Horizon Spill*. MSc Communicating Data Science, University of Exeter.
+## 🧾 Context
+- **Module**: MTHM017 – Advanced Topics in Statistics  
+- **Type**: Individual MSc Coursework  
+- **Grade**: *Pending*  
+- **Submission Date**: March 2025
 
 ---
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Project%20Focus-Ecological%20Remote%20Sensing-green?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Bayesian%20Modelling-JAGS-blue?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/ML%20Classification-KNN%2C%20QDA%2C%20SVM%2C%20RF-orange?style=for-the-badge"/>
 </p>
 
-> For questions or collaboration, contact **james066lewis@gmail.com**
+> Questions or feedback? Contact: **james066lewis@gmail.com**
