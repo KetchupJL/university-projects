@@ -1,89 +1,100 @@
-# MTHM503 Project
+# MTHM503 – Applications of Data Science and Statistics
 
-**Project Overview**  
+### MSc Applied Data Science & Statistics – Coursework Project
 
-**Grade: 74%**
+This project comprises three diverse sections showcasing applied data science workflows: **dimensionality reduction and classification of gene expression data**, **regression analysis of sea level trends**, and **unsupervised clustering of power demand profiles**. The work integrates statistical modelling, machine learning, and exploratory analysis using R and Python.
 
-## [Full Project Report](./MTHM503_Project.pdf) 
+> 📊 Grade: 74% | University of Exeter – March 2025
 
-
-
-
-# Summary
-
-## Table of Contents
-- [Background](#background)
-- [Research Objectives](#research-objectives)
-- [Hypotheses](#hypotheses)
-- [Data](#data)
-- [Methods](#methods)
-- [Results](#results)
-- [Key Visualizations](#key-visualizations)
-- [Interactive Visualizations](#interactive-visualizations)
-- [Implications and Limitations](#implications-and-limitations)
-- [Getting Started](#getting-started)
-- [References](#references)
+<p align="center">
+  <a href="./MTHM503_Project.pdf">
+    <img src="https://img.shields.io/badge/View%20Full%20Report-PDF-blue?style=for-the-badge"/>
+  </a>
+</p>
 
 ---
 
-## Background
+## 🔍 Section A: Gene Expression Classification (PCA + Logistic Regression)
 
-## Research Objectives
+- **Objective**: Predict tumour type using microarray gene expression data (54,000+ features)
+- **Steps**:
+  - Data cleaning, scaling, and exploratory analysis
+  - **Principal Component Analysis (PCA)** for dimensionality reduction
+  - Logistic Regression classifier trained on top 55 PCs (explaining 90% of variance)
+  - Model evaluated using test accuracy (88%)
 
-### Specific Questions
+### Key Takeaways
+- PCA visualisation shows early clustering by cancer type
+- Logistic regression effectively handles high-dimensional inputs after transformation
 
+---
 
-## Hypotheses
+## 🌊 Section B: Sea Level Change Modelling
 
+- **Objective**: Model long-term trends in sea level rise (2000–2024) across 3 global locations
+- **Method**: Linear regression applied to monthly satellite-derived measurements
+- **Evaluation**:
+  - R² scores: World (0.94), Bering Sea (0.53), Mediterranean (0.14)
+  - Residual analysis highlights strong seasonality in regional data
 
-## Data
+### Visuals
+- Time series plots with fitted trend lines
+- Residual plot showing volatility in Mediterranean and Bering Sea
 
+---
 
-### Data Wrangling and Preprocessing
+## ⚡ Section C: Power Demand Clustering via Hierarchical Methods
 
+- **Objective**: Identify daily power usage profiles across over 500 substations
+- **Steps**:
+  - Normalised weekday profiles from 10-minute interval data
+  - Distance matrix and Ward linkage hierarchical clustering
+  - Optimal cluster count = 6 (Silhouette Score: 0.486)
 
-## Methods
+### Interpretation
+- Clusters reflect different daily consumption patterns:
+  - Sharp peaks, gradual builds, stable baselines
+  - Business vs. residential or industrial usage signatures
 
+### Visuals
+- Clustermap of distance matrix
+- Dendrogram of substation profiles
+- Silhouette plot
+- Daily demand patterns by cluster
 
-### Model Specifications
+---
 
+## 🧠 Skills Developed
+- Principal Component Analysis and variance analysis
+- Classification using logistic regression and accuracy metrics
+- Time series regression and residual diagnostics
+- Unsupervised clustering and silhouette evaluation
+- Data cleaning, transformation, and visual storytelling
 
-### Key R Packages
+---
 
+## Project Files
+```
+├── MTHM503_Project.pdf        # Full project report
+├── gene_file.csv              # Gene expression dataset
+├── sealevel.csv               # Global sea level measurements
+├── January_2013.csv           # Power usage dataset
+├── code/                      # Scripts for each section
+├── plots/                     # Visual outputs (cluster plots, PCA, regression)
+```
 
-## Results
-![Clustermap](./Plots/Part%20C%20-%20Clustermap%20(Eucidean%20Distance).png)
+---
 
+## Technologies Used
+- **Python**: `pandas`, `scikit-learn`, `matplotlib`, `seaborn`, `scipy`
+- **R (optional extension)**: For statistical visualisation and reporting
 
-![Dendrogram](./Plots/Part%20C%20-%20Dendrogram.png)
+---
 
-### Statistical Significance
+<p align="center">
+  <img src="https://img.shields.io/badge/Dimensionality%20Reduction-PCA-yellow?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Unsupervised%20Learning-Clustering-green?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Trend%20Analysis-Regression-blue?style=for-the-badge"/>
+</p>
 
-
-## Key Visualizations
-
-### Animated Map
-
-
-### Seasonal Trend Plot  ![Linear Regression Model](./Plots/Part%20B%20-%20Change%20in%20Sea%20Level%20data%20with%20linear%20regression%20model.png)
-
-## Interactive Visualizations
-
-### Accessing the Interactive Heatmap
-
-## Implications and Limitations
-
-### Implications
-
-
-### Limitations
-
-
-### Future Research
-
-## Getting Started
-
-### Prerequisites
-- **R and RStudio**: This project requires R for data processing and analysis.
-- **Packages**: Install the required packages by running the following in R:
-  ```R
+> For queries or collaboration: **james066lewis@gmail.com**
