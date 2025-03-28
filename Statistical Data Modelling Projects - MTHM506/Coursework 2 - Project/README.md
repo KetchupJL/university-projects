@@ -2,7 +2,7 @@
 
 This project models the spread of tuberculosis (TB) across 557 microregions of Brazil between 2012 and 2014 using **Generalized Additive Models (GAMs)**. By combining spatial coordinates, temporal structure, and socio-economic factors, I identified regions of elevated TB risk and the drivers behind them.
 
-> MSc Statistical Modelling (MTHM506) Coursework — Grade: 82%
+> MSc Statistical Modelling (MTHM506) Coursework — Grade: NA%
 
 <p align="center">
   <img src="https://github.com/KetchupJL/university-projects/blob/main/Statistical%20Data%20Modelling%20Projects%20-%20MTHM506/Coursework%202%20-%20Project/Figures/map.png" alt="Spatial Risk Map" width="600"/>
@@ -125,7 +125,7 @@ Used `s(x, by = Year)` to model changing covariate effects over time.
 ---
 
 <p align="center">
-  <img src="https://img.shields.io/badge/MSc%20Project%20Grade-82%25-blue?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/MSc%20Project%20Grade-NA%25-blue?style=for-the-badge"/>
 </p>
 
 > For questions or collaboration: **james066lewis@gmail.com**
