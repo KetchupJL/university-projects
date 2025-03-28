@@ -1,2 +1,0 @@
-"0","jagsfit.mcmc <- as.mcmc(jags.mod.fit)"
-"0"," MCMCtrace(jagsfit.mcmc,type = 'trace',ind = TRUE, pdf = FALSE)"
