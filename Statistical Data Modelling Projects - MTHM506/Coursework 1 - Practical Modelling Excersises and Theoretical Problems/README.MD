@@ -1,7 +1,7 @@
-# Statistical Modelling of AIDS Case Trends in the UK
+# Statistical Modelling of AIDS Cases
 ### *MTHM506 – Statistical Data Modelling Individual Coursework*
 
-This project explores temporal trends in AIDS cases in the UK using advanced Generalized Linear Models (GLMs). The analysis evaluates Poisson, Gaussian, and Negative Binomial regression approaches and culminates in the selection of a best-fitting model to address overdispersion and non-linearity in the data.
+This project explores temporal trends in AIDS cases using advanced Generalized Linear Models (GLMs). The analysis evaluates Poisson, Gaussian, and Negative Binomial regression approaches and culminates in the selection of a best-fitting model to address overdispersion and non-linearity in the data.
 
 > 📈 Grade: 84% | MSc Applied Data Science & Statistics (2025)
 
