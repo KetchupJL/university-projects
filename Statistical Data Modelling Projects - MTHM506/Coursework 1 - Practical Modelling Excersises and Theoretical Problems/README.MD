@@ -61,10 +61,10 @@ This analysis focuses on two objectives:
 ## Selected Visuals
 
 ### Model Fits and Predictions
-![NB Prediction](./figures/NB.png)
+![NB Prediction](https://github.com/KetchupJL/university-projects/blob/main/Statistical%20Data%20Modelling%20Projects%20-%20MTHM506/Coursework%201%20-%20Practical%20Modelling%20Excersises%20and%20Theoretical%20Problems/Figures/NB.png)
 
 ### Deviance Residuals
-![Residuals](./figures/RESID.png)
+![Residuals](https://github.com/KetchupJL/university-projects/blob/main/Statistical%20Data%20Modelling%20Projects%20-%20MTHM506/Coursework%201%20-%20Practical%20Modelling%20Excersises%20and%20Theoretical%20Problems/Figures/RESID.png)
 
 ### Model Comparison Table (AIC)
 | Model                  | AIC       |
