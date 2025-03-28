@@ -1,29 +1,38 @@
-# Long-Term Phytoplankton Disruption in the Gulf of Mexico  
+# Long-Term Phytoplankton Disruption in the Gulf of Mexico
 ### *A Zonal Time-Series Analysis of the Deepwater Horizon Oil Spill*
 
-This MSc research project investigates the long-term ecological impact of the 2010 Deepwater Horizon (DWH) oil spill on phytoplankton productivity in the Gulf of Mexico. Leveraging satellite-derived chlorophyll-a data, spatial analysis, and advanced time-series decomposition techniques, this study identifies how phytoplankton dynamics were disrupted—and to what extent they recovered—following one of the most significant marine pollution events in history.
+This MSc research project explores the long-term impact of the 2010 Deepwater Horizon oil spill on phytoplankton productivity in the Gulf of Mexico. Using satellite-derived chlorophyll-a data and time-series decomposition, the study investigates ecological disturbance patterns and evaluates recovery trajectories across defined spatial zones.
+
+> MSc Communicating Data Science (MTHM507) Coursework — Grade: TBC
+
+<p align="center">
+  <img src="./figures/spill_impact_map.png" alt="Deepwater Horizon Impact Zones" width="600"/>
+  <br><br>
+  <a href="./FINAL%20REPORT.pdf">
+    <img src="https://img.shields.io/badge/View%20Full%20Report-PDF-blue?style=for-the-badge"/>
+  </a>
+</p>
 
 ---
 
-## 🔍 Overview
-
-- **Research Aim**  
-  To quantify the long-term impacts of Deepwater Horizon on chlorophyll-a concentrations (a proxy for phytoplankton biomass) and to evaluate ecosystem recovery across spatial zones. The project also investigates whether similar disturbances are observed in other Gulf of Mexico oil spill events.
-
-- **Analytical Strategy**  
-  - Zonal time-series STL decomposition  
-  - Chlorophyll residual mapping (2010–2014)  
-  - Event-aligned time-series extraction for 127 oil spills  
-  - Comparative analysis of top 15 spills by potential volume  
-  - Evaluation of recovery slope and post-impact trajectories
-
-- **Key Finding**  
-  The Deepwater Horizon event produced an ecologically exceptional, multi-year suppression of phytoplankton productivity that was not observed in other Gulf spills—demonstrating the importance of spatial scale, duration, and exposure intensity in driving ecosystem responses.
+## Project Objectives
+- Quantify the long-term chlorophyll-a suppression following the Deepwater Horizon (DWH) event
+- Assess seasonal disruption and recovery in phytoplankton productivity (2002–2024)
+- Compare impacts from DWH against 127 other oil spills across the Gulf of Mexico
+- Identify spatial heterogeneity and zonal-level ecosystem response
 
 ---
 
-## 🧰 Tools & Technologies
+## Key Learning Outcomes
+- Application of ecological remote sensing and ocean colour time-series
+- STL decomposition for seasonality and disturbance detection
+- Spatial zonal mapping and impact zone design
+- Handling and processing large-scale NetCDF satellite data
+- Comparative event analysis and scientific data storytelling
 
+---
+
+## Tools & Technologies
 | Category             | Tools & Packages                                                                  |
 |----------------------|-----------------------------------------------------------------------------------|
 | **Programming**       | R (v4.3+)                                                                         |
@@ -31,48 +40,76 @@ This MSc research project investigates the long-term ecological impact of the 20
 | **Time-Series**       | `forecast`, `zoo`, `tsibble`, `lubridate`                                        |
 | **Data Wrangling**    | `dplyr`, `purrr`, `tidyr`, `stringr`                                              |
 | **Visualisation**     | `ggplot2`, `ggridges`, `viridis`, `patchwork`, `gt`                               |
-| **Reporting**         | Quarto (`.qmd`) – reproducible scientific reporting framework                    |
+| **Reporting**         | Quarto (`.qmd`) for reproducible scientific reporting                            |
 
 ---
 
-## 📈 Key Analyses
+## Summary of Methods
 
-1. **STL Decomposition of Zonal Time-Series**  
-   Seasonal and trend disruption assessed across three defined regions: DWH Core, Wider Spill Zone, and Offshore Control.
+### 1. Zonal STL Decomposition
+Seasonal-trend decomposition (STL) was applied to log-transformed chlorophyll-a time series across three spatial zones: 
+- **DWH Core Zone**: highest exposure (>30 days of oil)
+- **DWH-Wide Zone**: full 2010 oil slick footprint
+- **Offshore Control Zone**: remote, low-impact reference area
 
-2. **Spatial Residual Mapping (2010–2014)**  
-   Mapped chlorophyll anomalies to identify geographic patterns in post-spill ecosystem behaviour.
+### 2. Spatial Residual Anomaly Mapping
+Residuals from STL were averaged spatially (2010–2014) to visualise zones of suppressed or elevated phytoplankton activity.
 
-3. **Event-Aligned Spill Analysis**  
-   Constructed time-series around 127 spill events to evaluate chlorophyll responses pre- and post-disturbance.
+### 3. Event-Aligned Spill Analysis
+Chlorophyll time series were aligned to 127 oil spill events (2006–2021) to assess whether ecological responses similar to DWH were common or exceptional.
 
-4. **Top 15 Spill Evaluation**  
-   Subset analysis based on maximum potential volume to test for signal scaling with spill magnitude.
-
-5. **Recovery Trajectory Assessment**  
-   Modelled post-spill trend slopes to determine the persistence, directionality, and completeness of recovery.
-
----
-
-## 🧠 Skills Developed
-
-- Application of ecological remote sensing techniques
-- Advanced time-series decomposition (STL)
-- Spatial zonal statistics and control zone design
-- Scientific visualisation and reproducible reporting
-- Handling and integrating large satellite datasets in R
+### 4. Recovery Trajectory Assessment
+Trend slopes post-2010 were analysed using STL-derived components to determine the magnitude and direction of phytoplankton recovery.
 
 ---
 
-## 📘 Citation
+## Selected Results
+<details>
+<summary>🗂 Key Insights</summary>
 
+- **DWH Core Zone** exhibited strong chlorophyll-a suppression from 2010–2014
+- **Post-2015** trends in the core zone remained below baseline, suggesting incomplete recovery
+- **Offshore Control Zone** showed stable or increasing productivity throughout
+- **No significant impact** was detected for the majority of other oil spills — DWH was ecologically unique
+- **Residual maps** visualised localised zones of both suppression and anomalous chlorophyll peaks
+
+</details>
+
+---
+
+## Visual Highlights
+
+### STL Decomposition (DWH Core)
+![STL Core](./figures/stl_core_zone.png)
+
+### Residual Anomaly Map (2010–2014)
+![STL Residuals](./figures/residual_map.png)
+
+### Recovery Trajectories by Zone
+![Recovery Trends](./figures/recovery_trend.png)
+
+### Oil Spill Comparison (Top 15 Events)
+![Spill Comparison](./figures/top15_spills_plot.png)
+
+---
+
+## Repository Structure
+```
+├── data/                # Processed chlorophyll data & zone shapefiles
+├── scripts/             # R scripts for zonal extraction, STL, and plotting
+├── figures/             # Final plots and spatial maps
+├── FINAL REPORT.pdf     # Full MSc report
+```
+
+---
+
+## Citation
 > Lewis, J. (2025). *Long-Term Phytoplankton Disruption in the Gulf of Mexico: A Zonal Time-Series Analysis of the Deepwater Horizon Spill*. MSc Communicating Data Science, University of Exeter.
 
 ---
 
-## 📬 Contact
+<p align="center">
+  <img src="https://img.shields.io/badge/Project%20Focus-Ecological%20Remote%20Sensing-green?style=for-the-badge"/>
+</p>
 
-To discuss this project, share feedback, or explore collaboration:
-
-- GitHub: [@KetchupJL](https://github.com/KetchupJL)  
-- University of Exeter – MSc Applied Data Science (2024–2025)
+> For questions or collaboration, contact **james066lewis@gmail.com**
