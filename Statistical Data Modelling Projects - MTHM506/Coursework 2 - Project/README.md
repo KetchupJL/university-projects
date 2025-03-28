@@ -1,44 +1,33 @@
-# Quantifying Spatio-Temporal Tuberculosis Risk in Brazil using GAMs
+# Modelling Spatio-Temporal TB Risk in Brazil using GAMs
 
-This repository contains all code, figures, and outputs for my MSc Statistical Data Modelling individual coursework (MTHM506) at the University of Exeter. The project aims to investigate the spatio-temporal structure and socio-economic drivers of tuberculosis (TB) risk across 557 microregions in Brazil over the years 2012–2014 using Generalized Additive Models (GAMs).
+This project models the spread of tuberculosis (TB) across 557 microregions of Brazil between 2012 and 2014 using **Generalized Additive Models (GAMs)**. By combining spatial coordinates, temporal structure, and socio-economic factors, I identified regions of elevated TB risk and the drivers behind them.
 
-## Project Overview
+> MSc Statistical Modelling (MTHM506) Coursework — Grade: 82%
 
-The primary objective of this analysis is to:
-- Estimate TB rates (cases per population unit) across Brazil using count data from 2012 to 2014.
-- Identify key socio-economic covariates significantly influencing TB risk.
-- Quantify spatial, temporal, and spatio-temporal variation in TB incidence using smooth functions within the GAM framework.
+<p align="center">
+  <img src="./figures/spatial_risk_map.png" alt="Spatial Risk Map" width="600"/>
+  <br><br>
+  <a href="./report.qmd">
+    <img src="https://img.shields.io/badge/View%20Full%20Report-PDF-blue?style=for-the-badge"/>
+  </a>
+</p>
 
-## Dataset
+---
 
-The dataset `TBdata` includes:
-- **Epidemiological**: TB case counts and population data by microregion and year.
-- **Socio-economic covariates**: Indigenous population proportion, illiteracy, urbanisation, density, poverty, poor sanitation, unemployment, and timeliness of reporting.
-- **Spatial information**: Region ID, longitude and latitude.
-- **Temporal variable**: Year (2012–2014).
+## Tools & Techniques
+- **R & Quarto**: for analysis and reporting
+- **Packages**: `mgcv`, `tidyverse`, `gt`, `gratia`, `fields`, `sp`, `patchwork`
+- **Modelling**: Generalized Additive Models with Tweedie and Negative Binomial families
+- **Visuals**: Risk maps, temporal trends, spatial smooths, covariate effect plots
 
-## Methodology
+---
 
-Generalized Additive Models (GAMs) were used to model TB cases assuming a Poisson (or Tweedie) distribution, with a log link function and an offset for log population. The models incorporate:
-- **Smooth terms** for covariates to capture non-linear effects.
-- **Factor-smooth interactions** to explore temporal variation in covariate effects (`s(x, by=Year)`).
-- **Spatial smoothing** using thin-plate splines over coordinates (`s(lon, lat)`).
-- **Spatio-temporal structure** via tensor product interactions (`te(lon, lat, Year)`).
+## Key Objectives
+- Estimate TB incidence per 100,000 population using offset modelling
+- Quantify the non-linear effect of socio-economic predictors on TB risk
+- Detect spatial and temporal heterogeneity in risk
 
-Model selection was guided by AIC, deviance explained, and diagnostics. Visualisations include smoothed effect plots and spatial risk maps using the `plot.map` function provided in the data package.
-
-## Structure
-
-- `report.qmd` – Three-page main report (R Markdown or Quarto).
-- `appendix/` – Supplementary plots, model outputs, and commented R code.
-- `scripts/` – All R scripts used for cleaning, analysis, and plotting.
-- `data/` – `datasets_project.RData` containing TBdata and mapping utilities.
-- `figures/` – Risk maps and diagnostic visualisations.
-
-## Technologies Used
-
-- **R** (mgcv, tidyverse, gt, fields, maps, sp)
-- Quarto / RMarkdown for reproducible reporting
+---
 
 ## Key Learning Outcomes
 
@@ -46,3 +35,100 @@ Model selection was guided by AIC, deviance explained, and diagnostics. Visualis
 - Integration of spatial and temporal smoothing
 - Model interpretation and critical evaluation
 - Communication of findings in a scientifically rigorous, concise format
+
+---
+
+## Dataset Overview
+
+The `TBdata` dataset includes:
+- TB case counts, population, year (2012–2014)
+- Region ID, coordinates (longitude, latitude)
+- 8 socio-economic indicators: Indigenous population %, Illiteracy, Urbanisation, Density, Poverty, Poor Sanitation, Unemployment, Timeliness of reporting
+
+> Data aggregated at the microregion level (n = 1671 rows).
+
+---
+
+## Modelling Framework
+
+### Final Tweedie Model
+TB case counts were modelled with a log-population offset using:
+
+```r
+gam_model_tw <- gam(TB ~ Year + Indigenous + 
+  s(Urbanisation) + s(Density) + s(Unemployment) + 
+  s(Poor_Sanitation) + s(Poverty) + s(Timeliness) + 
+  s(lon,lat) + offset(logPop),
+  data = TBdata,
+  family = tw,
+  method = "REML",
+  select = TRUE)
+```
+
+### Mathematical Notation
+
+\[\log(\mu_i) = \log(Population_i) + \beta_0 + \beta_1 Year_i + \beta_2 Indigenous_i + \sum_{j=1}^6 f_j(X_{ji}) + f_{spatial}(lon_i, lat_i)\]
+
+- \(f_j(X)\): smooth terms for socio-economic variables
+- \(f_{spatial}\): thin-plate spline spatial effect
+
+### Temporal Extension
+Used `s(x, by = Year)` to model changing covariate effects over time.
+
+\[\log(\mu_i) = \log(Pop_i) + \beta_0 + \sum_{y=2012}^{2014} \left( \sum_j f_{j,y}(X_{ji}) + f_{spatial,y}(lon_i, lat_i) \right)\]
+
+---
+
+## Results Overview
+
+<details>
+<summary>Key Findings</summary>
+
+- Strong risk predictors: Poverty, Poor Sanitation, Timeliness of reporting
+- Spatial clusters: High TB burden near Manaus, Cuiabá, Santos
+- Temporal trends: Stable risk patterns, modest increase in poverty and Indigenous risk over time
+- Model accuracy: Adjusted R² = 0.902, Deviance explained = 59.7%
+
+</details>
+
+---
+
+## Visual Gallery
+
+### Spatial Risk Map (2014)
+![Risk Map](./figures/spatial_risk_map.png)
+
+### Smooth Effects of Covariates
+![Covariate Effects](./figures/smooth_terms.png)
+
+### Observed vs Fitted
+![Obs vs Fitted](./figures/obs_vs_fitted.png)
+
+### Temporal Smooths (by Year)
+![Temporal Smooths](./figures/temporal_smooths.png)
+
+---
+
+## Project Structure
+
+```
+├── data/              # Cleaned datasets
+├── scripts/           # R scripts for analysis
+├── appendix/          # Plots, tables, outputs
+├── figures/           # Final plots & maps
+├── report.qmd         # 3-page main report (Quarto)
+```
+
+---
+
+## References
+- Wood, S. (2017). *Generalized Additive Models: An Introduction with R*
+- Tavares et al. (2024). *TB Treatment Outcomes in Brazil*, Infectious Diseases of Poverty
+
+---
+
+<p align="center">
+  <img src="https://img.shields.io/badge/MSc%20Project%20Grade-82%25-blue?style=for-the-badge"/>
+</p>
+
+> For questions or collaboration: **james066lewis@gmail.com**
