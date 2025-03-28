@@ -1,21 +1,36 @@
-# War-Related Fires in Ukraine: MTHM501 Project
+# War Fires in Ukraine: Spatio-Temporal Intelligence from Satellite Data
 
-**Project Overview**  
-This project investigates whether spatial and temporal factors can be used to classify fires as war-related in Ukraine. It leverages data from the onset of the Russian invasion in February 2022 through October 2024, exploring the effects of regional proximity to conflict zones and seasonal variations on fire classification.
+This project explores whether we can identify war-related fires in Ukraine using patterns in satellite data — based on time, geography, and local conflict dynamics. As a postgraduate Data Scientist, I used R, spatial mapping, and advanced statistical modelling (GLMMs) to uncover these patterns, combining open-source data with exploratory analysis and hierarchical models.
 
-**Grade: 82%**
+---
 
-## [Full Project Report](./MTHM501%20Report.pdf) 
+<p align="center">
+  <img src="./Plots and Tables/ukraine_fire_animation.gif" alt="Animated War Fires Map" width="600"/>
+  <br><br>
+  <a href="https://KetchupJL.github.io/university-projects/Predicted%20Probabilities%20of%20War-Related%20Fires%20Heatmap.html">
+    <img src="https://img.shields.io/badge/🔎%20View%20Interactive%20Heatmap%20Here-blue?style=for-the-badge"/>
+  </a>
+</p>
 
+## 🛠️ Tools & Technologies
 
-![Ukraine War Fires Animation](./Plots%20and%20Tables/ukraine_fire_animation.gif)
+- **Language**: R, RStudio
+- **Statistical Modelling**: `lme4`, `sjPlot`, `sjstats`, `performance`
+- **Geospatial Analysis**: `sf`, `gganimate`, `ggspatial`, `plotly`
+- **Data Wrangling**: `tidyverse`, `lubridate`, `dplyr`
+- **Tables + Report Styling**: `gt`, `knitr`, `kableExtra`
 
+---
 
-### [![View Interactive Heatmap](https://img.shields.io/badge/Interactive%20Heatmap-View%20Here-blue?style=for-the-badge)](https://KetchupJL.github.io/university-projects/Predicted%20Probabilities%20of%20War-Related%20Fires%20Heatmap.html)
+## 📌 Key Insights (TL;DR)
 
-# Summary
+- Fires closer to the Russian border and in summer months were more likely to be war-related
+- Hierarchical modelling improved classification accuracy
+- Interactive heatmaps and animations revealed clear spatial patterns
 
-## Table of Contents
+---
+
+## 📚 Table of Contents
 - [Background](#background)
 - [Research Objectives](#research-objectives)
 - [Hypotheses](#hypotheses)
@@ -30,94 +45,129 @@ This project investigates whether spatial and temporal factors can be used to cl
 
 ---
 
-## Background
-The conflict between Ukraine and Russia escalated into a full-scale war in 2022, leading to widespread destruction and thousands of civilian casualties. Fires have become a common consequence of conflict-related incidents, affecting both military and civilian infrastructure. Classifying these fires as war-related or non-war-related is essential for emergency response planning and conflict impact assessment. This project examines the spatial and temporal patterns of fire incidents in Ukraine, aiming to determine if these factors can accurately classify fires as war-related.
+## 🧭 Background
 
-## Research Objectives
-The primary objective of this project is to investigate if spatial and temporal factors can predict whether a fire incident is war-related. This includes understanding the distribution of war-related fires across different regions of Ukraine and observing if these incidents vary by season.
+The conflict between Ukraine and Russia escalated into a full-scale war in 2022, leading to widespread destruction. Fires have become a common consequence of conflict-related incidents. This project examines the spatial and temporal patterns of fire incidents in Ukraine to determine whether these patterns can classify fires as war-related.
 
-### Specific Questions
+## 🎯 Research Objectives
+
+The main goal is to assess whether spatial and temporal features can predict if a fire is war-related. Sub-questions include:
+
 1. Are certain regions or seasons more associated with war-related fires?
-2. Can factors like population density and sustained fire activity reliably predict war-related fires?
-3. Which spatial and temporal patterns provide the most accurate predictions for classifying fires?
+2. Can population density and excess fire activity predict fire classification?
+3. Which spatial-temporal patterns are most useful?
 
-## Hypotheses
-- **Null Hypothesis (H0)**: Spatial and temporal factors do not influence the classification of fires as war-related.
-- **Alternative Hypothesis (H1)**: Spatial and temporal factors are significant predictors of war-related fires.
+## 🧪 Hypotheses
 
-## Data
-The analysis uses a primary dataset sourced from The Economist's Ukraine War-fire model, accessed through Kaggle. It contains over 60,000 observations with the following key variables:
-- **Geospatial**: Latitude, longitude
-- **Temporal**: Date, AQC time
-- **Contextual**: Population density, sustained fire activity
+- **H0**: Spatial and temporal factors do not influence fire classification.
+- **H1**: Spatial and temporal features significantly improve fire classification.
 
-Additionally, a GeoJSON file mapping Ukraine's regions is integrated to enhance the spatial analysis.
+## 📊 Data
 
-### Data Wrangling and Preprocessing
-- **Cleaning**: Unnecessary fields were removed (e.g., ‘city’ and ‘year’), and missing values were handled. Variables were renamed for clarity.
-- **Formatting**: Date variables were reformatted to capture seasonal trends, and categorical variables were prepared for modeling.
-- **Spatial Context**: The data was transformed into spatial features to align with regional boundaries, facilitating a regional analysis of war-related fires.
+- Over 60,000 fire records (2022–2024) from [The Economist / Kaggle Dataset]
+- Includes latitude, longitude, date, population density, sustained fire activity
+- GeoJSON used for regional mapping and spatial joins
 
-## Methods
-This analysis uses **hierarchical modeling** to account for the nested nature of spatial and temporal data, employing **Generalized Linear Mixed Models (GLMM)**. Specifically, two models were used:
-1. **Random Intercept Model (RIM)**: Captures varying intercepts across regions and seasons.
-2. **Random Slopes Model (RSM)**: Allows the slopes of population density and sustained fire activity to vary, capturing fluctuations across regions and seasons.
+### 🔧 Data Preparation
+- Cleaned missing/unnecessary fields
+- Reformatting time fields to seasons
+- Converted to spatial data structures with `sf`
 
-### Model Specifications
-- **RIM**: `glmer(war_fire ~ population_density + sustained_excess_fires + (1 | region) + (1 | season) + (1 | id_big), data = TestData1, family = binomial)`
-- **RSM**: `glmer(war_fire ~ population_density + sustained_excess_fires + (1 + population_density | region) + (1 + sustained_excess_fires | season) + (1 | id_big), data = TestData1, family = binomial)`
+## ⚙️ Methods
 
-### Key R Packages
-- **Data Manipulation**: `dplyr`, `tidyverse`
-- **Visualization**: `ggplot2`, `gganimate`, `plotly`
-- **Tables**: `knitr`, `kableExtra`, `gt`
-- **Modeling**: `lme4`, `sjplot2`, `lmerTest`, `sjstats`
-- **Spatial Analysis**: `sf`, `spatial`
+Used **Generalized Linear Mixed Models (GLMM)** with both random intercept and random slope structures:
 
-## Results
-The results indicate that spatial and temporal patterns significantly affect the classification of fires as war-related. Key findings include:
-- **Regional Concentrations**: War-related fires are heavily concentrated in Eastern and Northern Ukraine, particularly near the Russian border.
-- **Seasonal Patterns**: War-related fire incidents peak in the summer and autumn, with the highest daily averages observed from July to October.
-- **Model Performance**: The RSM outperformed the RIM, offering a better fit by capturing regional and seasonal variations more effectively.
+```r
+# Random Intercept Model (RIM)
+glmer(war_fire ~ population_density + sustained_excess_fires + 
+      (1 | region) + (1 | season) + (1 | id_big), 
+      data = TestData1, family = binomial)
 
-### Statistical Significance
-- **Sustained Fire Activity**: Statistically significant across both models (p < 2e-16).
-- **Population Density**: Significant only in the RIM, suggesting its effect varies when random slopes are included.
+# Random Slopes Model (RSM)
+glmer(war_fire ~ population_density + sustained_excess_fires + 
+      (1 + population_density | region) + (1 + sustained_excess_fires | season) + 
+      (1 | id_big), 
+      data = TestData1, family = binomial)
+```
 
-## Key Visualizations
+<details>
+<summary>📦 R Packages Used</summary>
 
-### Animated Map
-![Ukraine War Fires Animation](./ukraine_fire_animation.gif)
-This animated map shows the progression of war-related fires in Ukraine over time. Red dots represent war-related fires, while grey dots indicate non-war fires. Created using `gganimate`, it provides a dynamic view of fire activity across regions from 2022 onward.
+- `lme4`, `sjPlot`, `sjstats`, `performance`
+- `sf`, `ggplot2`, `gganimate`, `plotly`
+- `dplyr`, `lubridate`, `tidyverse`
+- `knitr`, `gt`, `kableExtra`
 
-### Seasonal Trend Plot  ![Ukraine War Fires Animation](./Plots%20and%20Tables/Seasonal%20Trends%20Plot.png)
-The seasonal trend plot shows peaks in war-related fire activity between July and October, illustrating a temporal pattern that aligns with intensified conflict periods.
+</details>
 
-## Interactive Visualizations
-View the interactive heatmap [here](https://KetchupJL.github.io/university-projects/Predicted%20Probabilities%20of%20War-Related%20Fires%20Heatmap.html).
-An interactive heatmap of predicted probabilities for war-related fires is available. This map enables users to explore spatial and temporal patterns dynamically, showing higher probabilities in Eastern and Northern Ukraine and seasonal peaks.
+## 📈 Results
 
-### Accessing the Interactive Heatmap
-The plot is also accessible on GitHub: [Interactive Heatmap](https://github.com/KetchupJL/university-projects).
+<details>
+<summary>Click to expand key findings</summary>
 
-## Implications and Limitations
+- **Spatial Concentration**: Eastern & Northern Ukraine have highest war-fire density
+- **Seasonal Trend**: Fires peak between July and October
+- **Statistical Findings**: 
+  - Sustained fire activity: strong, consistent predictor (p < 2e-16)
+  - Population density: significant only in RIM
+  - RSM provided better model fit than RIM
+
+</details>
+
+## 🗺️ Key Visualizations
+
+### 🧨 Animated Fire Map
+![Animated Map](./Plots%20and%20Tables/ukraine_fire_animation.gif)
+
+### 🌤️ Seasonal Trends Plot
+![Seasonal Trends](./Plots%20and%20Tables/Seasonal%20Trends%20Plot.png)
+
+---
+
+## 🌍 Interactive Visualizations
+
+- 🔥 [Live Interactive Heatmap](https://KetchupJL.github.io/university-projects/Predicted%20Probabilities%20of%20War-Related%20Fires%20Heatmap.html)
+- Explore predicted probabilities by region & season
+
+---
+
+## 🧩 Implications and Limitations
 
 ### Implications
-These findings have practical implications for conflict management and emergency response planning:
-- **Resource Allocation**: High-risk regions and seasons can be prioritized for fire prevention and response.
-- **Conflict Monitoring**: Temporal and spatial patterns provide insights into conflict escalation and its environmental impacts.
+- Supports early warning systems and emergency planning
+- Identifies high-risk areas and timeframes for resource allocation
 
 ### Limitations
-- **Binary Classification**: The sustained fire activity variable does not capture the intensity or duration of fires, limiting the depth of analysis.
-- **Data Bias**: Cloud cover in satellite imagery may obscure some fires, potentially leading to underreporting.
+- Binary fire variable lacks nuance (e.g. intensity/duration)
+- Satellite occlusion (cloud cover) may underreport fires
 
-### Future Research
-Further studies could improve upon these findings by refining the sustained fire activity variable and incorporating conflict-specific data. Ground-based observations could also complement satellite data, providing a more comprehensive understanding of war-related fires.
+## 📌 Future Work
+- Enhance fire classification features with severity metrics
+- Integrate conflict-specific ground reports with satellite data
 
-## Getting Started
+---
 
-### Prerequisites
-- **R and RStudio**: This project requires R for data processing and analysis.
-- **Packages**: Install the required packages by running the following in R:
-  ```R
-  install.packages(c("ggplot2", "gganimate", "ggspatial", "plotly", "lme4", "tidyverse", "sf"))
+## ⚙️ Getting Started
+
+> This project runs in R with the following prerequisites:
+
+```r
+install.packages(c("ggplot2", "gganimate", "ggspatial", "plotly", "lme4", "tidyverse", "sf"))
+```
+
+---
+
+## 📝 References
+
+- The Economist / Kaggle Ukraine Fires Dataset
+- R Documentation for `glmer`, `lme4`, `sjPlot`, `sf`
+
+---
+
+### 📄 [Full Project Report (PDF)](./MTHM501%20Report.pdf)
+
+---
+
+<p align="center">
+  <img src="https://img.shields.io/badge/MSc%20Applied%20Data%20Science%20Project-Grade%3A%2082%25-blue?style=for-the-badge"/>
+</p>
