@@ -1,59 +1,74 @@
-# Data Science University Projects
+# 🎓 Data Science University Projects
 
-## Overview
+This repository contains a curated portfolio of selected projects from my MSc in Applied Data Science & Statistics at the University of Exeter. These projects reflect a range of applied **statistical modelling**, **machine learning**, and **data science** workflows developed across the course.
 
-This repository showcases key projects completed during my Masters studies, highlighting applied skills across various modules. Each project includes a summary, full report, project brief and, where available, achieved grades.
+> Each project includes a full PDF report, cleaned datasets, reproducible R or Python code, and achieved grades where available.
 
-## Technical Skills
+---
 
-- **R**: Statistical modeling, data analysis, and data visualisation.
-- **Python**: Data analysis, data visualisation, machine learning, and automation.
-- **SQL**: Database management and data querying.
-- **HTML & CSS**: Data presentation.
-- **Markdown**: Clear and organized documentation.
+## 🔧 Technical Proficiencies
 
-## Projects
+- **Machine Learning**: Classification models, clustering, hyperparameter tuning, dimensionality reduction
+- **Statistical Modelling**: GLMs, GAMs, Bayesian inference, MLE, regression diagnostics
+- **R & Python**: End-to-end pipelines for data analysis, modelling, and visualisation
+- **Bayesian Modelling**: JAGS, MCMC sampling, hierarchical models
+- **Time Series Analysis**: STL decomposition, trend modelling, smoothing
+- **Reproducibility**: Markdown, Quarto, and clear project structure
 
-### 1. [War-Related Fires in Ukraine - Spatial and Temporal Patterns](https://github.com/KetchupJL/university-projects/tree/main/Ukraine%20War-Fire%20Project)
-   - **Description**: A Data Science report predicting the probabilities of war-related fires across regions in Ukraine, with a focus on spatial and temporal analysis.
-   - **Technologies Used**: R, Plotly and GIS data analysis.
-   - **Module MTHM501**: Grade - 82%
+---
 
+## 📁 Projects
 
-### 2. [Applications of Data Science and Statistical Modelling - Coursework Assignment](https://github.com/KetchupJL/university-projects/tree/main/MTHM503%20-%20Project)
-   - **Description**: A set of problem questions, which required a range of data wrangling, statistical modelling and machine learning methods to solve.
-   - **Technologies Used**: Python - (Pandas, Numpy, Scipy-learn, Seaborn and more). Machine Learning methods used: Principle Component Analysis, Autoencoders and Linear Regression.
-   - **Module MTHM503**: Grade - 74%
+### 1. [War-Related Fires in Ukraine](https://github.com/KetchupJL/university-projects/tree/main/Ukraine%20War-Fire%20Project)  
+![Grade](https://img.shields.io/badge/Grade-82%25-blue) ![Model](https://img.shields.io/badge/Model-GLMMs-success) ![Tools](https://img.shields.io/badge/Tools-R%2C%20sf%2C%20gganimate-informational)  
+**Module**: MTHM501  
+**Skills**: Mixed-effects modelling, binomial GLMMs, spatial analysis, temporal feature engineering, interactive visualisation  
+**Description**: Investigates whether war-related fires in Ukraine can be classified using spatial and seasonal patterns. Hierarchical GLMMs were used with regional and temporal random effects. Includes interactive heatmaps and animations.
 
+---
 
-### 3. [Comparative Modelling of AIDS Case Trends Using Poisson and Gaussian Regression](https://github.com/KetchupJL/university-projects/tree/main/Statistical%20Data%20Modelling%20Projects%20-%20MTHM506/Coursework%201%20-%20Practical%20Modelling%20Excersizes%20and%20Theoretical%20Problems)
-   - **Description**: This project compares Poisson and Gaussian regression models to analyze the trends in AIDS cases in the UK, extending them with polynomial terms to address non-linearity. The final model, a Negative Binomial cubic model, is recommended due to its ability to handle overdispersion and non-linear trends effectively.
-   - **Technologies Used**: R (glm, ggplot2, AIC, deviance, bptest, glm.nb).
-   - **Module MTHM506**: Grade - 84%
+### 2. [Applications of Data Science – Multi-Part Coursework](https://github.com/KetchupJL/university-projects/tree/main/MTHM503%20-%20Project)  
+![Grade](https://img.shields.io/badge/Grade-74%25-blue) ![Focus](https://img.shields.io/badge/Focus-PCA%2C%20Clustering%2C%20Regression-yellow) ![Tools](https://img.shields.io/badge/Tools-Python%2C%20scikit--learn%2C%20matplotlib-informational)  
+**Module**: MTHM503  
+**Skills**: Principal Component Analysis, supervised learning, unsupervised clustering, regression diagnostics, exploratory visualisation  
+**Description**: Covers three problem domains: PCA and logistic regression on gene data, sea level trend modelling with linear regression, and clustering of daily power demand profiles.
 
+---
 
+### 3. [Comparative Modelling of AIDS Case Trends (GLMs)](https://github.com/KetchupJL/university-projects/tree/main/Statistical%20Data%20Modelling%20Projects%20-%20MTHM506/Coursework%201%20-%20Practical%20Modelling%20Excersizes%20and%20Theoretical%20Problems)  
+![Grade](https://img.shields.io/badge/Grade-84%25-blue) ![Model](https://img.shields.io/badge/Model-Negative%20Binomial-green) ![Tools](https://img.shields.io/badge/Tools-R%2C%20GLM%2C%20ggplot2-informational)  
+**Module**: MTHM506  
+**Skills**: GLMs, likelihood inference, polynomial regression, overdispersion correction, model comparison with AIC  
+**Description**: Fits and compares Poisson, Gaussian, and Negative Binomial regression models to AIDS case data in the UK. Final model chosen based on AIC and overdispersion correction.
 
-### 4. [Advanced Statistical Modelling: Inference and Classification](https://github.com/KetchupJL/university-projects/tree/main/Advanced%20Topics%20In%20Statistics)
-   - **Description**: This project is divided into two core sections. The first involves fitting a hierarchical Bayesian mixture model to assess cognitive reaction times in schizophrenic and non-schizophrenic patients using MCMC methods in JAGS. The second applies a suite of supervised machine learning techniques to classify simulated data into two groups, evaluating the predictive performance of each model.
-   - **Technologies Used**: R – (JAGS, ggplot2, rjags, MASS, class, e1071, randomForest, caret).
-   - **Classification (Machine Learning) methods used**: Linear/Quadratic Discriminant Analysis, K-Nearest Neighbours, Support Vector Machines andRandom Forests.
-   - **Module MTHM017**: Grade - NA%
+---
 
+### 4. [Advanced Statistical Modelling – Reaction Time Inference & Classification](https://github.com/KetchupJL/university-projects/tree/main/Advanced%20Topics%20In%20Statistics)  
+![Grade](https://img.shields.io/badge/Grade-Pending-lightgrey) ![Focus](https://img.shields.io/badge/Methods-Bayesian%20%2B%20ML-brightgreen) ![Tools](https://img.shields.io/badge/Tools-R%2C%20JAGS%2C%20caret-informational)  
+**Module**: MTHM017  
+**Skills**: Bayesian modelling with JAGS, hierarchical inference, MCMC diagnostics, multi-model ML comparison (LDA, QDA, kNN, SVM, RF)  
+**Description**: Combines Bayesian hierarchical modelling (JAGS) of patient reaction times with supervised learning classification (LDA, QDA, KNN, SVM, RF) on synthetic data.
 
-### 5. [Quantifying Spatio-Temporal Tuberculosis Risk in Brazil using GAMs](https://github.com/KetchupJL/university-projects/tree/main/Advanced%20Topics%20In%20Statistics)
-- **Description**: A independent project assessing TB risk in Brazil using Generalized Additive Models. Focus is on fitting spatial, temporal, and spatio-temporal models to identify key covariates and risk structures.
-- **Technologies Used**: R (`mgcv`, `fields`, `maps`, `sp`, `gt`, `ggplot2`)
-- **Methods Used**: Poisson and Tweedie GAMs, spatial and temporal smoothers, tensor product interactions, model selection using AIC/GCV, risk mapping.
-- **Module**: MTHM506
-- **Grade**: NA%
+---
 
+### 5. [Quantifying Spatio-Temporal Tuberculosis Risk in Brazil using GAMs](https://github.com/KetchupJL/university-projects/tree/main/Advanced%20Topics%20In%20Statistics)  
+![Grade](https://img.shields.io/badge/Grade-Pending-lightgrey) ![Model](https://img.shields.io/badge/Model-GAMs-purple) ![Tools](https://img.shields.io/badge/Tools-R%2C%20mgcv%2C%20gratia-informational)  
+**Module**: MTHM506  
+**Skills**: Generalised Additive Models (Poisson, Tweedie), spatial smoothing, tensor product interactions, time-varying covariates, risk mapping  
+**Description**: Models TB risk across 557 Brazilian microregions (2012–2014) using Poisson and Tweedie GAMs with spatial, temporal, and interaction smoothers.
 
-### 6. [Long-Term Phytoplankton Disruption in the Gulf of Mexico: A Zonal Time-Series Analysis of the Deepwater Horizon Spill](https://github.com/KetchupJL/university-projects/tree/main/Communicating%20Data)
-- **Description**:  
-  A scientific investigation into the ecological impact of the 2010 Deepwater Horizon oil spill on phytoplankton productivity in the Gulf of Mexico. Using satellite-derived chlorophyll-a data and zonal time-series decomposition, the study analyses seasonal disruption, recovery trajectories, and spatial anomaly patterns across control and impacted regions. Comparative analysis of over 120 additional oil spills is also included to evaluate the exceptionalism of DWH.
-- **Technologies Used**:  
-  R (terra, sf, stars, dplyr, ggplot2, forecast, patchwork, gt, lubridate, purrr, ggridges, zoo)
-- **Classification (Machine Learning) methods used**:  
-  None (this project applied time-series decomposition and spatial statistics, not supervised classification)
-- **Module MTHM507**: Grade - NA%
+---
 
+### 6. [Phytoplankton Disruption After Deepwater Horizon (Ecological Time Series)](https://github.com/KetchupJL/university-projects/tree/main/Communicating%20Data)  
+![Grade](https://img.shields.io/badge/Grade-Pending-lightgrey) ![Focus](https://img.shields.io/badge/Focus-STL%20Decomposition%20%26%20Spatio-temporal%20Trends-blueviolet) ![Tools](https://img.shields.io/badge/Tools-R%2C%20terra%2C%20forecast-informational)  
+**Module**: MTHM507  
+**Skills**: Time-series decomposition (STL), spatial-temporal data alignment, anomaly detection, multi-event comparison, scientific reporting  
+**Description**: Investigates long-term chlorophyll suppression after the 2010 Deepwater Horizon oil spill using satellite remote sensing data and STL decomposition across spatial zones. Compared against 127 other Gulf oil spills.
+
+---
+
+<p align="center">
+  <img src="https://img.shields.io/badge/MSc%20Coursework-Data%20Science%20%26%20Statistics-blue?style=for-the-badge"/>
+</p>
+
+> For inquiries or project collaboration, contact **james066lewis@gmail.com**
