@@ -1,0 +1,453 @@
+---
+format: 
+  pdf:
+    documentclass: article
+    toc: true
+    include-before-body: cover.tex
+    number-sections: true
+    keep-tex: true
+    latex-engine: xelatex
+fontsize: 11pt
+mainfont: Times New Roman
+geometry: margin=2.5cm
+editor: visual
+citation: true
+csl: harvard.csl
+bibliography: references.bib
+---
+
+\newpage
+
+# Sea Surface Temperature Modelling
+
+## Part A: Exploratory Data Analysis
+
+```{r}
+#| label: fig:scatterplot
+#| fig-cap: "Figure 1: Spatial distribution of Sea Surface Temperature (SST) observations collected on 1–2 January 1996 in the Kuroshio Current region. Each point represents an individual measurement; colour denotes temperature, with warmer SSTs concentrated in the north-east band."
+#| echo: false
+#| warning: false
+#| message: false
+# Load required libraries
+library(geoR)
+library(tidyverse)
+
+# Read the data
+kuroshio100 <- read.csv("~/GitHub/university-projects/Modelling in Space and Time/In progress/kuroshio100.csv")
+
+# Summarise NA counts
+# colSums(is.na(kuroshio100))
+
+# Across all columns apart from `date` and `id`, there are 1557 missing values
+
+# Remove rows with missing essential spatial data
+kuroshio100_clean <- kuroshio100 %>%
+  drop_na(lon, lat)
+
+library(ggplot2)
+library(viridis)
+
+# SST spatial scatter plot
+ggplot(kuroshio100, aes(x = lon, y = lat, color = sst)) +
+  geom_point(size = 3, alpha = 0.9, shape = 16) +
+  scale_color_viridis_c(
+    option = "C",
+    direction = -1,
+    name = "SST (°C)",
+    limits = c(min(kuroshio100$sst, na.rm = TRUE), max(kuroshio100$sst, na.rm = TRUE)),
+    oob = scales::squish
+  ) +
+  labs(
+    title = "Sea Surface Temperature Observations – Kuroshio Current (Jan 1996)",
+    x = "Longitude",
+    y = "Latitude"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5, size = 14),
+    axis.title = element_text(face = "bold"),
+    legend.title = element_text(size = 11),
+    legend.text = element_text(size = 10),
+    panel.grid = element_blank()
+  )
+
+```
+
+The spatial plot of Sea Surface Temperature (SST) observations collected in the Kuroshio Current during January 1996 reveals strong latitudinal structure in the data. Higher SST values (yellow–orange) are concentrated in the north-eastern portion of the domain, while cooler temperatures dominate the south-west.\
+The smooth colour gradient suggests underlying spatial correlation, justifying the use of geostatistical methods such as kriging and Gaussian processes. Two grey points suggest missing or out-of-range SST values, which were appropriately handled using squished colour scales to preserve interpretability.
+
+## Part B:
+
+```{r}
+set.seed(444)  # For reproducibility
+
+# Using the cleaned dataset to ensure we dont chose missing values.
+# 5 random points
+test_points <- kuroshio100_clean %>%
+  sample_n(5)
+
+# Display their information
+test_points %>%
+  select(id, lon, lat, sst)
+
+```
+
+Now we create the training dataset
+
+```{r}
+# Create training dataset (excluding test points)
+kuroshio_train <- anti_join(kuroshio100, test_points, by = c("id", "lon", "lat", "sst"))
+
+# Save for later prediction
+test_coords <- test_points %>% select(lon, lat)
+test_true_sst <- test_points %>% select(sst)
+
+```
+
+## Part C: Spatial Model via Variogram and Kriging
+
+```{r}
+# Convert training dataset into a geodata object
+# kuro_geo_train <- as.geodata(kuroshio_train, coords.col = c("lon", "lat"), data.col = "sst")
+
+# Jitter duplicated coordinates very slightly
+kuro_geo_train <- jitterDupCoords(
+  as.geodata(kuroshio_train, coords.col = c("lon", "lat"), data.col = "sst"),
+  max = 1e-5
+)
+```
+
+`max = 1e-5` means the jitter is on the order of 0.00001 degrees — negligible in geographic terms. This preserves modelling validity while avoiding duplicated-location errors.
+
+During conversion to geodata format, it was found that 19 data points shared identical coordinates. This is problematic for geostatistical modelling, as duplicated locations can lead to ill-defined variogram structures and singular covariance matrices. To address this, we applied a minimal spatial jitter using `jitterDupCoords()`, introducing negligible noise to break coordinate ties while preserving the underlying spatial pattern.
+
+### Empirical Variogram Estimation
+
+```{r}
+# Empirical variogram with binning
+# Full range
+emp_variog_full <- variog(kuro_geo_train, option = "bin", max.dist = 2.5, uvec = seq(0, 2.5, length.out = 20))
+
+# Mid-range (preferred candidate for fitting)
+emp_variog_2 <- variog(kuro_geo_train, option = "bin", max.dist = 2.0, uvec = seq(0, 2.0, length.out = 20))
+
+# Cleanest for model fitting
+emp_variog_1.8 <- variog(kuro_geo_train, option = "bin", max.dist = 1.8, uvec = seq(0, 1.8, length.out = 18))
+```
+
+Binning was applied to improve the interpretability of the variogram by smoothing noisy pairwise semivariance estimates over distance intervals.
+
+```{r}
+#| label: fig:variogcompare
+#| fig-cap: "Figure 2: Empirical variograms computed using three different maximum distance thresholds. The max.dist = 1.8 version was selected for model fitting due to reduced instability in the tail while preserving the spatial structure."
+#| echo: false
+#| warning: false
+#| message: false
+library(tibble)
+library(dplyr)
+
+variog_df <- bind_rows(
+  tibble(dist = emp_variog_full$u, semivar = emp_variog_full$v, version = "max.dist = 2.5"),
+  tibble(dist = emp_variog_2$u, semivar = emp_variog_2$v, version = "max.dist = 2.0"),
+  tibble(dist = emp_variog_1.8$u, semivar = emp_variog_1.8$v, version = "max.dist = 1.8")
+)
+
+
+ggplot(variog_df, aes(x = dist, y = semivar)) +
+  geom_point(size = 2, colour = "black") +
+  geom_line(colour = "darkred", linewidth = 1) +
+  facet_wrap(~ version, ncol = 1, scales = "free_x") +
+  labs(
+    title = "Comparison of Empirical Variograms (Different Maximum Distances)",
+    x = "Distance (spatial units)",
+    y = "Semi-variance"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 14, hjust = 0.5),
+    axis.title = element_text(face = "bold"),
+    strip.text = element_text(face = "bold", size = 12),
+    panel.grid.major = element_line(color = "grey85"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+Empirical Variogram Analysis
+
+A binned empirical variogram was computed using the `variog()` function, with distance bins defined via `uvec`. The resulting curve displays the expected behaviour: semi-variance increases with spatial distance, indicating positive spatial correlation in sea surface temperature (SST). The structure suggests an asymptote between 1.5 and 2 spatial units, indicative of a moderate spatial range. Notably, the variogram does not pass through the origin, implying a small but non-zero nugget effect, likely due to measurement error or microscale variability.
+
+To assess the impact of the maximum distance threshold, three values were tested: `max.dist = 1.8`, `2.0`, and `2.5`. Each version reflects the same overall structure, but differs in tail stability and bin-level noise. The `max.dist = 2.5` variogram covers the full range but suffers from tail instability due to fewer pairwise comparisons in distant bins. The `2.0` variant reduces this effect, while the `1.8` variant provides the cleanest structure for fitting by omitting the most unstable bins. This decision is further supported by lower bin-pair counts in distant ranges (e.g., \<10 pairs).
+
+Based on this analysis, the `max.dist = 1.8` variogram was selected for fitting parametric models. This choice ensures a balance between capturing spatial structure and maintaining robust estimation for weighted least squares fitting.
+
+### Fitting Parametric Variogram Models
+
+```{r}
+#  Fit Parametric Variogram Models
+# Exponential model
+fit_exp <- variofit(
+  emp_variog_1.8,
+  cov.model = "exponential",
+  ini.cov.pars = c(1, 1),
+  nugget = 0.1,
+  weights = "equal"
+)
+
+# Gaussian model
+fit_gau <- variofit(
+  emp_variog_1.8,
+  cov.model = "gaussian",
+  ini.cov.pars = c(1, 1),
+  nugget = 0.1,
+  weights = "equal"
+)
+
+# Adjusted first Matérn model as: sum of the nugget and partial sill initial values was too small. Two new improved models below:
+
+# Matérn model (kappa = 1.5)
+fit_mat1 <- variofit(
+  emp_variog_1.8,
+  cov.model = "matern",
+  kappa = 1.5,
+  ini.cov.pars = c(2, 1),   # partial sill = 2, range = 1
+  nugget = 0.5,             # starting nugget guess
+  weights = "equal"
+)
+
+fit_mat2 <- variofit(
+  emp_variog_1.8,
+  cov.model = "matern",
+  kappa = 1.5,
+  ini.cov.pars = c(1.5, 0.8),
+  nugget = 0.3,
+  weights = "equal"
+)
+```
+
+Equal weights were used to avoid overweighting short-distance bins, which typically contain more pairs and could disproportionately influence the fit.
+
+```{r}
+#| label: fig:variogfit
+#| fig-cap: "Parametric variogram models (Exponential, Gaussian, Matérn) fitted to the empirical variogram with max.dist = 1.8. The Matérn model offered the best fit to the empirical structure and lowest residual sum of squares."
+#| echo: false
+#| warning: false
+#| message: false
+# Plot empirical variogram
+plot(emp_variog_1.8,
+     main = "Fitted Variogram Models (max.dist = 1.8)",
+     xlab = "Distance (spatial units)", ylab = "Semi-variance")
+
+# Overlay each fitted model
+lines(fit_exp, col = "blue", lwd = 2)
+lines(fit_gau, col = "forestgreen", lwd = 2)
+lines(fit_mat1, col = "purple", lwd = 2, lty = 2)
+lines(fit_mat2, col = "darkorange", lwd = 2, lty = 3)
+
+# Legend for identification
+legend("bottomright",
+       legend = c("Exponential", "Gaussian", "Matérn (v1)", "Matérn (v2)"),
+       col = c("blue", "forestgreen", "purple", "darkorange"),
+       lty = c(1, 1, 2, 3),
+       lwd = 2)
+
+# Residual sums of squares
+fit_exp$value  # 7.123
+fit_gau$value  # 6.829
+fit_mat1$value # 6.797
+```
+
+Fitted Variogram Models and Selection
+
+Parametric variogram models were fitted using weighted least squares. All models included a nugget component to reflect short-scale variability. The exponential model captured the general trend but underestimated mid-range variation and produced a zero nugget estimate. The Gaussian model offered a smoother fit, but failed to reflect the steep rise at short distances.
+
+Both Matérn fits (**κ = 1.5**) produced identical solutions and lowest residual sum of squares (**6.80**), balancing short- and long-range structure. Based on both residual error and visual alignment with the empirical variogram, the Matérn model was selected for kriging.
+
+### **Model Parameters and Interpretation**
+
+```{r}
+# Exponential
+params_exp <- fit_exp$cov.pars
+nugget_exp <- fit_exp$nugget
+
+# Gaussian
+params_gau <- fit_gau$cov.pars
+nugget_gau <- fit_gau$nugget
+
+# Matérn
+params_mat <- fit_mat1$cov.pars
+nugget_mat <- fit_mat1$nugget
+
+# Create parameter summary table
+param_table <- data.frame(
+  Model = c("Exponential", "Gaussian", "Matérn (κ = 1.5)"),
+  Nugget = c(nugget_exp, nugget_gau, nugget_mat),
+  Partial_Sill = c(params_exp[1], params_gau[1], params_mat[1]),
+  Range = c(params_exp[2], params_gau[2], params_mat[2]),
+  Residual_SS = c(fit_exp$value, fit_gau$value, fit_mat1$value)
+)
+```
+
+| Model            | Nugget (τ²) | Partial Sill (σ²) | Range (ϕ) | Residual SS |
+|------------------|-------------|-------------------|-----------|-------------|
+| Exponential      | 0.000       | 4,208,359         | 2,718,693 | 7.12        |
+| Gaussian         | 0.255       | 282.69            | 17.22     | 6.83        |
+| Matérn (κ = 1.5) | 0.180       | 26.68             | 3.13      | 6.80        |
+
+**Parametric Variogram Fitting and Selection**
+
+Three models were fitted using weighted least squares: exponential, Gaussian, and Matérn (κ = 1.5). Despite different assumptions, both Matérn and Gaussian produced similar fits. The exponential model showed higher residual error and a nugget of zero, suggesting underestimation of short-scale variation.
+
+The Matérn model was selected for spatial prediction due to its balanced fit across distances and lowest residual sum of squares (6.80). Its parameters suggest a moderate range of spatial correlation (ϕ ≈ 3.13) and a nugget variance of 0.18, indicating non-negligible unexplained microscale variation. This model was used in the kriging stage.
+
+**Spatial Prediction and Model Validation**
+
+```{r}
+# Kriging prediction at 5 withheld locations
+kriged <- krige.conv(
+  geodata = kuro_geo_train,
+  locations = test_coords,
+  krige = krige.control(
+    cov.model = "matern",
+    cov.pars = fit_mat1$cov.pars,
+    nugget = fit_mat1$nugget,
+    kappa = 1.5
+  )
+)
+
+# Add predicted values and residuals
+test_results <- test_coords %>%
+  mutate(
+    observed_sst = test_true_sst$sst,
+    predicted_sst = kriged$predict,
+    kriging_var = kriged$krige.var,
+    residual = observed_sst - predicted_sst
+  )
+```
+
+Ordinary kriging assumes a constant spatial mean and was used here given the absence of strong deterministic trends in SST across the study area.
+
+```{r}
+#| label: fig:krigscatter
+#| fig-cap: "Observed vs predicted sea surface temperature (SST) at five withheld locations using ordinary kriging with the fitted Matérn model. Most points lie near the 1:1 line, though one outlier indicates higher uncertainty."
+
+# Visualise prediction accuracy
+ggplot(test_results, aes(x = observed_sst, y = predicted_sst)) +
+  geom_point(size = 3) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "red") +
+  labs(
+    title = "Observed vs Predicted SST at Withheld Locations",
+    x = "Observed SST (°C)",
+    y = "Predicted SST (°C)"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+```{r}
+#| label: tab:krigsummary
+#| tbl-cap: "Summary of SST predictions at withheld locations. Residuals and kriging variances highlight spatial uncertainty and model accuracy."
+
+# Compute RMSE and MAE
+rmse <- sqrt(mean(test_results$residual^2))
+mae <- mean(abs(test_results$residual))
+
+# Summary table
+library(knitr)
+
+results_table <- test_results %>%
+  mutate(
+    `Observed SST (°C)` = round(observed_sst, 2),
+    `Predicted SST (°C)` = round(predicted_sst, 2),
+    `Residual (°C)` = round(residual, 2),
+    `Kriging Variance` = round(kriging_var, 3)
+  ) %>%
+  select(lon, lat, `Observed SST (°C)`, `Predicted SST (°C)`, `Residual (°C)`, `Kriging Variance`)
+
+kable(results_table, format = "latex", booktabs = TRUE,
+      caption = "Observed vs Predicted SST at Withheld Locations")
+```
+
+Using the final Matérn variogram model (κ = 1.5), ordinary kriging was performed at five randomly withheld locations. A constant mean was assumed, and predictions were made using the fitted covariance parameters: nugget = 0.18, partial sill = 26.68, and range = 3.13.
+
+Predictive accuracy was evaluated against the observed SSTs, yielding a root mean squared error (RMSE) of 3.49 °C and mean absolute error (MAE) of 2.11 °C. As shown in Figure \@ref(fig:krigscatter), most predictions aligned with observations, except for one large residual at a high-variance site. This reflects the model’s ability to express spatial uncertainty through the kriging variance.
+
+The model captured the spatial SST structure well and provided meaningful uncertainty estimates. Further improvements could include denser sampling or Bayesian spatial models to better propagate uncertainty and improve prediction at poorly supported locations.
+
+## Part D: Gaussian Process via Maximum Likelihood
+
+### Model Setup and Fitting
+
+We now fit a spatial Gaussian Process (GP) model to the training dataset using maximum likelihood estimation. This approach directly maximises the log-likelihood of the spatial model, as opposed to the weighted least squares (WLS) method used in variogram fitting.
+
+The Matérn covariance function with κ = 1.5 was retained from Part C due to its strong fit and interpretability. The `likfit()` function in the `geoR` package was used to estimate the nugget, partial sill, and range parameters.
+
+```{r}
+# Fit Gaussian Process model using MLE
+fit_gp <- likfit(
+  geodata = kuro_geo_train,
+  coords = kuro_geo_train$coords,
+  data = kuro_geo_train$data,
+  ini.cov.pars = c(26.68, 3.13),  # partial sill, range from Part C
+  nugget = 0.18,
+  cov.model = "matern",
+  kappa = 1.5,
+  lik.method = "ML"
+)
+
+summary(fit_gp)
+```
+
+#### Model Output
+
+The maximum likelihood estimation returned updated estimates for the spatial covariance parameters. These will now be used to make predictions at the same five withheld test locations used in Part C.
+
+#### GP Prediction at Withheld Locations
+
+```{r}
+# Kriging prediction using GP model (MLE-based)
+kriged_gp <- krige.conv(
+  geodata = kuro_geo_train,
+  locations = test_coords,
+  krige = krige.control(
+    cov.model = "matern",
+    cov.pars = fit_gp$cov.pars,
+    nugget = fit_gp$nugget,
+    kappa = 1.5
+  )
+)
+
+# Add predictions and residuals
+test_gp_results <- test_coords %>%
+  mutate(
+    observed_sst = test_true_sst$sst,
+    predicted_sst = kriged_gp$predict,
+    kriging_var = kriged_gp$krige.var,
+    residual = observed_sst - predicted_sst
+  )
+```
+
+```{r}
+# Compute accuracy metrics
+rmse_gp <- sqrt(mean(test_gp_results$residual^2))
+mae_gp <- mean(abs(test_gp_results$residual))
+
+# Display result table
+library(knitr)
+
+results_gp_table <- test_gp_results %>%
+  mutate(
+    `Observed SST (°C)` = round(observed_sst, 2),
+    `Predicted SST (°C)` = round(predicted_sst, 2),
+    `Residual (°C)` = round(residual, 2),
+    `Kriging Variance` = round(kriging_var, 3)
+  ) %>%
+  select(lon, lat, `Observed SST (°C)`, `Predicted SST (°C)`, `Residual (°C)`, `Kriging Variance`)
+
+kable(results_gp_table, format = "latex", booktabs = TRUE,
+      caption = "Gaussian Process (MLE) Predictions at Withheld SST Locations")
+```
+
+#### Interpretation
+
+The Gaussian Process model produced similar predictions to those obtained via ordinary kriging in Part C, with differences arising from the MLE-based estimation rather than variogram fitting. The RMSE and MAE will be compared side-by-side with the kriging results in a summary table.
+
+This provides a clean foundation for evaluating the Bayesian model in Part D2.
