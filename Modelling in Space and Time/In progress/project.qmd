@@ -71,6 +71,7 @@ ggplot(kuroshio100, aes(x = lon, y = lat, color = sst)) +
     panel.grid = element_blank()
   )
 
+# plot(kuroshio100_clean)
 ```
 
 The spatial plot of Sea Surface Temperature (SST) observations collected in the Kuroshio Current during January 1996 reveals strong latitudinal structure in the data. Higher SST values (yellow–orange) are concentrated in the north-eastern portion of the domain, while cooler temperatures dominate the south-west.\
@@ -343,6 +344,18 @@ ggplot(test_results, aes(x = observed_sst, y = predicted_sst)) +
 ```
 
 ```{r}
+#| message: false
+#| label: fig:cvkrig
+#| fig-cap: "LOOCV residual diagnostics for the Matérn kriging model (κ = 1.5), showing minimal bias and good predictive alignment."
+# Perform LOOCV
+xv.kriging <- xvalid(kuro_geo_train, model = fit_mat1)
+
+# Plot residuals
+par(mfrow = c(3, 2), mar = c(4, 2, 2, 2))
+plot(xv.kriging, error = TRUE, std.error = FALSE, pch = 19)
+```
+
+```{r}
 #| label: tab:krigsummary
 #| tbl-cap: "Summary of SST predictions at withheld locations. Residuals and kriging variances highlight spatial uncertainty and model accuracy."
 
@@ -380,20 +393,66 @@ We now fit a spatial Gaussian Process (GP) model to the training dataset using m
 
 The Matérn covariance function with κ = 1.5 was retained from Part C due to its strong fit and interpretability. The `likfit()` function in the `geoR` package was used to estimate the nugget, partial sill, and range parameters.
 
+#### Model Setup and Attempted Optimisation
+
+\#### Model Setup and Attempted Optimisation
+
+To fit a Gaussian Process (GP) model via maximum likelihood, the likfit() function from the geoR package was applied to the same training dataset used in Part C. The goal was to estimate the spatial covariance parameters — partial sill, range, and nugget — directly by maximising the full likelihood over all observations, as opposed to the weighted least squares approach used in variogram fitting.
+
+A series of attempts were made to improve or stabilise the model fit:
+
+\- Fixing the nugget value (e.g., nugget = 0.2, nugget = 0.3) repeatedly led to numerical singularity in the variance-covariance matrix.
+
+\- Introducing a first-order or second-order trend component (e.g., trend = "1st" or "2nd") caused matrix inversion failures due to collinearity and overparameterisation.
+
+\- Explicitly setting the covariance model to Matérn with kappa = 1.5 frequently triggered decomposition errors, despite being theoretically appropriate.
+
+Ultimately, the only configuration that converged successfully used the most minimal and default structure:
+
+\- A constant mean function (default trend = "cte"),
+
+\- Unspecified covariance model and kappa (which defaults to Matérn with kappa = 0.5, i.e., the exponential model). Note that the default covariance model in `likfit()` is the Matérn family with fixed κ = 0.5, corresponding to the exponential model.
+
+\- Automatic nugget estimation.
+
+This resulted in a valid and stable model:
+
 ```{r}
-# Fit Gaussian Process model using MLE
+#| message: false
+# Fit spatial GP model via MLE using default exponential covariance
 fit_gp <- likfit(
-  geodata = kuro_geo_train,
-  coords = kuro_geo_train$coords,
-  data = kuro_geo_train$data,
-  ini.cov.pars = c(26.68, 3.13),  # partial sill, range from Part C
-  nugget = 0.18,
-  cov.model = "matern",
-  kappa = 1.5,
-  lik.method = "ML"
+  kuro_geo_train,
+  ini.cov.pars = c(26, 4)
 )
 
-summary(fit_gp)
+fit_gp
+```
+
+The fitted model yielded the following parameter estimates:
+
+\- Mean (β): 15.99
+
+\- Nugget (τ²): 0.0067 - Partial Sill (σ²): 8.34
+
+\- Range (φ): 3.9996
+
+\- Practical Range (cor ≈ 0.05): 11.98 spatial units
+
+\- Maximised log-likelihood: –61.54
+
+Compared to the kriging model from Part C, which used a Matérn model with κ = 1.5, nugget = 0.18, sill = 26.68, and range = 3.13, the MLE-based GP model estimated a much smaller nugget and sill, and a longer spatial range. Although the fitted GP used a slightly different covariance assumption (Matérn with κ = 0.5), it still captured the dominant spatial structure. This provides a useful benchmark for comparing inference and prediction against both classical kriging and the Bayesian model in Part D2.
+
+Model Validation
+
+```{r}
+#| label: fig:cvgp
+#| fig-cap: "LOOCV residual plots for the GP model fitted via maximum likelihood, showing broadly unbiased predictions with slightly greater residual spread."
+# Perform LOOCV
+xv.gp <- xvalid(kuro_geo_train, model = fit_gp)
+
+# Plot residuals
+par(mfrow = c(3, 2), mar = c(4, 2, 2, 2))
+plot(xv.gp, error = TRUE, std.error = FALSE, pch = 19)
 ```
 
 #### Model Output
@@ -402,52 +461,79 @@ The maximum likelihood estimation returned updated estimates for the spatial cov
 
 #### GP Prediction at Withheld Locations
 
+Unlike the variogram-based kriging approach in Part C, which fits the spatial correlation structure via weighted least squares, the GP model in Part D maximises the full multivariate Gaussian likelihood. This accounts for spatial correlation among all data points simultaneously, improving parameter coherence.
+
+Predictions were made at the five withheld locations using `krige.conv()` with the MLE-fitted covariance parameters, enabling fully probabilistic interpolation under the GP model.
+
 ```{r}
-# Kriging prediction using GP model (MLE-based)
-kriged_gp <- krige.conv(
+#| message: false
+# Kriging prediction using GP mode
+pred_gp <- krige.conv(
   geodata = kuro_geo_train,
   locations = test_coords,
   krige = krige.control(
-    cov.model = "matern",
-    cov.pars = fit_gp$cov.pars,
-    nugget = fit_gp$nugget,
-    kappa = 1.5
+    obj.model = fit_gp
   )
 )
 
-# Add predictions and residuals
-test_gp_results <- test_coords %>%
+# Combine predictions with actual values
+gp_results <- test_coords %>%
   mutate(
     observed_sst = test_true_sst$sst,
-    predicted_sst = kriged_gp$predict,
-    kriging_var = kriged_gp$krige.var,
+    predicted_sst = pred_gp$predict,
+    kriging_var = pred_gp$krige.var,
     residual = observed_sst - predicted_sst
   )
 ```
 
 ```{r}
-# Compute accuracy metrics
-rmse_gp <- sqrt(mean(test_gp_results$residual^2))
-mae_gp <- mean(abs(test_gp_results$residual))
+#| label: fig:gp_pred_scatter
+#| fig-cap: "Observed vs predicted SST at withheld locations using the Gaussian Process model (maximum likelihood). The red dashed line shows the 1:1 agreement."
 
-# Display result table
+# Plot: Observed vs Predicted
+ggplot(gp_results, aes(x = observed_sst, y = predicted_sst)) +
+  geom_point(size = 3) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
+  labs(
+    title = "Observed vs Predicted SST (GP Model)",
+    x = "Observed SST (°C)",
+    y = "Predicted SST (°C)"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+```{r}
+#| label: tab:gp_krigsummary
+#| tbl-cap: "Observed vs Predicted SST at Withheld Locations – GP Model"
+
+# Compute error metrics
+rmse_gp <- sqrt(mean(gp_results$residual^2))
+mae_gp <- mean(abs(gp_results$residual))
+
+# Output metrics
+print(rmse_gp)
+print(mae_gp)
+
+# Create evaluation table
 library(knitr)
-
-results_gp_table <- test_gp_results %>%
+gp_results %>%
   mutate(
     `Observed SST (°C)` = round(observed_sst, 2),
     `Predicted SST (°C)` = round(predicted_sst, 2),
     `Residual (°C)` = round(residual, 2),
     `Kriging Variance` = round(kriging_var, 3)
   ) %>%
-  select(lon, lat, `Observed SST (°C)`, `Predicted SST (°C)`, `Residual (°C)`, `Kriging Variance`)
+  select(lon, lat, `Observed SST (°C)`, `Predicted SST (°C)`, `Residual (°C)`, `Kriging Variance`) %>%
+  kable(format = "latex", booktabs = TRUE, caption = "Observed vs Predicted SST at Withheld Locations – GP Model")
 
-kable(results_gp_table, format = "latex", booktabs = TRUE,
-      caption = "Gaussian Process (MLE) Predictions at Withheld SST Locations")
 ```
 
 #### Interpretation
 
-The Gaussian Process model produced similar predictions to those obtained via ordinary kriging in Part C, with differences arising from the MLE-based estimation rather than variogram fitting. The RMSE and MAE will be compared side-by-side with the kriging results in a summary table.
+Using the Gaussian Process model fitted via maximum likelihood, SST predictions were made at the same five withheld locations used in Part C. **Unlike variogram kriging, this method estimates spatial parameters by maximising the full joint likelihood, leveraging spatial correlation between all observations simultaneously.** Figure \@ref(fig:gp_pred_scatter) displays the predicted versus observed values, while Table \@ref(tab:gp_krigsummary) reports the predicted SSTs, residuals, and associated kriging variances.
 
-This provides a clean foundation for evaluating the Bayesian model in Part D2.
+The GP model achieved a root mean squared error (RMSE) of **3.01 °C** and a mean absolute error (MAE) of **1.96 °C**, both slightly improved relative to the variogram-based model. **Notably, both models underperformed at a high-variance location (kriging variance = 2.71), indicating limitations driven by weak local data support.**
+
+**Despite using a default Matérn κ = 0.5 (exponential) covariance structure, the MLE-fitted model captured the main spatial structure effectively and required fewer tuning steps.** This aligns with the spatial distribution of errors and supports the model’s probabilistic reliability.
+
+Overall, the GP model offered competitive accuracy and uncertainty quantification, making it a robust alternative to traditional variogram-based kriging. **While the kriging approach provides transparent semi-variance interpretation, the GP model delivers a principled statistical framework with strong performance and consistency.**

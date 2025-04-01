@@ -45,6 +45,8 @@ ggplot(kuroshio100, aes(x = lon, y = lat, color = sst)) +
     panel.grid = element_blank()
   )
 
+data(kuroshio100)
+plot(kuroshio100)
 
 ################################################################################
 
@@ -220,7 +222,12 @@ param_table <- data.frame(
 
 print(param_table)
 
+# Perform LOOCV
+xv.kriging <- xvalid(kuro_geo_train, model = fit_mat1)
 
+# Plot residuals
+par(mfrow = c(3, 2), mar = c(4, 2, 2, 2))
+plot(xv.kriging, error = TRUE, std.error = FALSE, pch = 19)
 
 # Kriging prediction at 5 withheld locations
 kriged <- krige.conv(
@@ -280,75 +287,71 @@ test_results %>%
 
 # Part D
 
-
-# Fit Gaussian Process model using MLE
 fit_gp <- likfit(
-  geodata = kuro_geo_train,
-  ini.cov.pars = c(10, 1.5),   # Smaller sill and range
-  cov.model = "matern",
-  kappa = 1.5,
-  lik.method = "ML",
-  messages = TRUE
+  kuro_geo_train2,
+  ini.cov.pars = c(26, 4)
 )
 
+# Perform LOOCV
+xv.gp <- xvalid(kuro_geo_train2, model = fit_gp)
+
+# Plot residuals
+par(mfrow = c(3, 2), mar = c(4, 2, 2, 2))
+plot(xv.gp, error = TRUE, std.error = FALSE, pch = 19)
 
 
-
-summary(fit_gp)
-
-# Kriging prediction using GP model (MLE-based)
-kriged_gp <- krige.conv(
-  geodata = kuro_geo_train,
+# Kriging prediction using GP mode
+pred_gp <- krige.conv(
+  geodata = kuro_geo_train2,
   locations = test_coords,
   krige = krige.control(
-    cov.model = "matern",
-    cov.pars = fit_gp$cov.pars,
-    nugget = fit_gp$nugget,
-    kappa = 1.5
+    obj.model = fit_gp
   )
 )
 
-# Add predictions and residuals
-test_gp_results <- test_coords %>%
+# Combine predictions with actual values
+gp_results <- test_coords %>%
   mutate(
     observed_sst = test_true_sst$sst,
-    predicted_sst = kriged_gp$predict,
-    kriging_var = kriged_gp$krige.var,
+    predicted_sst = pred_gp$predict,
+    kriging_var = pred_gp$krige.var,
     residual = observed_sst - predicted_sst
   )
+# Compute error metrics
+rmse_gp <- sqrt(mean(gp_results$residual^2))
+mae_gp <- mean(abs(gp_results$residual))
 
-# Compute accuracy metrics
-rmse_gp <- sqrt(mean(test_gp_results$residual^2))
-mae_gp <- mean(abs(test_gp_results$residual))
+# Output metrics
+print(rmse_gp)
+print(mae_gp)
 
-# Display result table
+# Create evaluation table
 library(knitr)
-
-results_gp_table <- test_gp_results %>%
+gp_results %>%
   mutate(
     `Observed SST (°C)` = round(observed_sst, 2),
     `Predicted SST (°C)` = round(predicted_sst, 2),
     `Residual (°C)` = round(residual, 2),
     `Kriging Variance` = round(kriging_var, 3)
   ) %>%
-  select(lon, lat, `Observed SST (°C)`, `Predicted SST (°C)`, `Residual (°C)`, `Kriging Variance`)
+  select(lon, lat, `Observed SST (°C)`, `Predicted SST (°C)`, `Residual (°C)`, `Kriging Variance`) %>%
+  kable(format = "latex", booktabs = TRUE, caption = "Observed vs Predicted SST at Withheld Locations – GP Model")
 
-kable(results_gp_table, format = "latex", booktabs = TRUE,
-      caption = "Gaussian Process (MLE) Predictions at Withheld SST Locations")
-
-
-
-
-
-
-
-
-
-
-
+# Plot: Observed vs Predicted
+ggplot(gp_results, aes(x = observed_sst, y = predicted_sst)) +
+  geom_point(size = 3) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
+  labs(
+    title = "Observed vs Predicted SST (GP Model)",
+    x = "Observed SST (°C)",
+    y = "Predicted SST (°C)"
+  ) +
+  theme_minimal(base_size = 13)
 
 
+################################################################################
 
+# Part E
 
 
 
@@ -357,3 +360,5 @@ kable(results_gp_table, format = "latex", booktabs = TRUE,
 
 
 ################################################################################
+
+

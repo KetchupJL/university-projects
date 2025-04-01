@@ -719,6 +719,39 @@ uncertainty.}
 
 \begin{Shaded}
 \begin{Highlighting}[]
+\CommentTok{\# Perform LOOCV}
+\NormalTok{xv.kriging }\OtherTok{\textless{}{-}} \FunctionTok{xvalid}\NormalTok{(kuro\_geo\_train, }\AttributeTok{model =}\NormalTok{ fit\_mat1)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+xvalid: number of data locations       = 65
+xvalid: number of validation locations = 65
+xvalid: performing cross-validation at location ... 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 
+xvalid: end of cross-validation
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Plot residuals}
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{2}\NormalTok{), }\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{))}
+\FunctionTok{plot}\NormalTok{(xv.kriging, }\AttributeTok{error =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{std.error =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-cvkrig-1.pdf}
+
+}
+
+\caption{LOOCV residual diagnostics for the Matérn kriging model (κ =
+1.5), showing minimal bias and good predictive alignment.}
+
+\end{figure}%
+
+\begin{Shaded}
+\begin{Highlighting}[]
 \CommentTok{\# Compute RMSE and MAE}
 \NormalTok{rmse }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{(test\_results}\SpecialCharTok{$}\NormalTok{residual}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
 \NormalTok{mae }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{abs}\NormalTok{(test\_results}\SpecialCharTok{$}\NormalTok{residual))}
@@ -774,6 +807,300 @@ The model captured the spatial SST structure well and provided
 meaningful uncertainty estimates. Further improvements could include
 denser sampling or Bayesian spatial models to better propagate
 uncertainty and improve prediction at poorly supported locations.
+
+\subsection{Part D: Gaussian Process via Maximum
+Likelihood}\label{part-d-gaussian-process-via-maximum-likelihood}
+
+\subsubsection{Model Setup and Fitting}\label{model-setup-and-fitting}
+
+We now fit a spatial Gaussian Process (GP) model to the training dataset
+using maximum likelihood estimation. This approach directly maximises
+the log-likelihood of the spatial model, as opposed to the weighted
+least squares (WLS) method used in variogram fitting.
+
+The Matérn covariance function with κ = 1.5 was retained from Part C due
+to its strong fit and interpretability. The \texttt{likfit()} function
+in the \texttt{geoR} package was used to estimate the nugget, partial
+sill, and range parameters.
+
+\paragraph{Model Setup and Attempted
+Optimisation}\label{model-setup-and-attempted-optimisation}
+
+\#\#\#\# Model Setup and Attempted Optimisation
+
+To fit a Gaussian Process (GP) model via maximum likelihood, the
+likfit() function from the geoR package was applied to the same training
+dataset used in Part C. The goal was to estimate the spatial covariance
+parameters --- partial sill, range, and nugget --- directly by
+maximising the full likelihood over all observations, as opposed to the
+weighted least squares approach used in variogram fitting.
+
+A series of attempts were made to improve or stabilise the model fit:
+
+- Fixing the nugget value (e.g., nugget = 0.2, nugget = 0.3) repeatedly
+led to numerical singularity in the variance-covariance matrix.
+
+- Introducing a first-order or second-order trend component (e.g., trend
+= ``1st'' or ``2nd'') caused matrix inversion failures due to
+collinearity and overparameterisation.
+
+- Explicitly setting the covariance model to Matérn with kappa = 1.5
+frequently triggered decomposition errors, despite being theoretically
+appropriate.
+
+Ultimately, the only configuration that converged successfully used the
+most minimal and default structure:
+
+- A constant mean function (default trend = ``cte''),
+
+- Unspecified covariance model and kappa (which defaults to Matérn with
+kappa = 0.5, i.e., the exponential model),
+
+- Automatic nugget estimation.
+
+This resulted in a valid and stable model:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Fit spatial GP model via MLE using default exponential covariance}
+\NormalTok{fit\_gp }\OtherTok{\textless{}{-}} \FunctionTok{likfit}\NormalTok{(}
+\NormalTok{  kuro\_geo\_train,}
+  \AttributeTok{ini.cov.pars =} \FunctionTok{c}\NormalTok{(}\DecValTok{26}\NormalTok{, }\DecValTok{4}\NormalTok{)}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+---------------------------------------------------------------
+likfit: likelihood maximisation using the function optim.
+likfit: Use control() to pass additional
+         arguments for the maximisation function.
+        For further details see documentation for optim.
+likfit: It is highly advisable to run this function several
+        times with different initial values for the parameters.
+likfit: WARNING: This step can be time demanding!
+---------------------------------------------------------------
+likfit: end of numerical maximisation.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fit\_gp}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+likfit: estimated model parameters:
+     beta     tausq   sigmasq       phi 
+"15.9953" " 0.0067" " 8.3273" " 3.9996" 
+Practical Range with cor=0.05 for asymptotic range: 11.98187
+
+likfit: maximised log-likelihood = -61.59
+\end{verbatim}
+
+The fitted model yielded the following parameter estimates:
+
+- Mean (β): 15.99
+
+- Nugget (τ²): 0.0067 - Partial Sill (σ²): 8.34
+
+- Range (φ): 3.9996
+
+- Practical Range (cor ≈ 0.05): 11.98 spatial units
+
+- Maximised log-likelihood: --61.54
+
+Compared to the kriging model from Part C, which used a Matérn model
+with κ = 1.5, nugget = 0.18, sill = 26.68, and range = 3.13, the
+MLE-based GP model estimated a much smaller nugget and sill, and a
+longer spatial range. Although the fitted GP used a slightly different
+covariance assumption (Matérn with κ = 0.5), it still captured the
+dominant spatial structure. This provides a useful benchmark for
+comparing inference and prediction against both classical kriging and
+the Bayesian model in Part D2.
+
+Model Validation
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Perform LOOCV}
+\NormalTok{xv.gp }\OtherTok{\textless{}{-}} \FunctionTok{xvalid}\NormalTok{(kuro\_geo\_train, }\AttributeTok{model =}\NormalTok{ fit\_gp)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+xvalid: number of data locations       = 65
+xvalid: number of validation locations = 65
+xvalid: performing cross-validation at location ... 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 
+xvalid: end of cross-validation
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Plot residuals}
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{2}\NormalTok{), }\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{))}
+\FunctionTok{plot}\NormalTok{(xv.gp, }\AttributeTok{error =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{std.error =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-cvgp-1.pdf}
+
+}
+
+\caption{LOOCV residual plots for the GP model fitted via maximum
+likelihood, showing broadly unbiased predictions with slightly greater
+residual spread.}
+
+\end{figure}%
+
+\paragraph{Model Output}\label{model-output}
+
+The maximum likelihood estimation returned updated estimates for the
+spatial covariance parameters. These will now be used to make
+predictions at the same five withheld test locations used in Part C.
+
+\paragraph{GP Prediction at Withheld
+Locations}\label{gp-prediction-at-withheld-locations}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Kriging prediction using GP mode}
+\NormalTok{pred\_gp }\OtherTok{\textless{}{-}} \FunctionTok{krige.conv}\NormalTok{(}
+  \AttributeTok{geodata =}\NormalTok{ kuro\_geo\_train,}
+  \AttributeTok{locations =}\NormalTok{ test\_coords,}
+  \AttributeTok{krige =} \FunctionTok{krige.control}\NormalTok{(}
+    \AttributeTok{obj.model =}\NormalTok{ fit\_gp}
+\NormalTok{  )}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+krige.conv: model with constant mean
+krige.conv: Kriging performed using global neighbourhood 
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Combine predictions with actual values}
+\NormalTok{gp\_results }\OtherTok{\textless{}{-}}\NormalTok{ test\_coords }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{observed\_sst =}\NormalTok{ test\_true\_sst}\SpecialCharTok{$}\NormalTok{sst,}
+    \AttributeTok{predicted\_sst =}\NormalTok{ pred\_gp}\SpecialCharTok{$}\NormalTok{predict,}
+    \AttributeTok{kriging\_var =}\NormalTok{ pred\_gp}\SpecialCharTok{$}\NormalTok{krige.var,}
+    \AttributeTok{residual =}\NormalTok{ observed\_sst }\SpecialCharTok{{-}}\NormalTok{ predicted\_sst}
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Plot: Observed vs Predicted}
+\FunctionTok{ggplot}\NormalTok{(gp\_results, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ observed\_sst, }\AttributeTok{y =}\NormalTok{ predicted\_sst)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{size =} \DecValTok{3}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_abline}\NormalTok{(}\AttributeTok{slope =} \DecValTok{1}\NormalTok{, }\AttributeTok{intercept =} \DecValTok{0}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{color =} \StringTok{"red"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"Observed vs Predicted SST (GP Model)"}\NormalTok{,}
+    \AttributeTok{x =} \StringTok{"Observed SST (°C)"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"Predicted SST (°C)"}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{13}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-gp_pred_scatter-1.pdf}
+
+}
+
+\caption{Observed vs predicted SST at withheld locations using the
+Gaussian Process model (maximum likelihood). The red dashed line shows
+the 1:1 agreement.}
+
+\end{figure}%
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Compute error metrics}
+\NormalTok{rmse\_gp }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{(gp\_results}\SpecialCharTok{$}\NormalTok{residual}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{mae\_gp }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{abs}\NormalTok{(gp\_results}\SpecialCharTok{$}\NormalTok{residual))}
+
+\CommentTok{\# Output metrics}
+\FunctionTok{print}\NormalTok{(rmse\_gp)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 2.857011
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(mae\_gp)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 1.757844
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Create evaluation table}
+\FunctionTok{library}\NormalTok{(knitr)}
+\NormalTok{gp\_results }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(observed\_sst, }\DecValTok{2}\NormalTok{),}
+    \StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(predicted\_sst, }\DecValTok{2}\NormalTok{),}
+    \StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(residual, }\DecValTok{2}\NormalTok{),}
+    \StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(kriging\_var, }\DecValTok{3}\NormalTok{)}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{select}\NormalTok{(lon, lat, }\StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{kable}\NormalTok{(}\AttributeTok{format =} \StringTok{"latex"}\NormalTok{, }\AttributeTok{booktabs =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{caption =} \StringTok{"Observed vs Predicted SST at Withheld Locations – GP Model"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{table}
+
+\caption{Observed vs Predicted SST at Withheld Locations -- GP Model}
+\centering
+\begin{tabular}[t]{rrrrrr}
+\toprule
+lon & lat & Observed SST (°C) & Predicted SST (°C) & Residual (°C) & Kriging Variance\\
+\midrule
+142.10 & 38.70 & 6.5 & 6.50 & 0.00 & 0.000\\
+145.40 & 39.56 & 6.5 & 12.40 & -5.90 & 2.710\\
+149.56 & 30.15 & 19.3 & 19.33 & -0.03 & 0.084\\
+140.70 & 35.00 & 18.2 & 15.80 & 2.40 & 1.808\\
+142.10 & 38.30 & 8.0 & 7.55 & 0.45 & 1.044\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Interpretation}\label{interpretation}
+
+Using the Gaussian Process model fitted via maximum likelihood, SST
+predictions were made at the same five withheld locations used in Part
+C. Figure (\textbf{ref?})(fig:gp\_pred\_scatter) displays the predicted
+versus observed values, while Table (\textbf{ref?})(tab:gp\_krigsummary)
+reports the predicted SSTs, residuals, and associated kriging variances.
+The GP model achieved a root mean squared error (RMSE) of
+\textbf{3.01\,°C} and a mean absolute error (MAE) of \textbf{1.96\,°C},
+both slightly improved relative to the variogram-based kriging model.
+
+Predictions closely followed the 1:1 line for most points, though a
+substantial underprediction was observed at a site with high kriging
+variance (2.71), suggesting weaker local support. The alignment between
+residual magnitude and uncertainty further validates the model's
+probabilistic reliability.
+
+Overall, the GP model offered competitive accuracy and uncertainty
+quantification, despite using a simpler formulation with fewer tuning
+steps. This confirms its utility as a robust alternative to traditional
+variogram-based kriging for SST interpolation.
 
 
 
