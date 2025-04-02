@@ -36,7 +36,7 @@ This repository contains a curated portfolio of selected projects from my MSc in
 ---
 
 ### 3. [Comparative Modelling of AIDS Case Trends (GLMs)](https://github.com/KetchupJL/university-projects/tree/main/Statistical%20Data%20Modelling%20Projects%20-%20MTHM506/Coursework%201%20-%20Practical%20Modelling%20Excersises%20and%20Theoretical%20Problems)  
-![Grade](https://img.shields.io/badge/Grade-84%25-blue) ![Model](https://img.shields.io/badge/Model-Negative%20Binomial-green) ![Tools](https://img.shields.io/badge/Tools-R%2C%20GLM%2C%20ggplot2-informational)  
+![Grade](https://img.shields.io/badge/Grade-84%25-blue) ![Model](https://img.shields.io/badge/Model-Generalised_Linear_Models_(Tweedie)%20Binomial-green) ![Tools](https://img.shields.io/badge/Tools-R%2C%20GLM%2C%20ggplot2-informational)  
 **Module**: MTHM506  
 **Skills**: GLMs, likelihood inference, polynomial regression, overdispersion correction, model comparison with AIC  
 **Description**: Fits and compares Poisson, Gaussian, and Negative Binomial regression models to AIDS case data in the UK. Final model chosen based on AIC and overdispersion correction.
