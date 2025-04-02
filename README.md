@@ -60,7 +60,9 @@ This repository contains a curated portfolio of selected projects from my MSc in
 ---
 
 ### 6. [Phytoplankton Disruption After Deepwater Horizon (Ecological Time Series)](https://github.com/KetchupJL/university-projects/tree/main/Long-Term%20Phytoplankton%20Disruption%20in%20the%20Gulf%20of%20Mexico)  
-![Grade](https://img.shields.io/badge/Grade-Pending-lightgrey) ![Focus](https://img.shields.io/badge/Focus-STL%20Decomposition%20%26%20Spatio-temporal%20Trends-blueviolet) ![Tools](https://img.shields.io/badge/Tools-R%2C%20terra%2C%20forecast-informational)  
+![Grade](https://img.shields.io/badge/Grade-Pending-lightgrey) 
+![Focus](https://img.shields.io/badge/Focus-STL%20Decomposition%20%26%20Spatio-temporal%20Trends-blueviolet)
+![Tools](https://img.shields.io/badge/Tools-R%2C%20terra%2C%20forecast-informational)  
 **Module**: MTHM507  
 **Skills**: Time-series decomposition (STL), spatial-temporal data alignment, anomaly detection, multi-event comparison, scientific reporting  
 **Description**: Investigates long-term chlorophyll suppression after the 2010 Deepwater Horizon oil spill using satellite remote sensing data and STL decomposition across spatial zones. Compared against 127 other Gulf oil spills.
