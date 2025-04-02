@@ -67,11 +67,24 @@ This repository contains a curated portfolio of selected projects from my MSc in
 
 ---
 
-### 6. [Phytoplankton Disruption After Deepwater Horizon (Ecological Time Series)](https://github.com/KetchupJL/university-projects/tree/main/Long-Term%20Phytoplankton%20Disruption%20in%20the%20Gulf%20of%20Mexico)  
-![Grade](https://img.shields.io/badge/Grade-Pending-lightgrey) ![Focus](https://img.shields.io/badge/Focus-STL%20Decomposition%20%26%20Spatio-temporal%20Trends-blueviolet) ![Tools](https://img.shields.io/badge/Tools-R%2C%20terra%2C%20forecast-informational)  
-**Module**: MTHM507  
-**Skills**: Time-series decomposition (STL), spatial-temporal data alignment, anomaly detection, multi-event comparison, scientific reporting  
-**Description**: Investigates long-term chlorophyll suppression after the 2010 Deepwater Horizon oil spill using satellite remote sensing data and STL decomposition across spatial zones. Compared against 127 other Gulf oil spills.
+### 7. [Sea Surface Temperature, AMOC & California Temperatures (Spatio-Temporal Modelling)](https://github.com/KetchupJL/university-projects/tree/main/Modelling%20in%20Space%20and%20Time)    
+![Grade](https://img.shields.io/badge/Grade-Pending-lightgrey)  
+![Focus](https://img.shields.io/badge/Focus-Spatial%20%2B%20Temporal%20%2B%20SpatioTemporal%20Modelling-blueviolet)  
+![Tools](https://img.shields.io/badge/Tools-R%2C%20geoR%2C%20gstat%2C%20forecast%2C%20spBayes%2C%20dlm-informational)  
+**Module**: MTHM505 — Data Science and Statistical Modelling in Space and Time  
+**Skills**: Kriging, Gaussian Process (MLE & Bayesian), variogram fitting, discrete prior sensitivity, ARIMA/SARIMA time series modelling, Dynamic Linear Models, spatial GP prediction, spatio-temporal integration, model comparison, forecasting, uncertainty quantification  
+**Description**:  
+A comprehensive project on statistical modelling in space and time, spanning three domains:
+
+- **Spatial Modelling (Sea Surface Temperature – SST)**: Explores spatial interpolation using sample variograms, Kriging, and Gaussian Process models (both MLE and Bayesian). Evaluates model fit and predictive performance using 5 withheld SST measurements from the Kuroshio current region.
+  
+- **Time Series Modelling (Atlantic Meridional Overturning Circulation – AMOC)**: Fits and compares ARIMA, SARIMA, and Dynamic Linear Models on both monthly and quarterly AMOC data. Forecasts the final 8 months (or 2 quarters) and evaluates predictive accuracy using cross-validation techniques.
+
+- **Spatio-Temporal Modelling (California Daily Temperatures)**: Integrates spatial and temporal methods to predict and forecast maximum daily temperatures in San Diego and Fresno. Uses a spatial Gaussian Process model to interpolate spatial patterns and ARIMA/DLMs for time series forecasting over two 5-day windows.
+
+This project demonstrates flexible modelling of complex spatio-temporal phenomena, blending modern Bayesian tools with classical geostatistics and time series approaches.
+
+
 
 ---
 
