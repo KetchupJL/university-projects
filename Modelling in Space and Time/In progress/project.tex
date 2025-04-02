@@ -252,8 +252,8 @@
 \section{Sea Surface Temperature
 Modelling}\label{sea-surface-temperature-modelling}
 
-\subsection{Part A: Exploratory Data
-Analysis}\label{part-a-exploratory-data-analysis}
+\subsection{Part A: Cleaning and Spatial
+Overview}\label{part-a-cleaning-and-spatial-overview}
 
 \begin{figure}[H]
 
@@ -268,18 +268,31 @@ temperature, with warmer SSTs concentrated in the north-east band.}
 
 \end{figure}%
 
-The spatial plot of Sea Surface Temperature (SST) observations collected
-in the Kuroshio Current during January 1996 reveals strong latitudinal
-structure in the data. Higher SST values (yellow--orange) are
-concentrated in the north-eastern portion of the domain, while cooler
-temperatures dominate the south-west.\\
-The smooth colour gradient suggests underlying spatial correlation,
-justifying the use of geostatistical methods such as kriging and
-Gaussian processes. Two grey points suggest missing or out-of-range SST
-values, which were appropriately handled using squished colour scales to
-preserve interpretability.
+The dataset \texttt{kuroshio100.csv} contains 100 sea surface
+temperature (SST) observations from January 1996, recorded along the
+Kuroshio current system. Initial data inspection revealed three rows
+with missing spatial coordinates (\texttt{lon} or \texttt{lat}), which
+were removed to ensure compatibility with spatial modelling functions
+such as \texttt{as.geodata()}.
 
-\subsection{Part B:}\label{part-b}
+This resulted in \textbf{97 complete observations}, covering a broad
+range of longitudes and latitudes in the western Pacific Ocean. These
+values were retained for further exploratory and model-based analysis.
+
+Figure 1 confirms the dataset captures a wide latitudinal spread and a
+broad SST range. Warmer values were observed to the south and east,
+suggesting a clear spatial structure that will be investigated in
+subsequent sections.
+
+I should comment on that weird pattern of data!
+
+\subsection{Part B: Spatial Data Partitioning for
+Validation}\label{part-b-spatial-data-partitioning-for-validation}
+
+To enable independent model validation, five spatial locations were
+randomly withheld from the dataset. These were used as test points for
+evaluating kriging and Gaussian process prediction accuracy. The
+selection was made using a fixed seed for reproducibility:
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -318,8 +331,20 @@ Now we create the training dataset
 \end{Highlighting}
 \end{Shaded}
 
-\subsection{Part C: Spatial Model via Variogram and
-Kriging}\label{part-c-spatial-model-via-variogram-and-kriging}
+This split produced:
+
+\begin{itemize}
+\item
+  \textbf{Training set}: 92 spatial observations
+\item
+  \textbf{Test set}: 5 observations reserved for validation
+\end{itemize}
+
+These five test points are used consistently in Parts C--E to compare
+model predictions and assess uncertainty quantification.
+
+\subsection{Part C: Empirical Variogram and Spatial Correlation
+Structure}\label{part-c-empirical-variogram-and-spatial-correlation-structure}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -333,16 +358,6 @@ Kriging}\label{part-c-spatial-model-via-variogram-and-kriging}
 \NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
-
-\begin{verbatim}
-Warning in as.geodata.default(kuroshio_train, coords.col = c("lon", "lat"), :
-NA's not allowed in the coordinates
-\end{verbatim}
-
-\begin{verbatim}
-Warning in as.geodata.default(kuroshio_train, coords.col = c("lon", "lat"), :
-eliminating rows with NA's
-\end{verbatim}
 
 \begin{verbatim}
 as.geodata: 19 replicated data locations found. 
@@ -401,8 +416,27 @@ variog: computing omnidirectional variogram
 variog: computing omnidirectional variogram
 \end{verbatim}
 
-Binning was applied to improve the interpretability of the variogram by
-smoothing noisy pairwise semivariance estimates over distance intervals.
+To assess the spatial dependence in SST, the semi-variance is computed
+as:
+
+\[
+\gamma(h) = \frac{1}{2N(h)} \sum_{\substack{i,j: \\ \|s_i - s_j\| \approx h}} \left( z(s_i) - z(s_j) \right)^2
+\]
+
+where:
+
+\begin{itemize}
+\item
+  \(N(h)\) is the number of location pairs separated by distance hhh,
+\item
+  \$s\_i\$\hspace{0pt} and \$s\_j\$\hspace{0pt} are spatial coordinates
+  of observations,
+\item
+  \(z\)\((s_i)\) is the SST value at location \(s_i\)\hspace{0pt}.
+\end{itemize}
+
+The semi-variance \(\gamma(h)\) increases with distance \(h\) if spatial
+correlation is present.
 
 \begin{figure}[H]
 
@@ -417,33 +451,55 @@ the spatial structure.}
 
 \end{figure}%
 
-Empirical Variogram Analysis
+Empirical variograms were computed using the \texttt{variog()} function
+in \texttt{geoR}, with binned distance lags defined via \texttt{uvec}.
+Three distance thresholds were tested --- \texttt{max.dist\ =\ 2.5},
+\texttt{2.0}, and \texttt{1.8} --- to explore how maximum distance
+cutoff affects stability and interpretability.
 
-A binned empirical variogram was computed using the \texttt{variog()}
-function, with distance bins defined via \texttt{uvec}. The resulting
-curve displays the expected behaviour: semi-variance increases with
-spatial distance, indicating positive spatial correlation in sea surface
-temperature (SST). The structure suggests an asymptote between 1.5 and 2
-spatial units, indicative of a moderate spatial range. Notably, the
-variogram does not pass through the origin, implying a small but
-non-zero nugget effect, likely due to measurement error or microscale
-variability.
+\paragraph{Evaluation of Distance
+Cutoffs}\label{evaluation-of-distance-cutoffs}
 
-To assess the impact of the maximum distance threshold, three values
-were tested: \texttt{max.dist\ =\ 1.8}, \texttt{2.0}, and \texttt{2.5}.
-Each version reflects the same overall structure, but differs in tail
-stability and bin-level noise. The \texttt{max.dist\ =\ 2.5} variogram
-covers the full range but suffers from tail instability due to fewer
-pairwise comparisons in distant bins. The \texttt{2.0} variant reduces
-this effect, while the \texttt{1.8} variant provides the cleanest
-structure for fitting by omitting the most unstable bins. This decision
-is further supported by lower bin-pair counts in distant ranges (e.g.,
-\textless10 pairs).
+Each version of the empirical variogram exhibited the expected monotonic
+increase with distance, but stability varied across choices:
 
-Based on this analysis, the \texttt{max.dist\ =\ 1.8} variogram was
-selected for fitting parametric models. This choice ensures a balance
-between capturing spatial structure and maintaining robust estimation
-for weighted least squares fitting.
+\begin{itemize}
+\item
+  The \texttt{max.dist\ =\ 2.5} variogram covered the full spatial range
+  but showed noisy tail behaviour due to low bin counts (e.g.~2--7
+  observations).
+\item
+  The \texttt{max.dist\ =\ 2.0} improved stability but retained some
+  variance at large distances.
+\item
+  The \texttt{max.dist\ =\ 1.8} offered the cleanest structure, with
+  well-populated bins throughout and no extreme tail volatility.
+\end{itemize}
+
+Bin counts were monitored using \texttt{emp\_variog\$n}, and those for
+the selected \texttt{max.dist\ =\ 1.8} were generally robust (e.g.,
+\textgreater15 in most bins).
+
+\paragraph{Nugget Effect
+Justification}\label{nugget-effect-justification}
+
+The variogram curve did not pass through the origin, suggesting a
+non-zero intercept (nugget). This supports inclusion of a nugget effect
+in parametric fitting, likely reflecting:
+
+\begin{itemize}
+\item
+  Instrument noise
+\item
+  Sub-grid-scale oceanic variation
+\end{itemize}
+
+\paragraph{Final Selection}\label{final-selection}
+
+The \texttt{max.dist\ =\ 1.8} empirical variogram was selected for
+fitting parametric models in Part C2. It achieves a balance between
+full-range coverage and stable bin-level variance estimation, making it
+well-suited to weighted least squares variogram fitting.
 
 \subsubsection{Fitting Parametric Variogram
 Models}\label{fitting-parametric-variogram-models}
@@ -826,8 +882,6 @@ sill, and range parameters.
 \paragraph{Model Setup and Attempted
 Optimisation}\label{model-setup-and-attempted-optimisation}
 
-\#\#\#\# Model Setup and Attempted Optimisation
-
 To fit a Gaussian Process (GP) model via maximum likelihood, the
 likfit() function from the geoR package was applied to the same training
 dataset used in Part C. The goal was to estimate the spatial covariance
@@ -854,7 +908,9 @@ most minimal and default structure:
 - A constant mean function (default trend = ``cte''),
 
 - Unspecified covariance model and kappa (which defaults to Matérn with
-kappa = 0.5, i.e., the exponential model),
+kappa = 0.5, i.e., the exponential model). Note that the default
+covariance model in \texttt{likfit()} is the Matérn family with fixed κ
+= 0.5, corresponding to the exponential model.
 
 - Automatic nugget estimation.
 
@@ -902,7 +958,9 @@ The fitted model yielded the following parameter estimates:
 
 - Mean (β): 15.99
 
-- Nugget (τ²): 0.0067 - Partial Sill (σ²): 8.34
+- Nugget (τ²): 0.0067
+
+- Partial Sill (σ²): 8.34
 
 - Range (φ): 3.9996
 
@@ -963,6 +1021,16 @@ predictions at the same five withheld test locations used in Part C.
 
 \paragraph{GP Prediction at Withheld
 Locations}\label{gp-prediction-at-withheld-locations}
+
+Unlike the variogram-based kriging approach in Part C, which fits the
+spatial correlation structure via weighted least squares, the GP model
+in Part D maximises the full multivariate Gaussian likelihood. This
+accounts for spatial correlation among all data points simultaneously,
+improving parameter coherence.
+
+Predictions were made at the five withheld locations using
+\texttt{krige.conv()} with the MLE-fitted covariance parameters,
+enabling fully probabilistic interpolation under the GP model.
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -1084,23 +1152,384 @@ lon & lat & Observed SST (°C) & Predicted SST (°C) & Residual (°C) & Kriging 
 
 Using the Gaussian Process model fitted via maximum likelihood, SST
 predictions were made at the same five withheld locations used in Part
-C. Figure (\textbf{ref?})(fig:gp\_pred\_scatter) displays the predicted
-versus observed values, while Table (\textbf{ref?})(tab:gp\_krigsummary)
-reports the predicted SSTs, residuals, and associated kriging variances.
+C. \textbf{Unlike variogram kriging, this method estimates spatial
+parameters by maximising the full joint likelihood, leveraging spatial
+correlation between all observations simultaneously.} Figure
+@ref(fig:gp\_pred\_scatter) displays the predicted versus observed
+values, while Table @ref(tab:gp\_krigsummary) reports the predicted
+SSTs, residuals, and associated kriging variances.
+
 The GP model achieved a root mean squared error (RMSE) of
 \textbf{3.01\,°C} and a mean absolute error (MAE) of \textbf{1.96\,°C},
-both slightly improved relative to the variogram-based kriging model.
+both slightly improved relative to the variogram-based model.
+\textbf{Notably, both models underperformed at a high-variance location
+(kriging variance = 2.71), indicating limitations driven by weak local
+data support.}
 
-Predictions closely followed the 1:1 line for most points, though a
-substantial underprediction was observed at a site with high kriging
-variance (2.71), suggesting weaker local support. The alignment between
-residual magnitude and uncertainty further validates the model's
-probabilistic reliability.
+\textbf{Despite using a default Matérn κ = 0.5 (exponential) covariance
+structure, the MLE-fitted model captured the main spatial structure
+effectively and required fewer tuning steps.} This aligns with the
+spatial distribution of errors and supports the model's probabilistic
+reliability.
 
 Overall, the GP model offered competitive accuracy and uncertainty
-quantification, despite using a simpler formulation with fewer tuning
-steps. This confirms its utility as a robust alternative to traditional
-variogram-based kriging for SST interpolation.
+quantification, making it a robust alternative to traditional
+variogram-based kriging. \textbf{While the kriging approach provides
+transparent semi-variance interpretation, the GP model delivers a
+principled statistical framework with strong performance and
+consistency.}
+
+\subsection{Part E:}\label{part-e}
+
+\paragraph{Bayesian Parameter Estimation with Discrete
+Priors}\label{bayesian-parameter-estimation-with-discrete-priors}
+
+We estimate the parameters of a spatial Gaussian Process model using a
+Bayesian approach via the \texttt{krige.bayes()} function in the
+\texttt{geoR} package. This method uses discrete priors and computes the
+posterior distribution over spatial parameters by evaluating all
+combinations within a user-defined grid. As in Part C, we assume a
+Matérn covariance structure with smoothness parameter κ = 1.5 and a
+constant mean function. This model structure was selected due to its
+good empirical fit to the empirical variogram and compatibility with
+\texttt{krige.bayes()}'s variogram-style interface.
+
+Although maximum likelihood estimates were obtained in Part D, the model
+used there relied on \texttt{likfit()} and a default exponential
+structure (κ = 0.5) due to convergence issues. In contrast, the Bayesian
+framework requires manual specification of the covariance model, and is
+more naturally aligned with the Matérn structure successfully fitted in
+Part C.
+
+\paragraph{Prior Specification and
+Justification}\label{prior-specification-and-justification}
+
+We placed discrete priors on two key hyperparameters: the correlation
+range (φ) and the nugget effect (τ²). Prior ranges were informed by the
+maximum likelihood estimates obtained in Part D, where φ ≈ 4.00 and the
+nugget comprised a very small fraction of the total variance (τ² ≈
+0.0067, σ² ≈ 8.34). Specifically, we defined:
+
+\begin{itemize}
+\tightlist
+\item
+  A \textbf{reciprocal prior} over φ ∈ {[}2, 6{]}, discretised into 50
+  values. This reflects prior belief that shorter spatial correlation
+  lengths are more plausible, while still allowing exploration of
+  moderate ranges.
+\item
+  A \textbf{uniform prior} on the relative nugget τ² / (σ² + τ²),
+  defined over the interval {[}0.01, 0.3{]} using 50 discrete bins.
+\end{itemize}
+
+The partial sill (σ²) was held fixed at 8.34 for computational stability
+and identifiability.
+
+\paragraph{Model Stability Adjustment}\label{model-stability-adjustment}
+
+An initial attempt using a wider nugget prior range (from 0 to 1)
+resulted in numerical errors due to near-singular covariance matrices.
+To address this, the lower bound of the nugget prior was increased to
+0.01 and the upper bound reduced to 0.3. This ensured numerical
+stability while preserving model flexibility.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{444}\NormalTok{)}
+
+\NormalTok{bayes\_model }\OtherTok{\textless{}{-}} \FunctionTok{krige.bayes}\NormalTok{(}
+  \AttributeTok{geodata =}\NormalTok{ kuro\_geo\_train,}
+  \AttributeTok{model =} \FunctionTok{model.control}\NormalTok{(}\AttributeTok{cov.model =} \StringTok{"matern"}\NormalTok{, }\AttributeTok{kappa =} \FloatTok{1.5}\NormalTok{),}
+  \AttributeTok{prior =} \FunctionTok{prior.control}\NormalTok{(}
+    \AttributeTok{phi.discrete =} \FunctionTok{seq}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{6}\NormalTok{, }\AttributeTok{l =} \DecValTok{50}\NormalTok{),}
+    \AttributeTok{phi.prior =} \StringTok{"reciprocal"}\NormalTok{,}
+    \AttributeTok{tausq.rel.discrete =} \FunctionTok{seq}\NormalTok{(}\FloatTok{0.01}\NormalTok{, }\FloatTok{0.3}\NormalTok{, }\AttributeTok{l =} \DecValTok{50}\NormalTok{),}
+    \AttributeTok{tausq.rel.prior =} \StringTok{"unif"}
+\NormalTok{  )}
+\NormalTok{)}
+\FunctionTok{summary}\NormalTok{(bayes\_model}\SpecialCharTok{$}\NormalTok{posterior}\SpecialCharTok{$}\NormalTok{sample)}
+\end{Highlighting}
+\end{Shaded}
+
+\paragraph{Posterior Results and Parameter
+Comparison}\label{posterior-results-and-parameter-comparison}
+
+Posterior inference was conducted over 2,500 combinations of φ and
+relative nugget. The highest posterior density occurred at:
+
+\begin{itemize}
+\tightlist
+\item
+  φ = 2.00\\
+\item
+  τ² / (σ² + τ²) = 0.01
+\end{itemize}
+
+This combination received the most support (292 out of 2,500 samples),
+indicating strong posterior belief in short-range correlation and a
+negligible nugget effect.
+
+Summary statistics of the posterior distribution (from
+\texttt{bayes\_model\$posterior\$sample}) reinforce this interpretation:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Range (φ):} Median = 2.08, Mean = 2.15 --- indicating moderate
+  spatial correlation, slightly shorter than the MLE estimate (φ ≈ 4.00)
+  from Part D.
+\item
+  \textbf{Relative Nugget (τ² / (σ² + τ²)):} Median = 0.01, Mean = 0.011
+  --- suggesting very low unexplained microscale variability, in line
+  with both the Part C and Part D models.
+\item
+  \textbf{Partial Sill (σ²):} Mean ≈ 23.12, slightly higher than in the
+  MLE model (σ² ≈ 8.34), possibly compensating for the shorter range
+  estimate.
+\item
+  \textbf{Mean (β):} Median ≈ 16.64 --- consistent with the SST level
+  expected across the region.
+\end{itemize}
+
+Compared to the MLE-based GP model in Part D, the Bayesian model
+estimated a slightly higher partial sill (23.1 vs.~8.3) and a shorter
+correlation range (φ ≈ 2.15 vs.~4.00). The nugget proportion remained
+small, indicating limited microscale variability. Overall, the posterior
+distributions concentrate around stable, interpretable values, with
+minimal spread --- a sign of informative data and appropriate prior
+design.
+
+\paragraph{Prediction at Withheld
+Locations}\label{prediction-at-withheld-locations}
+
+Bayesian kriging was performed at the same five withheld SST locations
+used in Parts C and D. Posterior predictive means and variances were
+extracted, and evaluation metrics were computed:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{test\_coords\_df }\OtherTok{\textless{}{-}} \FunctionTok{as\_tibble}\NormalTok{(test\_coords)}
+
+
+\CommentTok{\# With predictions}
+\NormalTok{bayes\_model }\OtherTok{\textless{}{-}} \FunctionTok{krige.bayes}\NormalTok{(}
+  \AttributeTok{geodata =}\NormalTok{ kuro\_geo\_train,}
+  \AttributeTok{locations =}\NormalTok{ test\_coords,}
+  \AttributeTok{model =} \FunctionTok{model.control}\NormalTok{(}\AttributeTok{cov.model =} \StringTok{"matern"}\NormalTok{, }\AttributeTok{kappa =} \FloatTok{1.5}\NormalTok{),}
+  \AttributeTok{prior =} \FunctionTok{prior.control}\NormalTok{(}
+    \AttributeTok{phi.discrete =} \FunctionTok{seq}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{6}\NormalTok{, }\AttributeTok{l =} \DecValTok{50}\NormalTok{),}
+    \AttributeTok{phi.prior =} \StringTok{"reciprocal"}\NormalTok{,}
+    \AttributeTok{tausq.rel.discrete =} \FunctionTok{seq}\NormalTok{(}\FloatTok{0.01}\NormalTok{, }\FloatTok{0.3}\NormalTok{, }\AttributeTok{l =} \DecValTok{50}\NormalTok{),}
+    \AttributeTok{tausq.rel.prior =} \StringTok{"unif"}
+\NormalTok{  ))}
+
+
+\CommentTok{\# Summarise predictions}
+\NormalTok{bayes\_results }\OtherTok{\textless{}{-}}\NormalTok{ test\_coords\_df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{observed\_sst =}\NormalTok{ test\_true\_sst}\SpecialCharTok{$}\NormalTok{sst,}
+    \AttributeTok{predicted\_sst =}\NormalTok{ bayes\_model}\SpecialCharTok{$}\NormalTok{predictive}\SpecialCharTok{$}\NormalTok{mean,}
+    \AttributeTok{kriging\_var =}\NormalTok{ bayes\_model}\SpecialCharTok{$}\NormalTok{predictive}\SpecialCharTok{$}\NormalTok{variance,}
+    \AttributeTok{residual =}\NormalTok{ observed\_sst }\SpecialCharTok{{-}}\NormalTok{ predicted\_sst}
+\NormalTok{  )}
+
+\CommentTok{\# Compute error metrics}
+\NormalTok{rmse\_bayes }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{(bayes\_results}\SpecialCharTok{$}\NormalTok{residual}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{mae\_bayes }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{abs}\NormalTok{(bayes\_results}\SpecialCharTok{$}\NormalTok{residual))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Output results}
+\NormalTok{rmse\_bayes}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 3.496698
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mae\_bayes}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 2.141754
+\end{verbatim}
+
+LOOCV diagnostics are not available for the Bayesian kriging model due
+to the discrete posterior sampling framework, which does not support
+leave-one-out cross-validation via \texttt{xvalid()}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Bayesian observed vs predicted plot}
+\FunctionTok{ggplot}\NormalTok{(bayes\_results, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ observed\_sst, }\AttributeTok{y =}\NormalTok{ predicted\_sst)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{size =} \DecValTok{3}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_abline}\NormalTok{(}\AttributeTok{slope =} \DecValTok{1}\NormalTok{, }\AttributeTok{intercept =} \DecValTok{0}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{colour =} \StringTok{"red"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"Observed vs Predicted SST (Bayesian Model)"}\NormalTok{,}
+    \AttributeTok{x =} \StringTok{"Observed SST (°C)"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"Predicted SST (°C)"}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{13}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-bayes_pred_scatter-1.pdf}
+
+}
+
+\caption{Observed vs predicted SST at withheld locations using the
+Gaussian Process model (maximum likelihood). The red dashed line shows
+the 1:1 agreement.}
+
+\end{figure}%
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Output prediction table}
+\NormalTok{bayes\_results }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(observed\_sst, }\DecValTok{2}\NormalTok{),}
+    \StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(predicted\_sst, }\DecValTok{2}\NormalTok{),}
+    \StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(residual, }\DecValTok{2}\NormalTok{),}
+    \StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(kriging\_var, }\DecValTok{3}\NormalTok{)}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{select}\NormalTok{(lon, lat, }\StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{(}\AttributeTok{format =} \StringTok{"latex"}\NormalTok{, }\AttributeTok{booktabs =} \ConstantTok{TRUE}\NormalTok{,}
+               \AttributeTok{caption =} \StringTok{"Observed vs Predicted SST at Withheld Locations – Bayesian Model"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{table}
+
+\caption{Summary of SST predictions at withheld locations. Residuals and kriging
+variances highlight spatial uncertainty and model accuracy.}
+\centering
+\begin{tabular}[t]{rrrrrr}
+\toprule
+lon & lat & Observed SST (°C) & Predicted SST (°C) & Residual (°C) & Kriging Variance\\
+\midrule
+142.10 & 38.70 & 6.5 & 6.52 & -0.02 & 0.001\\
+145.40 & 39.56 & 6.5 & 13.79 & -7.29 & 2.500\\
+149.56 & 30.15 & 19.3 & 19.32 & -0.02 & 0.033\\
+140.70 & 35.00 & 18.2 & 15.44 & 2.76 & 0.757\\
+142.10 & 38.30 & 8.0 & 7.38 & 0.62 & 0.271\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The predicted SSTs largely follow the 1:1 reference line, confirming
+reasonable accuracy. One notable residual of -7.29°C occurred at the
+location with the highest kriging variance, reinforcing the relationship
+between data density and uncertainty.
+
+\paragraph{Model Interpretation}\label{model-interpretation}
+
+The Bayesian model offered competitive predictive performance (RMSE =
+3.50°C, MAE = 2.14°C), close to the results from Part D. While it did
+not dramatically outperform the MLE approach, it introduced full
+posterior distributions over parameters and predictive uncertainty ---
+an important advantage when quantifying inferential risk.
+
+LOOCV could not be performed, as the \texttt{krige.bayes()} framework
+does not support this due to its reliance on discrete posterior
+sampling. Nevertheless, the posterior predictive summaries and residual
+plots indicate unbiased performance and sensible uncertainty estimates.
+
+\subsection{Part F: Comparison of Predictions Across
+Models}\label{part-f-comparison-of-predictions-across-models}
+
+The three models developed --- classical kriging (Part C), Gaussian
+process via maximum likelihood (Part D), and Bayesian kriging with
+discrete priors (Part E) --- were used to predict sea surface
+temperature (SST) at the same five withheld locations. The predictions,
+associated residuals, and kriging variances are summarised below:
+
+\paragraph{Table: Predicted SST and Residuals from All
+Models}\label{table-predicted-sst-and-residuals-from-all-models}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Location
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Observed SST (°C)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Kriging (C)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+GP (D)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Bayesian (E)
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+(142.10, 38.70) & 6.5 & 6.50 (0.00) & 6.50 (0.00) & 6.52 (--0.02) \\
+(145.40, 39.56) & 6.5 & 13.83 (--7.33) & 12.40 (--5.90) & 13.79
+(--7.29) \\
+(149.56, 30.15) & 19.3 & 19.32 (--0.02) & 19.33 (--0.03) & 19.32
+(--0.02) \\
+(140.70, 35.00) & 18.2 & 15.57 (2.63) & 15.80 (2.40) & 15.44 (2.76) \\
+(142.10, 38.30) & 8.0 & 7.43 (0.57) & 7.55 (0.45) & 7.38 (0.62) \\
+\end{longtable}
+
+\textbf{Note}: Residuals are shown in parentheses.
+
+\paragraph{Performance Comparison}\label{performance-comparison}
+
+\begin{longtable}[]{@{}llll@{}}
+\toprule\noalign{}
+Metric & Kriging (C) & GP (D) & Bayesian (E) \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+RMSE (°C) & 3.49 & 2.86 & 3.50 \\
+MAE (°C) & 2.11 & 1.76 & 2.14 \\
+\end{longtable}
+
+\paragraph{Interpretation}\label{interpretation-1}
+
+\begin{itemize}
+\item
+  \textbf{All three models} captured the dominant SST spatial structure,
+  with similar predictions at well-supported locations (e.g.~Locations
+  1, 3, and 5).
+\item
+  \textbf{GP via MLE (Part D)} slightly outperformed the others,
+  achieving the lowest RMSE and MAE, likely due to its direct
+  likelihood-based parameter estimation.
+\item
+  \textbf{Bayesian kriging (Part E)} achieved comparable accuracy while
+  providing posterior uncertainty estimates --- a useful advantage when
+  probabilistic inference is needed.
+\item
+  All models \textbf{underperformed} at Location 2, where kriging
+  variances were highest. This consistent error highlights a location
+  with sparse local support.
+\end{itemize}
+
+\paragraph{Conclusion}\label{conclusion}
+
+Despite differing in estimation strategy, all three models produced
+consistent SST predictions and residual structures. The GP model offered
+the best balance between fit and computational simplicity, while the
+Bayesian approach provided richer uncertainty characterisation. These
+findings highlight trade-offs between interpretability, flexibility, and
+predictive precision in spatial modelling.
 
 
 

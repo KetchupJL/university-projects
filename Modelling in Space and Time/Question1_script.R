@@ -95,13 +95,13 @@ kuro_geo_train2 <- jitterDupCoords(
 # Empirical variogram with binning
 
 # Full range
-emp_variog_full <- variog(kuro_geo_train, option = "bin", max.dist = 2.5, uvec = seq(0, 2.5, length.out = 20))
+emp_variog_full <- variog(kuro_geo_train2, option = "bin", max.dist = 2.5, uvec = seq(0, 2.5, length.out = 20))
 
 # Mid-range (preferred candidate for fitting)
-emp_variog_2 <- variog(kuro_geo_train, option = "bin", max.dist = 2.0, uvec = seq(0, 2.0, length.out = 20))
+emp_variog_2 <- variog(kuro_geo_train2, option = "bin", max.dist = 2.0, uvec = seq(0, 2.0, length.out = 20))
 
 # Cleanest for model fitting
-emp_variog_1.8 <- variog(kuro_geo_train, option = "bin", max.dist = 1.8, uvec = seq(0, 1.8, length.out = 18))
+emp_variog_1.8 <- variog(kuro_geo_train2, option = "bin", max.dist = 1.8, uvec = seq(0, 1.8, length.out = 18))
 
 
 library(tibble)
@@ -223,7 +223,7 @@ param_table <- data.frame(
 print(param_table)
 
 # Perform LOOCV
-xv.kriging <- xvalid(kuro_geo_train, model = fit_mat1)
+xv.kriging <- xvalid(kuro_geo_train2, model = fit_mat1)
 
 # Plot residuals
 par(mfrow = c(3, 2), mar = c(4, 2, 2, 2))
@@ -353,9 +353,87 @@ ggplot(gp_results, aes(x = observed_sst, y = predicted_sst)) +
 
 # Part E
 
+bayes_model <- krige.bayes(
+  geodata = kuro_geo_train2,
+  model = model.control(cov.model = "matern", kappa = 1.5),
+  prior = prior.control(
+    phi.discrete = seq(2, 6, l = 50),
+    phi.prior = "reciprocal",
+    tausq.rel.discrete = seq(0.01, 0.3, l = 50),
+    tausq.rel.prior = "unif"
+  )
+)
 
 
 
+# With predictions
+bayes_model <- krige.bayes(
+  geodata = kuro_geo_train,
+  locations = test_coords,
+  model = model.control(cov.model = "matern", kappa = 1.5),
+  prior = prior.control(
+    phi.discrete = seq(2, 6, l = 50),
+    phi.prior = "reciprocal",
+    tausq.rel.discrete = seq(0.01, 0.3, l = 50),
+    tausq.rel.prior = "unif"
+  ),
+  output = output.control(signal = TRUE)  # << This enables predictive variance
+)
+
+
+# Summarise predictions
+bayes_results <- test_coords_df %>%
+  mutate(
+    observed_sst = test_true_sst$sst,
+    predicted_sst = bayes_model$predictive$mean,
+    kriging_var = bayes_model$predictive$variance,
+    residual = observed_sst - predicted_sst
+  )
+
+# Compute error metrics
+rmse_bayes <- sqrt(mean(bayes_results$residual^2))
+mae_bayes <- mean(abs(bayes_results$residual))
+
+# Output results
+rmse_bayes
+mae_bayes
+
+
+# Bayesian observed vs predicted plot
+ggplot(bayes_results, aes(x = observed_sst, y = predicted_sst)) +
+  geom_point(size = 3) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "red") +
+  labs(
+    title = "Observed vs Predicted SST (Bayesian Model)",
+    x = "Observed SST (°C)",
+    y = "Predicted SST (°C)"
+  ) +
+  theme_minimal(base_size = 13)
+
+# Output prediction table
+bayes_results %>%
+  mutate(
+    `Observed SST (°C)` = round(observed_sst, 2),
+    `Predicted SST (°C)` = round(predicted_sst, 2),
+    `Residual (°C)` = round(residual, 2),
+    `Kriging Variance` = round(kriging_var, 3)
+  ) %>%
+  select(lon, lat, `Observed SST (°C)`, `Predicted SST (°C)`, `Residual (°C)`, `Kriging Variance`) %>%
+  knitr::kable(format = "latex", booktabs = TRUE,
+               caption = "Observed vs Predicted SST at Withheld Locations – Bayesian Model")
+
+
+
+# Didnt include in report, as isn't valuable
+# Plot first 2 posterior realisations ()
+sim1 <- bayes_model$predictive$simulations[, 1]
+sim2 <- bayes_model$predictive$simulations[, 2]
+
+ggplot(test_coords, aes(lon, lat)) +
+  geom_point(aes(color = sim1)) +
+  scale_color_viridis_c() +
+  ggtitle("Posterior Sample 1 of SST") +
+  theme_minimal()
 
 
 
