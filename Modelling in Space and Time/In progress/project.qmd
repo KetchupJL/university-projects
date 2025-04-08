@@ -1127,6 +1127,8 @@ Based on the observed cut-offs in the ACF and PACF, we proceed to fit the follow
 
 ### ARIMA Model Fitting (d = 1)
 
+To model the differenced AMOC series, we fit three candidate ARIMA models based on initial ACF/PACF diagnostics: ARIMA(1,1,0), ARIMA(0,1,1), and ARIMA(1,1,1). Each model was estimated via maximum likelihood, and residuals were assessed for autocorrelation (ACF), normality (Q–Q plot), and whiteness (Ljung–Box test).
+
 ```{r}
 arima_110 <- arima(train_ts, order = c(1,1,0), method = "ML")
 arima_011 <- arima(train_ts, order = c(0,1,1), method = "ML")
@@ -1196,3 +1198,23 @@ cat("ARIMA(0,1,1): AIC =", AIC(arima_011), ", Ljung-Box p =", lb_011$p.value, "\
 cat("ARIMA(1,1,1): AIC =", AIC(arima_111), ", Ljung-Box p =", lb_111$p.value, "\n")
 
 ```
+
+-   **ARIMA(1,1,0)** produced a strong Q–Q plot with minimal tail deviation, but its Ljung–Box p-value (p = 0.005) suggests significant autocorrelation in the residuals and a poor model fit (AIC = 301.4).
+
+-   **ARIMA(0,1,1)** improved substantially, with a lower AIC (286.6) and acceptable residual behaviour (p = 0.14).
+
+-   **ARIMA(1,1,1)** further reduced AIC to **285.1**, with residuals that appeared approximately white (p = 0.13) and normally distributed.
+
+Overall, **ARIMA(1,1,1)** demonstrates the best balance of fit and diagnostic validity. This model will serve as the benchmark for comparison with alternative approaches.
+
+### Model Refinement and Justification
+
+While ARIMA(0,1,1) and ARIMA(1,1,1) showed acceptable residual diagnostics and model fit, minor autocorrelation remains, and Q–Q plots indicate slight non-normality in the tails. To explore potential improvements, we fit two additional models: **ARIMA(2,1,0)** and **ARIMA(2,1,2)**.
+
+This refinement is justified by:
+
+-   **Persistent autocorrelation** in the differenced ACF/PACF plots.
+
+-   **Model flexibility**: higher-order terms may better capture medium-term structure.
+
+-   **Precedent**: ARIMA(2,1,2) has been shown to improve performance in comparable climatological time series.
