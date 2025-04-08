@@ -401,6 +401,9 @@ Ordinary kriging assumes a constant spatial mean and was used here given the abs
 ```{r}
 #| label: fig:krigscatter
 #| fig-cap: "Observed vs predicted sea surface temperature (SST) at five withheld locations using ordinary kriging with the fitted Matérn model. Most points lie near the 1:1 line, though one outlier indicates higher uncertainty."
+#| echo: false
+#| warning: false
+#| message: false
 
 # Visualise prediction accuracy
 ggplot(test_results, aes(x = observed_sst, y = predicted_sst)) +
@@ -429,6 +432,9 @@ plot(xv.kriging, error = TRUE, std.error = FALSE, pch = 19)
 ```{r}
 #| label: tab:krigsummary
 #| tbl-cap: "Summary of SST predictions at withheld locations. Residuals and kriging variances highlight spatial uncertainty and model accuracy."
+#| echo: false
+#| warning: false
+#| message: false
 
 # Compute RMSE and MAE
 rmse <- sqrt(mean(test_results$residual^2))
@@ -560,7 +566,9 @@ gp_results <- test_coords %>%
 ```{r}
 #| label: fig:gp_pred_scatter
 #| fig-cap: "Observed vs predicted SST at withheld locations using the Gaussian Process model (maximum likelihood). The red dashed line shows the 1:1 agreement."
-
+#| echo: false
+#| warning: false
+#| message: false
 # Plot: Observed vs Predicted
 ggplot(gp_results, aes(x = observed_sst, y = predicted_sst)) +
   geom_point(size = 3) +
@@ -576,14 +584,32 @@ ggplot(gp_results, aes(x = observed_sst, y = predicted_sst)) +
 ```{r}
 #| label: tab:gp_krigsummary
 #| tbl-cap: "Observed vs Predicted SST at Withheld Locations – GP Model"
+#| echo: false
+#| warning: false
+#| message: false
 
 # Compute error metrics
 rmse_gp <- sqrt(mean(gp_results$residual^2))
 mae_gp <- mean(abs(gp_results$residual))
 
-# Output metrics
-print(rmse_gp)
-print(mae_gp)
+library(tibble)
+library(gt)
+
+# Create a named summary table
+tibble(
+  Metric = c("RMSE", "MAE"),
+  Value = c(rmse_gp, mae_gp)
+) %>%
+  gt() %>%
+  fmt_number(columns = "Value", decimals = 3) %>%
+  tab_header(
+    title = "Gaussian Process Model Performance",
+    subtitle = "Prediction Error Metrics on Withheld Data"
+  ) %>%
+  tab_options(
+    table.font.size = "small",
+    data_row.padding = px(3)
+  )
 
 # Create evaluation table
 library(knitr)
@@ -596,6 +622,8 @@ gp_results %>%
   ) %>%
   select(lon, lat, `Observed SST (°C)`, `Predicted SST (°C)`, `Residual (°C)`, `Kriging Variance`) %>%
   kable(format = "latex", booktabs = TRUE, caption = "Observed vs Predicted SST at Withheld Locations – GP Model")
+
+
 
 ```
 
@@ -722,7 +750,7 @@ LOOCV diagnostics are not available for the Bayesian kriging model due to the di
 ```{r}
 #| label: fig:bayes_pred_scatter
 #| fig-cap: "Observed vs predicted SST at withheld locations using the Gaussian Process model (maximum likelihood). The red dashed line shows the 1:1 agreement."
-#| echo: true
+#| echo: false
 # Bayesian observed vs predicted plot
 ggplot(bayes_results, aes(x = observed_sst, y = predicted_sst)) +
   geom_point(size = 3) +
@@ -739,7 +767,9 @@ ggplot(bayes_results, aes(x = observed_sst, y = predicted_sst)) +
 ```{r}
 #| label: tab:bayessummary
 #| tbl-cap: "Summary of SST predictions at withheld locations. Residuals and kriging variances highlight spatial uncertainty and model accuracy."
-
+#| echo: false
+#| warning: false
+#| message: false
 # Output prediction table
 bayes_results %>%
   mutate(
@@ -803,12 +833,16 @@ Despite differing in estimation strategy, all three models produced consistent S
 
 # The Atlantic Overturning Circulation
 
-We begin by exploring the Atlantic Meridional Overturning Circulation (AMOC) at 26°N using monthly mean values spanning **October 2017 to February 2023**. The figure below presents the time series of overturning strength (in Sverdrups, Sv), superimposed with a non-parametric **LOESS smoother** and associated 95% confidence interval.
+## Part A: Data Exploration
+
+To begin our analysis of the Atlantic Meridional Overturning Circulation (AMOC) at 26°N, we conduct an exploratory analysis of the monthly mean values from **October 2017 to February 2023**. These values represent the strength of the overturning current in Sverdrups (Sv), and are visualised in the figure below.
 
 ```{r}
-#| label: fig: monthly amoc
+#| label: fig:monthly amoc
 #| fig-cap: "Monthly AMOC time series with LOESS trend (Oct 2017 – Feb 2023)"
-#| echo: true
+#| echo: false
+#| warning: false
+#| message: false
 # Load and plot the data
 load("~/GitHub/university-projects/Modelling in Space and Time/In progress/MOC.RData")
 
@@ -857,8 +891,308 @@ ggplot(moc_df, aes(x = date, y = amoc)) +
   geom_point(size = 1.5, alpha = 0.7)
 ```
 
-The AMOC time series exhibits notable **short-term variability**, with values typically ranging between **10 and 24 Sv**. The LOESS trend line (red dashed) reveals **nonlinear fluctuations** rather than a sustained trend, with localised peaks and troughs visible throughout the record. Notably, there are dips in **early 2018**, **mid-2021**, and **late 2022**, as well as peaks in **early 2019** and **late 2020**. These dynamics suggest the presence of **multi-scale variability**, potentially linked to seasonal or interannual processes.
+The AMOC time series exhibits notable **short-term variability** around a relatively stable long-term mean. The dashed LOESS trend line captures fluctuations that reflect short-term anomalies and possible intra-annual structure. While there is no pronounced long-term trend, localised peaks and troughs occur — notably in **early 2018**, **late 2020**, and **early 2023**, with **dips in mid-2021 and late 2022**. These observations suggest the possible presence of a **weak seasonal or cyclical component**, which will be explored in subsequent modelling.
 
-There is **no evidence of long-term drift**, supporting the assumption of weak stationarity in mean and variance — a prerequisite for ARMA-type models explored in the next section. The shaded confidence region highlights periods of **greater trend uncertainty**, typically when data variability increases or inflection points occur.
+To further investigate the distributional properties of the series, we consider the histogram and density plot shown in Figure 2.
 
-This initial inspection motivates the use of **short-memory models** (e.g., ARMA, ARIMA) potentially with seasonal extensions, while also highlighting the importance of model validation to capture the system's complexity.
+```{r}
+#| label: fig:AMOC Histo
+#| fig-cap: "Distribution of AMOC Strength"
+#| echo: false
+#| warning: false
+#| message: false
+ggplot(moc_df, aes(x = amoc)) +
+  geom_histogram(aes(y = ..density..), fill = "lightblue", colour = "black", bins = 15) +
+  geom_density(colour = "darkred", size = 1) +
+  labs(title = "Distribution of AMOC Strength",
+       x = "AMOC Strength (Sv)", y = "Density") +
+  theme_minimal()
+
+```
+
+The distribution is approximately symmetric and unimodal, with a central peak around **16–17 Sv**. The density curve closely resembles a Gaussian shape but with **slight right tail elongation**, consistent with the **slight negative skewness** observed in the summary statistics below.
+
+```{r}
+#| label: tab:AMOC Summary Stats
+#| tab-cap: "Summary Statistics of AMOC (Oct 2017 – Feb 2023)h"
+#| echo: false
+library(dplyr)
+library(gt)
+library(moments)
+
+# Enhanced summary
+amoc_summary <- moc_df %>%
+  summarise(
+    Mean = mean(amoc),
+    SD = sd(amoc),
+    Min = min(amoc),
+    Max = max(amoc),
+    Median = median(amoc),
+    IQR = IQR(amoc),
+    CV = sd(amoc) / mean(amoc),
+    Skewness = skewness(amoc),
+    Kurtosis = kurtosis(amoc),
+    N = n()
+  ) %>%
+  pivot_longer(everything(), names_to = "Statistic", values_to = "Value")
+
+# Display table
+gt(amoc_summary) %>%
+  fmt_number(columns = "Value", decimals = 2) %>%
+  tab_header(
+    title = "Expanded Summary Statistics of AMOC Time Series",
+    subtitle = "October 2017 – February 2023"
+  ) %>%
+  tab_options(
+    table.font.size = "smaller",        # smaller overall font
+    data_row.padding = px(2),           # tighter row padding
+    heading.padding = px(3),            # tighter heading spacing
+    row_group.padding = px(2)
+  )
+```
+
+The mean overturning strength is **16.81 Sv**, with a standard deviation of **2.93 Sv**, suggesting moderate dispersion. The **coefficient of variation (CV)** is low (0.17), indicating that relative variability is limited. The **interquartile range (IQR)** of **3.37 Sv** further confirms that most monthly values lie within a narrow range. The **kurtosis value of 3.54** suggests heavier tails than a normal distribution, but this is mild. The data do not exhibit any significant skewness (**−0.24**), further justifying Gaussian modelling assumptions.
+
+Overall, these insights provide strong justification for fitting **weakly stationary time series models** (ARMA/ARIMA), possibly with short memory and mild seasonal structure. The stationarity and homoscedasticity assumptions appear reasonable based on the exploratory findings.
+
+## Part B
+
+We now investigate suitable ARMA and ARIMA models for the monthly AMOC time series. The time series was converted to a `ts` object of frequency 12, and the final 8 months were held out for validation. This yields a training window from **October 2017 to June 2022**.
+
+The figure below displays the **autocorrelation (ACF)** and **partial autocorrelation (PACF)** functions for the training set.
+
+```{r}
+#| label: fig:AMF+PACF
+#| fig-cap: "ACF and PACF of Monthly AMOC"
+#| echo: true
+#| warning: false
+#| message: false
+
+amoc_ts <- ts(moc_df$amoc, start = c(2017, 10), frequency = 12)
+
+# Truncate last 8 months (keep for later forecasting)
+train_ts <- window(amoc_ts, end = c(2022, 6))  # Leaves Oct 2017–June 2022
+test_ts <- window(amoc_ts, start = c(2022, 7)) # July 2022–Feb 2023
+
+# Plot training data
+# plot(train_ts, main = "Training Data: Monthly AMOC (Oct 2017 – Jun 2022)",
+     # ylab = "AMOC Strength (Sv)", xlab = "Year", col = "steelblue", lwd = 2)
+
+# ACF and PACF
+par(mfrow = c(1, 2))  # 1 row, 2 columns
+
+acf(train_ts, main = "ACF of AMOC (Training Set)")
+pacf(train_ts, main = "PACF of AMOC (Training Set)")
+
+par(mfrow = c(1, 1))  # reset
+
+```
+
+The **ACF shows a slow decay**, starting from a very strong lag-1 autocorrelation (\> 0.9), which suggests **non-stationarity**. In contrast, the **PACF cuts off sharply after lag 1**, which is characteristic of an **autoregressive process**. These patterns are consistent with the examples presented in **Topic 3b** and **Practical 5**, which show that such behaviour often indicates the need for **first-order differencing**.
+
+Specifically:
+
+-   ACF slow decay → trend/non-stationarity → **suggests `d = 1`**.
+
+-   PACF significant only at lag 1 → supports **AR(1)** structure → **`p = 1`**.
+
+-   ACF not cutting off quickly → may benefit from **MA term (e.g., `q = 1`)**.
+
+#### **Model Suitability: ARMA and ARIMA for AMOC**
+
+To model the temporal dynamics of the Atlantic Meridional Overturning Circulation (AMOC), both **ARMA** and **ARIMA** models are considered. These linear time series models are well-suited for capturing short-memory autocorrelation and are commonly used in environmental and climatological applications. ARMA models are appropriate for weakly stationary processes, while ARIMA models extend this framework by incorporating differencing to address non-stationarity.
+
+Visual inspection of the autocorrelation structure in the AMOC series reveals strong persistence at lag 1 and a slowly decaying autocorrelation function (ACF), indicative of a non-stationary process. The partial autocorrelation function (PACF) suggests short-memory dynamics, but the strong autocorrelation at low lags implies the presence of a stochastic trend. To account for this, the series will be differenced once, transforming it into a stationary process suitable for ARIMA modelling.
+
+Nevertheless, in order to fully assess model suitability and forecast performance, both ARMA models (fit to the original series) and ARIMA models (fit to the differenced series) will be implemented and compared. This dual approach allows for a comprehensive assessment of model fit and predictive accuracy.
+
+The following models will be considered:
+
+-   **ARMA(1,0)** and **ARMA(2,0)**: Autoregressive models fitted to the undifferenced series.
+
+-   **ARIMA(1,1,0)**, **ARIMA(0,1,1)**, and **ARIMA(1,1,1)**: Differenced ARMA models to account for the identified non-stationarity.
+
+Model parameters will be estimated using maximum likelihood via the `arima()` function in R. Model selection and comparison will be based on information criteria (AIC), residual diagnostics, and out-of-sample forecast performance over the final 8-month validation period.
+
+#### ARMA Modelling on the Undifferenced Series
+
+To explore the short-term autocorrelation structure in the AMOC series, we first fit ARMA models to the original (undifferenced) monthly data. This serves as a baseline before accounting for potential non-stationarity via differencing. Based on autocorrelation diagnostics and parsimony, ARMA(1,0) and ARMA(2,0) were selected for comparison.
+
+```{r}
+# ARMA Models
+arma_1_0 <- arima(train_ts, order = c(1, 0, 0), method = "ML")
+arma_2_0 <- arima(train_ts, order = c(2, 0, 0), method = "ML")
+```
+
+#### **ARMA(1,0) Model Fit and Diagnostics**
+
+The ARMA(1,0) model estimated the following relationship:
+
+$$
+X_t = 16.88 + 0.28 X_{t-1} + \varepsilon_t, \quad \varepsilon_t \sim \mathcal{N}(0, \sigma^2)
+$$
+
+The model returned an AIC of 286.18. Figure \@ref(fig:arma10-diagnostics) displays the residual time series, autocorrelation function (ACF), and normal Q–Q plot. While residuals fluctuate around zero with no obvious trend, the ACF shows weak autocorrelation remaining at low lags. The Ljung–Box test yielded p-values above 0.05, indicating no significant autocorrelation in residuals. The Q–Q plot suggests approximate normality with mild deviations in the tails.
+
+```{r}
+#| label: fig:ARMA(1,0)
+#| fig-cap: "ARMA(1,0)"
+#| echo: false
+#| warning: false
+#| message: false
+par(mfrow = c(1, 3), mar = c(4, 4, 2, 1))
+plot(residuals(arma_1_0), main = "ARMA(1,0) Residuals", ylab = "Residuals", col = "steelblue")
+acf(residuals(arma_1_0), main = "ACF of Residuals")
+qqnorm(residuals(arma_1_0)); qqline(residuals(arma_1_0))
+```
+
+#### **ARMA(2,0) Model Fit and Diagnostics**
+
+To assess whether a second lag improved the model, an ARMA(2,0) specification was estimated:
+
+$$
+X_t = 16.90 + 0.34 X_{t-1} - 0.21 X_{t-2} + \varepsilon_t, \quad \varepsilon_t \sim \mathcal{N}(0, \sigma^2)
+$$
+
+This model achieved a slightly lower AIC of 285.65. Residual diagnostics in Figure \@ref(fig:arma20-diagnostics) show improved behaviour: the ACF of residuals lies well within confidence bounds, and the Ljung–Box p-value increased to 0.26. The Q–Q plot also shows improved linearity.
+
+```{r}
+#| label: fig:ARMA(2,0)
+#| fig-cap: "ARMA(2,0)"
+#| echo: false
+#| warning: false
+#| message: false
+par(mfrow = c(1, 3), mar = c(4, 4, 2, 1))
+plot(residuals(arma_2_0), main = "ARMA(2,0) Residuals", ylab = "Residuals", col = "darkred")
+acf(residuals(arma_2_0), main = "ACF of Residuals")
+qqnorm(residuals(arma_2_0)); qqline(residuals(arma_2_0))
+par(mfrow = c(1, 1))  # Reset layout
+```
+
+#### Model Comparison
+
+| Model | AIC | AR Coefficients | Ljung–Box p-value | Residual Summary |
+|---------------|---------------|---------------|---------------|---------------|
+| ARMA(1,0) | 286.18 | AR(1) = 0.2807 | \> 0.24 | Some residual autocorrelation |
+| ARMA(2,0) | 285.65 | AR(1) = 0.342, AR(2) = -0.209 | 0.26 | Slightly improved white noise |
+
+While ARMA(2,0) outperforms ARMA(1,0) marginally, both models are limited by their reliance on stationarity. Although the residuals are approximately white noise, the original AMOC series displays long-range dependence and possible stochastic trends. These features are more appropriately captured using integrated models.
+
+#### **Rationale for Transitioning to ARIMA**
+
+To account for non-stationarity observed in the AMOC series, we now apply a first-order differencing transformation and proceed to fit ARIMA(\$p\$,1,\$q\$) models. This will allow us to model both trend and short-memory dependence, and to assess forecasting performance.
+
+### ARIMA Model Fitting
+
+```{r}
+#| label: fig:diff-acf-pacf
+#| fig-cap: "ARIMA differencing ACF/PACF"
+#| echo: false
+#| warning: false
+#| message: false
+# First-order differencing
+diff_amoc <- diff(train_ts)
+
+# Plot layout: 1 row, 3 plots
+par(mfrow = c(1, 3), mar = c(4, 4, 3.5, 1))  # slightly increase top margin for spacing
+
+# Plot 1: Differenced Series
+plot(diff_amoc, 
+     main = "First-order Differenced AMOC", 
+     ylab = "Differenced Value", 
+     xlab = "Time", 
+     col = "steelblue", 
+     lwd = 1.2)
+
+# Plot 2: ACF
+acf(diff_amoc, 
+    main = "ACF of Differenced Series", 
+    col = "black")
+
+# Plot 3: PACF
+pacf(diff_amoc, 
+     main = "PACF of Differenced Series", 
+     col = "black")
+```
+
+Visual inspection of the first-order differenced AMOC series (Figure \@ref(fig:diff-acf-pacf)) indicates improved stationarity, with fluctuations more stable around a constant mean. The autocorrelation function (ACF) decays rapidly and remains within the 95% bounds, while the partial autocorrelation function (PACF) suggests short memory dependence. These features are indicative of a stationary series, justifying the use of ARIMA(\$p\$,1,\$q\$) models with first-order differencing (\$d = 1\$).
+
+Based on the observed cut-offs in the ACF and PACF, we proceed to fit the following candidate models:
+
+-   ARIMA(1,1,0) — autoregressive only
+
+-   ARIMA(0,1,1) — moving average only
+
+-   ARIMA(1,1,1) — combined ARMA structure
+
+### ARIMA Model Fitting (d = 1)
+
+```{r}
+arima_110 <- arima(train_ts, order = c(1,1,0), method = "ML")
+arima_011 <- arima(train_ts, order = c(0,1,1), method = "ML")
+arima_111 <- arima(train_ts, order = c(1,1,1), method = "ML")
+```
+
+```{r}
+#| label: fig:ARIMA Model Fitting
+#| fig-cap: "ARIMA Model Fitting"
+#| echo: false
+#| warning: false
+#| message: false
+# ---- Fit Models ----
+arima_110 <- arima(train_ts, order = c(1,1,0), method = "ML")
+arima_011 <- arima(train_ts, order = c(0,1,1), method = "ML")
+arima_111 <- arima(train_ts, order = c(1,1,1), method = "ML")
+
+# ---- Diagnostics for ARIMA(1,1,0) ----
+par(mfrow = c(1, 3), mar = c(4, 4, 2, 1))  # 1 row, 3 columns
+
+plot(residuals(arima_110), type = "l", col = "steelblue", 
+     main = "ARIMA(1,1,0) Residuals", ylab = "Residuals", xlab = "Time")
+
+acf(residuals(arima_110), main = "ACF of Residuals", col = "orange")
+
+qqnorm(residuals(arima_110), main = "Normal Q–Q Plot")
+qqline(residuals(arima_110), col = "red")
+
+par(mfrow = c(1, 1))  # Reset layout
+
+
+# ---- Diagnostics for ARIMA(0,1,1) ----
+par(mfrow = c(1, 3), mar = c(4, 4, 2, 1))
+
+plot(residuals(arima_011), type = "l", col = "darkred", 
+     main = "ARIMA(0,1,1) Residuals", ylab = "Residuals", xlab = "Time")
+
+acf(residuals(arima_011), main = "ACF of Residuals", col = "orange")
+
+qqnorm(residuals(arima_011), main = "Normal Q–Q Plot")
+qqline(residuals(arima_011), col = "red")
+
+par(mfrow = c(1, 1))
+
+# ---- Diagnostics for ARIMA(1,1,1) ----
+par(mfrow = c(1, 3), mar = c(4, 4, 2, 1))
+
+plot(residuals(arima_111), type = "l", col = "darkgreen", 
+     main = "ARIMA(1,1,1) Residuals", ylab = "Residuals", xlab = "Time")
+
+acf(residuals(arima_111), main = "ACF of Residuals", col = "orange")
+
+qqnorm(residuals(arima_111), main = "Normal Q–Q Plot")
+qqline(residuals(arima_111), col = "red")
+
+# ---- Reset layout ----
+par(mfrow = c(1, 1))
+
+# ---- Ljung–Box Tests ----
+lb_110 <- Box.test(residuals(arima_110), lag = 10, type = "Ljung-Box")
+lb_011 <- Box.test(residuals(arima_011), lag = 10, type = "Ljung-Box")
+lb_111 <- Box.test(residuals(arima_111), lag = 10, type = "Ljung-Box")
+
+# ---- AIC + p-value summary ----
+cat("ARIMA(1,1,0): AIC =", AIC(arima_110), ", Ljung-Box p =", lb_110$p.value, "\n")
+cat("ARIMA(0,1,1): AIC =", AIC(arima_011), ", Ljung-Box p =", lb_011$p.value, "\n")
+cat("ARIMA(1,1,1): AIC =", AIC(arima_111), ", Ljung-Box p =", lb_111$p.value, "\n")
+
+```

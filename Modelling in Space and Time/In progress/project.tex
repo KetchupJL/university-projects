@@ -133,6 +133,13 @@
 \def\fps@figure{htbp}
 \makeatother
 
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{longtable}
+\usepackage{colortbl}
+\usepackage{array}
+\usepackage{anyfontsize}
+\usepackage{multirow}
 \makeatletter
 \@ifpackageloaded{caption}{}{\usepackage{caption}}
 \AtBeginDocument{%
@@ -524,11 +531,6 @@ variofit: weights used: equal
 variofit: minimisation function used: optim 
 \end{verbatim}
 
-\begin{verbatim}
-Warning in variofit(emp_variog_1.8, cov.model = "exponential", ini.cov.pars =
-c(1, : unreasonable initial value for sigmasq + nugget (too low)
-\end{verbatim}
-
 \begin{Shaded}
 \begin{Highlighting}[]
 \CommentTok{\# Gaussian model}
@@ -546,11 +548,6 @@ c(1, : unreasonable initial value for sigmasq + nugget (too low)
 variofit: covariance model used is gaussian 
 variofit: weights used: equal 
 variofit: minimisation function used: optim 
-\end{verbatim}
-
-\begin{verbatim}
-Warning in variofit(emp_variog_1.8, cov.model = "gaussian", ini.cov.pars = c(1,
-: unreasonable initial value for sigmasq + nugget (too low)
 \end{verbatim}
 
 \begin{Shaded}
@@ -623,19 +620,38 @@ of squares.}
 [1] 6.796541
 \end{verbatim}
 
-Fitted Variogram Models and Selection
+Parametric variogram models were fitted to the empirical variogram with
+\texttt{max.dist\ =\ 1.8} using the \texttt{variofit()} function. Three
+covariance functions were tested:
 
-Parametric variogram models were fitted using weighted least squares.
-All models included a nugget component to reflect short-scale
-variability. The exponential model captured the general trend but
-underestimated mid-range variation and produced a zero nugget estimate.
-The Gaussian model offered a smoother fit, but failed to reflect the
-steep rise at short distances.
+\begin{itemize}
+\item
+  \textbf{Exponential}: assumes rough sample paths and rapid correlation
+  decay
+\item
+  \textbf{Gaussian}: assumes smooth sample paths with strong local
+  correlation
+\item
+  \textbf{Matérn}: provides a flexible family; here set with
+  κ=1.5\kappa = 1.5κ=1.5 for moderate smoothness
+\end{itemize}
 
-Both Matérn fits (\textbf{κ = 1.5}) produced identical solutions and
-lowest residual sum of squares (\textbf{6.80}), balancing short- and
-long-range structure. Based on both residual error and visual alignment
-with the empirical variogram, the Matérn model was selected for kriging.
+All models assumed:
+
+\begin{itemize}
+\item
+  A \textbf{constant mean} function (i.e.~no trend component)
+\item
+  \textbf{Isotropy}, meaning spatial correlation depends only on
+  Euclidean distance
+\item
+  \textbf{Second-order stationarity}
+\item
+  A \textbf{non-zero nugget}, motivated by the empirical variogram
+\end{itemize}
+
+Each model was fitted using weighted least squares. Initial parameter
+guesses were based on visual inspection of the empirical variogram:
 
 \subsubsection{\texorpdfstring{\textbf{Model Parameters and
 Interpretation}}{Model Parameters and Interpretation}}\label{model-parameters-and-interpretation}
@@ -694,11 +710,9 @@ Matérn (κ = 1.5) & 0.180 & 26.68 & 3.13 & 6.80 \\
 
 \textbf{Parametric Variogram Fitting and Selection}
 
-Three models were fitted using weighted least squares: exponential,
-Gaussian, and Matérn (κ = 1.5). Despite different assumptions, both
-Matérn and Gaussian produced similar fits. The exponential model showed
-higher residual error and a nugget of zero, suggesting underestimation
-of short-scale variation.
+Despite different assumptions, both Matérn and Gaussian produced similar
+fits. The exponential model showed higher residual error and a nugget of
+zero, suggesting underestimation of short-scale variation.
 
 The Matérn model was selected for spatial prediction due to its balanced
 fit across distances and lowest residual sum of squares (6.80). Its
@@ -745,21 +759,6 @@ krige.conv: Kriging performed using global neighbourhood
 Ordinary kriging assumes a constant spatial mean and was used here given
 the absence of strong deterministic trends in SST across the study area.
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Visualise prediction accuracy}
-\FunctionTok{ggplot}\NormalTok{(test\_results, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ observed\_sst, }\AttributeTok{y =}\NormalTok{ predicted\_sst)) }\SpecialCharTok{+}
-  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{size =} \DecValTok{3}\NormalTok{) }\SpecialCharTok{+}
-  \FunctionTok{geom\_abline}\NormalTok{(}\AttributeTok{slope =} \DecValTok{1}\NormalTok{, }\AttributeTok{intercept =} \DecValTok{0}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{colour =} \StringTok{"red"}\NormalTok{) }\SpecialCharTok{+}
-  \FunctionTok{labs}\NormalTok{(}
-    \AttributeTok{title =} \StringTok{"Observed vs Predicted SST at Withheld Locations"}\NormalTok{,}
-    \AttributeTok{x =} \StringTok{"Observed SST (°C)"}\NormalTok{,}
-    \AttributeTok{y =} \StringTok{"Predicted SST (°C)"}
-\NormalTok{  ) }\SpecialCharTok{+}
-  \FunctionTok{theme\_minimal}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{13}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{figure}[H]
 
 {\centering \includegraphics{project_files/figure-pdf/fig-krigscatter-1.pdf}
@@ -805,29 +804,6 @@ xvalid: end of cross-validation
 1.5), showing minimal bias and good predictive alignment.}
 
 \end{figure}%
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Compute RMSE and MAE}
-\NormalTok{rmse }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{(test\_results}\SpecialCharTok{$}\NormalTok{residual}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
-\NormalTok{mae }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{abs}\NormalTok{(test\_results}\SpecialCharTok{$}\NormalTok{residual))}
-
-\CommentTok{\# Summary table}
-\FunctionTok{library}\NormalTok{(knitr)}
-
-\NormalTok{results\_table }\OtherTok{\textless{}{-}}\NormalTok{ test\_results }\SpecialCharTok{\%\textgreater{}\%}
-  \FunctionTok{mutate}\NormalTok{(}
-    \StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(observed\_sst, }\DecValTok{2}\NormalTok{),}
-    \StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(predicted\_sst, }\DecValTok{2}\NormalTok{),}
-    \StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(residual, }\DecValTok{2}\NormalTok{),}
-    \StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(kriging\_var, }\DecValTok{3}\NormalTok{)}
-\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
-  \FunctionTok{select}\NormalTok{(lon, lat, }\StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}}\NormalTok{)}
-
-\FunctionTok{kable}\NormalTok{(results\_table, }\AttributeTok{format =} \StringTok{"latex"}\NormalTok{, }\AttributeTok{booktabs =} \ConstantTok{TRUE}\NormalTok{,}
-      \AttributeTok{caption =} \StringTok{"Observed vs Predicted SST at Withheld Locations"}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{table}
 
@@ -1063,21 +1039,6 @@ krige.conv: Kriging performed using global neighbourhood
 \end{Highlighting}
 \end{Shaded}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Plot: Observed vs Predicted}
-\FunctionTok{ggplot}\NormalTok{(gp\_results, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ observed\_sst, }\AttributeTok{y =}\NormalTok{ predicted\_sst)) }\SpecialCharTok{+}
-  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{size =} \DecValTok{3}\NormalTok{) }\SpecialCharTok{+}
-  \FunctionTok{geom\_abline}\NormalTok{(}\AttributeTok{slope =} \DecValTok{1}\NormalTok{, }\AttributeTok{intercept =} \DecValTok{0}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{color =} \StringTok{"red"}\NormalTok{) }\SpecialCharTok{+}
-  \FunctionTok{labs}\NormalTok{(}
-    \AttributeTok{title =} \StringTok{"Observed vs Predicted SST (GP Model)"}\NormalTok{,}
-    \AttributeTok{x =} \StringTok{"Observed SST (°C)"}\NormalTok{,}
-    \AttributeTok{y =} \StringTok{"Predicted SST (°C)"}
-\NormalTok{  ) }\SpecialCharTok{+}
-  \FunctionTok{theme\_minimal}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{13}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{figure}[H]
 
 {\centering \includegraphics{project_files/figure-pdf/fig-gp_pred_scatter-1.pdf}
@@ -1090,50 +1051,24 @@ the 1:1 agreement.}
 
 \end{figure}%
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Compute error metrics}
-\NormalTok{rmse\_gp }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{(gp\_results}\SpecialCharTok{$}\NormalTok{residual}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
-\NormalTok{mae\_gp }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{abs}\NormalTok{(gp\_results}\SpecialCharTok{$}\NormalTok{residual))}
-
-\CommentTok{\# Output metrics}
-\FunctionTok{print}\NormalTok{(rmse\_gp)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-[1] 2.857011
-\end{verbatim}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\FunctionTok{print}\NormalTok{(mae\_gp)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-[1] 1.757844
-\end{verbatim}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Create evaluation table}
-\FunctionTok{library}\NormalTok{(knitr)}
-\NormalTok{gp\_results }\SpecialCharTok{\%\textgreater{}\%}
-  \FunctionTok{mutate}\NormalTok{(}
-    \StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(observed\_sst, }\DecValTok{2}\NormalTok{),}
-    \StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(predicted\_sst, }\DecValTok{2}\NormalTok{),}
-    \StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(residual, }\DecValTok{2}\NormalTok{),}
-    \StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(kriging\_var, }\DecValTok{3}\NormalTok{)}
-\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
-  \FunctionTok{select}\NormalTok{(lon, lat, }\StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
-  \FunctionTok{kable}\NormalTok{(}\AttributeTok{format =} \StringTok{"latex"}\NormalTok{, }\AttributeTok{booktabs =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{caption =} \StringTok{"Observed vs Predicted SST at Withheld Locations – GP Model"}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
+\begin{table}
+\caption*{
+{\large Gaussian Process Model Performance} \\ 
+{\small Prediction Error Metrics on Withheld Data}
+} 
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lr}
+\toprule
+Metric & Value \\ 
+\midrule\addlinespace[2.5pt]
+RMSE & 2.857 \\ 
+MAE & 1.758 \\ 
+\bottomrule
+\end{tabular*}
+\end{table}
 
 \begin{table}
 
-\caption{Observed vs Predicted SST at Withheld Locations -- GP Model}
+\caption{Observed vs Predicted SST at Withheld Locations – GP Model}
 \centering
 \begin{tabular}[t]{rrrrrr}
 \toprule
@@ -1147,6 +1082,8 @@ lon & lat & Observed SST (°C) & Predicted SST (°C) & Residual (°C) & Kriging 
 \bottomrule
 \end{tabular}
 \end{table}
+
+Observed vs Predicted SST at Withheld Locations -- GP Model
 
 \paragraph{Interpretation}\label{interpretation}
 
@@ -1171,6 +1108,11 @@ structure, the MLE-fitted model captured the main spatial structure
 effectively and required fewer tuning steps.} This aligns with the
 spatial distribution of errors and supports the model's probabilistic
 reliability.
+
+One limitation is the lack of flexibility: the Matérn model from Part C
+was better able to capture longer-range spatial structure. Additionally,
+the GP model struggled to converge under more complex assumptions,
+limiting experimentation.
 
 Overall, the GP model offered competitive accuracy and uncertainty
 quantification, making it a robust alternative to traditional
@@ -1364,21 +1306,6 @@ LOOCV diagnostics are not available for the Bayesian kriging model due
 to the discrete posterior sampling framework, which does not support
 leave-one-out cross-validation via \texttt{xvalid()}.
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Bayesian observed vs predicted plot}
-\FunctionTok{ggplot}\NormalTok{(bayes\_results, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ observed\_sst, }\AttributeTok{y =}\NormalTok{ predicted\_sst)) }\SpecialCharTok{+}
-  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{size =} \DecValTok{3}\NormalTok{) }\SpecialCharTok{+}
-  \FunctionTok{geom\_abline}\NormalTok{(}\AttributeTok{slope =} \DecValTok{1}\NormalTok{, }\AttributeTok{intercept =} \DecValTok{0}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{colour =} \StringTok{"red"}\NormalTok{) }\SpecialCharTok{+}
-  \FunctionTok{labs}\NormalTok{(}
-    \AttributeTok{title =} \StringTok{"Observed vs Predicted SST (Bayesian Model)"}\NormalTok{,}
-    \AttributeTok{x =} \StringTok{"Observed SST (°C)"}\NormalTok{,}
-    \AttributeTok{y =} \StringTok{"Predicted SST (°C)"}
-\NormalTok{  ) }\SpecialCharTok{+}
-  \FunctionTok{theme\_minimal}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{13}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{figure}[H]
 
 {\centering \includegraphics{project_files/figure-pdf/fig-bayes_pred_scatter-1.pdf}
@@ -1390,22 +1317,6 @@ Gaussian Process model (maximum likelihood). The red dashed line shows
 the 1:1 agreement.}
 
 \end{figure}%
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Output prediction table}
-\NormalTok{bayes\_results }\SpecialCharTok{\%\textgreater{}\%}
-  \FunctionTok{mutate}\NormalTok{(}
-    \StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(observed\_sst, }\DecValTok{2}\NormalTok{),}
-    \StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(predicted\_sst, }\DecValTok{2}\NormalTok{),}
-    \StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(residual, }\DecValTok{2}\NormalTok{),}
-    \StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(kriging\_var, }\DecValTok{3}\NormalTok{)}
-\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
-  \FunctionTok{select}\NormalTok{(lon, lat, }\StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
-\NormalTok{  knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{(}\AttributeTok{format =} \StringTok{"latex"}\NormalTok{, }\AttributeTok{booktabs =} \ConstantTok{TRUE}\NormalTok{,}
-               \AttributeTok{caption =} \StringTok{"Observed vs Predicted SST at Withheld Locations – Bayesian Model"}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{table}
 
@@ -1530,6 +1441,410 @@ the best balance between fit and computational simplicity, while the
 Bayesian approach provided richer uncertainty characterisation. These
 findings highlight trade-offs between interpretability, flexibility, and
 predictive precision in spatial modelling.
+
+\newpage
+
+\section{The Atlantic Overturning
+Circulation}\label{the-atlantic-overturning-circulation}
+
+\subsection{Part A: Data Exploration}\label{part-a-data-exploration}
+
+To begin our analysis of the Atlantic Meridional Overturning Circulation
+(AMOC) at 26°N, we conduct an exploratory analysis of the monthly mean
+values from \textbf{October 2017 to February 2023}. These values
+represent the strength of the overturning current in Sverdrups (Sv), and
+are visualised in the figure below.
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-monthly amoc-1.pdf}
+
+}
+
+\caption{Monthly~AMOC~time~series~with~LOESS~trend~(Oct~2017~--~Feb~2023)}
+
+\end{figure}%
+
+The AMOC time series exhibits notable \textbf{short-term variability}
+around a relatively stable long-term mean. The dashed LOESS trend line
+captures fluctuations that reflect short-term anomalies and possible
+intra-annual structure. While there is no pronounced long-term trend,
+localised peaks and troughs occur --- notably in \textbf{early 2018},
+\textbf{late 2020}, and \textbf{early 2023}, with \textbf{dips in
+mid-2021 and late 2022}. These observations suggest the possible
+presence of a \textbf{weak seasonal or cyclical component}, which will
+be explored in subsequent modelling.
+
+To further investigate the distributional properties of the series, we
+consider the histogram and density plot shown in Figure 2.
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-AMOC Histo-1.pdf}
+
+}
+
+\caption{Distribution of AMOC Strength}
+
+\end{figure}%
+
+The distribution is approximately symmetric and unimodal, with a central
+peak around \textbf{16--17 Sv}. The density curve closely resembles a
+Gaussian shape but with \textbf{slight right tail elongation},
+consistent with the \textbf{slight negative skewness} observed in the
+summary statistics below.
+
+\begin{table}
+\caption*{
+{\large Expanded Summary Statistics of AMOC Time Series} \\ 
+{\small October 2017 – February 2023}
+} 
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lr}
+\toprule
+Statistic & Value \\ 
+\midrule\addlinespace[2.5pt]
+Mean & 16.81 \\ 
+SD & 2.93 \\ 
+Min & 8.35 \\ 
+Max & 24.07 \\ 
+Median & 16.82 \\ 
+IQR & 3.37 \\ 
+CV & 0.17 \\ 
+Skewness & -0.24 \\ 
+Kurtosis & 3.54 \\ 
+N & 67.00 \\ 
+\bottomrule
+\end{tabular*}
+\end{table}
+
+The mean overturning strength is \textbf{16.81 Sv}, with a standard
+deviation of \textbf{2.93 Sv}, suggesting moderate dispersion. The
+\textbf{coefficient of variation (CV)} is low (0.17), indicating that
+relative variability is limited. The \textbf{interquartile range (IQR)}
+of \textbf{3.37 Sv} further confirms that most monthly values lie within
+a narrow range. The \textbf{kurtosis value of 3.54} suggests heavier
+tails than a normal distribution, but this is mild. The data do not
+exhibit any significant skewness (\textbf{−0.24}), further justifying
+Gaussian modelling assumptions.
+
+Overall, these insights provide strong justification for fitting
+\textbf{weakly stationary time series models} (ARMA/ARIMA), possibly
+with short memory and mild seasonal structure. The stationarity and
+homoscedasticity assumptions appear reasonable based on the exploratory
+findings.
+
+\subsection{Part B}\label{part-b}
+
+We now investigate suitable ARMA and ARIMA models for the monthly AMOC
+time series. The time series was converted to a \texttt{ts} object of
+frequency 12, and the final 8 months were held out for validation. This
+yields a training window from \textbf{October 2017 to June 2022}.
+
+The figure below displays the \textbf{autocorrelation (ACF)} and
+\textbf{partial autocorrelation (PACF)} functions for the training set.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{amoc\_ts }\OtherTok{\textless{}{-}} \FunctionTok{ts}\NormalTok{(moc\_df}\SpecialCharTok{$}\NormalTok{amoc, }\AttributeTok{start =} \FunctionTok{c}\NormalTok{(}\DecValTok{2017}\NormalTok{, }\DecValTok{10}\NormalTok{), }\AttributeTok{frequency =} \DecValTok{12}\NormalTok{)}
+
+\CommentTok{\# Truncate last 8 months (keep for later forecasting)}
+\NormalTok{train\_ts }\OtherTok{\textless{}{-}} \FunctionTok{window}\NormalTok{(amoc\_ts, }\AttributeTok{end =} \FunctionTok{c}\NormalTok{(}\DecValTok{2022}\NormalTok{, }\DecValTok{6}\NormalTok{))  }\CommentTok{\# Leaves Oct 2017–June 2022}
+\NormalTok{test\_ts }\OtherTok{\textless{}{-}} \FunctionTok{window}\NormalTok{(amoc\_ts, }\AttributeTok{start =} \FunctionTok{c}\NormalTok{(}\DecValTok{2022}\NormalTok{, }\DecValTok{7}\NormalTok{)) }\CommentTok{\# July 2022–Feb 2023}
+
+\CommentTok{\# Plot training data}
+\CommentTok{\# plot(train\_ts, main = "Training Data: Monthly AMOC (Oct 2017 – Jun 2022)",}
+     \CommentTok{\# ylab = "AMOC Strength (Sv)", xlab = "Year", col = "steelblue", lwd = 2)}
+
+\CommentTok{\# ACF and PACF}
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{))  }\CommentTok{\# 1 row, 2 columns}
+
+\FunctionTok{acf}\NormalTok{(train\_ts, }\AttributeTok{main =} \StringTok{"ACF of AMOC (Training Set)"}\NormalTok{)}
+\FunctionTok{pacf}\NormalTok{(train\_ts, }\AttributeTok{main =} \StringTok{"PACF of AMOC (Training Set)"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-AMF+PACF-1.pdf}
+
+}
+
+\caption{ACF and PACF of Monthly AMOC}
+
+\end{figure}%
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))  }\CommentTok{\# reset}
+\end{Highlighting}
+\end{Shaded}
+
+The \textbf{ACF shows a slow decay}, starting from a very strong lag-1
+autocorrelation (\textgreater{} 0.9), which suggests
+\textbf{non-stationarity}. In contrast, the \textbf{PACF cuts off
+sharply after lag 1}, which is characteristic of an
+\textbf{autoregressive process}. These patterns are consistent with the
+examples presented in \textbf{Topic 3b} and \textbf{Practical 5}, which
+show that such behaviour often indicates the need for
+\textbf{first-order differencing}.
+
+Specifically:
+
+\begin{itemize}
+\item
+  ACF slow decay → trend/non-stationarity → \textbf{suggests
+  \texttt{d\ =\ 1}}.
+\item
+  PACF significant only at lag 1 → supports \textbf{AR(1)} structure →
+  \textbf{\texttt{p\ =\ 1}}.
+\item
+  ACF not cutting off quickly → may benefit from \textbf{MA term (e.g.,
+  \texttt{q\ =\ 1})}.
+\end{itemize}
+
+\paragraph{\texorpdfstring{\textbf{Model Suitability: ARMA and ARIMA for
+AMOC}}{Model Suitability: ARMA and ARIMA for AMOC}}\label{model-suitability-arma-and-arima-for-amoc}
+
+To model the temporal dynamics of the Atlantic Meridional Overturning
+Circulation (AMOC), both \textbf{ARMA} and \textbf{ARIMA} models are
+considered. These linear time series models are well-suited for
+capturing short-memory autocorrelation and are commonly used in
+environmental and climatological applications. ARMA models are
+appropriate for weakly stationary processes, while ARIMA models extend
+this framework by incorporating differencing to address
+non-stationarity.
+
+Visual inspection of the autocorrelation structure in the AMOC series
+reveals strong persistence at lag 1 and a slowly decaying
+autocorrelation function (ACF), indicative of a non-stationary process.
+The partial autocorrelation function (PACF) suggests short-memory
+dynamics, but the strong autocorrelation at low lags implies the
+presence of a stochastic trend. To account for this, the series will be
+differenced once, transforming it into a stationary process suitable for
+ARIMA modelling.
+
+Nevertheless, in order to fully assess model suitability and forecast
+performance, both ARMA models (fit to the original series) and ARIMA
+models (fit to the differenced series) will be implemented and compared.
+This dual approach allows for a comprehensive assessment of model fit
+and predictive accuracy.
+
+The following models will be considered:
+
+\begin{itemize}
+\item
+  \textbf{ARMA(1,0)} and \textbf{ARMA(2,0)}: Autoregressive models
+  fitted to the undifferenced series.
+\item
+  \textbf{ARIMA(1,1,0)}, \textbf{ARIMA(0,1,1)}, and
+  \textbf{ARIMA(1,1,1)}: Differenced ARMA models to account for the
+  identified non-stationarity.
+\end{itemize}
+
+Model parameters will be estimated using maximum likelihood via the
+\texttt{arima()} function in R. Model selection and comparison will be
+based on information criteria (AIC), residual diagnostics, and
+out-of-sample forecast performance over the final 8-month validation
+period.
+
+\paragraph{ARMA Modelling on the Undifferenced
+Series}\label{arma-modelling-on-the-undifferenced-series}
+
+To explore the short-term autocorrelation structure in the AMOC series,
+we first fit ARMA models to the original (undifferenced) monthly data.
+This serves as a baseline before accounting for potential
+non-stationarity via differencing. Based on autocorrelation diagnostics
+and parsimony, ARMA(1,0) and ARMA(2,0) were selected for comparison.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# ARMA Models}
+\NormalTok{arma\_1\_0 }\OtherTok{\textless{}{-}} \FunctionTok{arima}\NormalTok{(train\_ts, }\AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{), }\AttributeTok{method =} \StringTok{"ML"}\NormalTok{)}
+\NormalTok{arma\_2\_0 }\OtherTok{\textless{}{-}} \FunctionTok{arima}\NormalTok{(train\_ts, }\AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{), }\AttributeTok{method =} \StringTok{"ML"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\paragraph{\texorpdfstring{\textbf{ARMA(1,0) Model Fit and
+Diagnostics}}{ARMA(1,0) Model Fit and Diagnostics}}\label{arma10-model-fit-and-diagnostics}
+
+The ARMA(1,0) model estimated the following relationship:
+
+\[
+X_t = 16.88 + 0.28 X_{t-1} + \varepsilon_t, \quad \varepsilon_t \sim \mathcal{N}(0, \sigma^2)
+\]
+
+The model returned an AIC of 286.18. Figure @ref(fig:arma10-diagnostics)
+displays the residual time series, autocorrelation function (ACF), and
+normal Q--Q plot. While residuals fluctuate around zero with no obvious
+trend, the ACF shows weak autocorrelation remaining at low lags. The
+Ljung--Box test yielded p-values above 0.05, indicating no significant
+autocorrelation in residuals. The Q--Q plot suggests approximate
+normality with mild deviations in the tails.
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-ARMA(1,0)-1.pdf}
+
+}
+
+\caption{ARMA(1,0)}
+
+\end{figure}%
+
+\paragraph{\texorpdfstring{\textbf{ARMA(2,0) Model Fit and
+Diagnostics}}{ARMA(2,0) Model Fit and Diagnostics}}\label{arma20-model-fit-and-diagnostics}
+
+To assess whether a second lag improved the model, an ARMA(2,0)
+specification was estimated:
+
+\[
+X_t = 16.90 + 0.34 X_{t-1} - 0.21 X_{t-2} + \varepsilon_t, \quad \varepsilon_t \sim \mathcal{N}(0, \sigma^2)
+\]
+
+This model achieved a slightly lower AIC of 285.65. Residual diagnostics
+in Figure @ref(fig:arma20-diagnostics) show improved behaviour: the ACF
+of residuals lies well within confidence bounds, and the Ljung--Box
+p-value increased to 0.26. The Q--Q plot also shows improved linearity.
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-ARMA(2,0)-1.pdf}
+
+}
+
+\caption{ARMA(2,0)}
+
+\end{figure}%
+
+\paragraph{Model Comparison}\label{model-comparison}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Model
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+AIC
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+AR Coefficients
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Ljung--Box p-value
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Residual Summary
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+ARMA(1,0) & 286.18 & AR(1) = 0.2807 & \textgreater{} 0.24 & Some
+residual autocorrelation \\
+ARMA(2,0) & 285.65 & AR(1) = 0.342, AR(2) = -0.209 & 0.26 & Slightly
+improved white noise \\
+\end{longtable}
+
+While ARMA(2,0) outperforms ARMA(1,0) marginally, both models are
+limited by their reliance on stationarity. Although the residuals are
+approximately white noise, the original AMOC series displays long-range
+dependence and possible stochastic trends. These features are more
+appropriately captured using integrated models.
+
+\paragraph{\texorpdfstring{\textbf{Rationale for Transitioning to
+ARIMA}}{Rationale for Transitioning to ARIMA}}\label{rationale-for-transitioning-to-arima}
+
+To account for non-stationarity observed in the AMOC series, we now
+apply a first-order differencing transformation and proceed to fit
+ARIMA(\$p\$,1,\$q\$) models. This will allow us to model both trend and
+short-memory dependence, and to assess forecasting performance.
+
+\subsubsection{ARIMA Model Fitting}\label{arima-model-fitting}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-diff-acf-pacf-1.pdf}
+
+}
+
+\caption{ARIMA differencing ACF/PACF}
+
+\end{figure}%
+
+Visual inspection of the first-order differenced AMOC series (Figure
+@ref(fig:diff-acf-pacf)) indicates improved stationarity, with
+fluctuations more stable around a constant mean. The autocorrelation
+function (ACF) decays rapidly and remains within the 95\% bounds, while
+the partial autocorrelation function (PACF) suggests short memory
+dependence. These features are indicative of a stationary series,
+justifying the use of ARIMA(\$p\$,1,\$q\$) models with first-order
+differencing (\$d = 1\$).
+
+Based on the observed cut-offs in the ACF and PACF, we proceed to fit
+the following candidate models:
+
+\begin{itemize}
+\item
+  ARIMA(1,1,0) --- autoregressive only
+\item
+  ARIMA(0,1,1) --- moving average only
+\item
+  ARIMA(1,1,1) --- combined ARMA structure
+\end{itemize}
+
+\subsubsection{ARIMA Model Fitting (d =
+1)}\label{arima-model-fitting-d-1}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{arima\_110 }\OtherTok{\textless{}{-}} \FunctionTok{arima}\NormalTok{(train\_ts, }\AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{), }\AttributeTok{method =} \StringTok{"ML"}\NormalTok{)}
+\NormalTok{arima\_011 }\OtherTok{\textless{}{-}} \FunctionTok{arima}\NormalTok{(train\_ts, }\AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{), }\AttributeTok{method =} \StringTok{"ML"}\NormalTok{)}
+\NormalTok{arima\_111 }\OtherTok{\textless{}{-}} \FunctionTok{arima}\NormalTok{(train\_ts, }\AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{), }\AttributeTok{method =} \StringTok{"ML"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-ARIMA Model Fitting-1.pdf}
+
+}
+
+\caption{ARIMA Model Fitting}
+
+\end{figure}%
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-ARIMA Model Fitting-2.pdf}
+
+}
+
+\caption{ARIMA Model Fitting}
+
+\end{figure}%
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-ARIMA Model Fitting-3.pdf}
+
+}
+
+\caption{ARIMA Model Fitting}
+
+\end{figure}%
+
+\begin{verbatim}
+ARIMA(1,1,0): AIC = 301.4389 , Ljung-Box p = 0.005049932 
+\end{verbatim}
+
+\begin{verbatim}
+ARIMA(0,1,1): AIC = 286.6222 , Ljung-Box p = 0.1412433 
+\end{verbatim}
+
+\begin{verbatim}
+ARIMA(1,1,1): AIC = 285.0751 , Ljung-Box p = 0.1265184 
+\end{verbatim}
 
 
 
