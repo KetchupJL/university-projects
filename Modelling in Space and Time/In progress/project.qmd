@@ -126,6 +126,10 @@ These five test points are used consistently in Parts C–E to compare model pre
 
 ## Part C: Empirical Variogram and Spatial Correlation Structure
 
+CHECK IS MAX DIST IS RIGHT, CHECK IF I NEED TO INCLUDE TREND IN VARIOGRAM
+
+USE WEEK 2 PRACTICAL.
+
 ```{r}
 #| warning: false
 #| message: false
@@ -957,9 +961,11 @@ Overall, these insights provide strong justification for fitting **weakly statio
 
 ## Part B
 
-We now investigate suitable ARMA and ARIMA models for the monthly AMOC time series. The time series was converted to a `ts` object of frequency 12, and the final 8 months were held out for validation. This yields a training window from **October 2017 to June 2022**.
+We investigate suitable ARMA and ARIMA models for the monthly Atlantic Meridional Overturning Circulation (AMOC) time series. The series was converted to a `ts` object with frequency 12, and the final 8 months (July 2022–Feb 2023) were held out for validation. This gives a training window from October 2017 to June 2022.
 
-The figure below displays the **autocorrelation (ACF)** and **partial autocorrelation (PACF)** functions for the training set.
+#### Exploratory Diagnostics
+
+To assess the autocorrelation structure, we examine the ACF and PACF of the training data:
 
 ```{r}
 #| label: fig:AMF+PACF
@@ -985,104 +991,11 @@ acf(train_ts, main = "ACF of AMOC (Training Set)")
 pacf(train_ts, main = "PACF of AMOC (Training Set)")
 
 par(mfrow = c(1, 1))  # reset
-
 ```
 
-The **ACF shows a slow decay**, starting from a very strong lag-1 autocorrelation (\> 0.9), which suggests **non-stationarity**. In contrast, the **PACF cuts off sharply after lag 1**, which is characteristic of an **autoregressive process**. These patterns are consistent with the examples presented in **Topic 3b** and **Practical 5**, which show that such behaviour often indicates the need for **first-order differencing**.
+The ACF shows a slow decay from a strong lag-1 autocorrelation (\> 0.9), suggesting non-stationarity. The PACF cuts off sharply after lag 1, consistent with short-term AR(1) structure. Based on this, we apply first-order differencing:
 
-Specifically:
-
--   ACF slow decay → trend/non-stationarity → **suggests `d = 1`**.
-
--   PACF significant only at lag 1 → supports **AR(1)** structure → **`p = 1`**.
-
--   ACF not cutting off quickly → may benefit from **MA term (e.g., `q = 1`)**.
-
-#### **Model Suitability: ARMA and ARIMA for AMOC**
-
-To model the temporal dynamics of the Atlantic Meridional Overturning Circulation (AMOC), both **ARMA** and **ARIMA** models are considered. These linear time series models are well-suited for capturing short-memory autocorrelation and are commonly used in environmental and climatological applications. ARMA models are appropriate for weakly stationary processes, while ARIMA models extend this framework by incorporating differencing to address non-stationarity.
-
-Visual inspection of the autocorrelation structure in the AMOC series reveals strong persistence at lag 1 and a slowly decaying autocorrelation function (ACF), indicative of a non-stationary process. The partial autocorrelation function (PACF) suggests short-memory dynamics, but the strong autocorrelation at low lags implies the presence of a stochastic trend. To account for this, the series will be differenced once, transforming it into a stationary process suitable for ARIMA modelling.
-
-Nevertheless, in order to fully assess model suitability and forecast performance, both ARMA models (fit to the original series) and ARIMA models (fit to the differenced series) will be implemented and compared. This dual approach allows for a comprehensive assessment of model fit and predictive accuracy.
-
-The following models will be considered:
-
--   **ARMA(1,0)** and **ARMA(2,0)**: Autoregressive models fitted to the undifferenced series.
-
--   **ARIMA(1,1,0)**, **ARIMA(0,1,1)**, and **ARIMA(1,1,1)**: Differenced ARMA models to account for the identified non-stationarity.
-
-Model parameters will be estimated using maximum likelihood via the `arima()` function in R. Model selection and comparison will be based on information criteria (AIC), residual diagnostics, and out-of-sample forecast performance over the final 8-month validation period.
-
-#### ARMA Modelling on the Undifferenced Series
-
-To explore the short-term autocorrelation structure in the AMOC series, we first fit ARMA models to the original (undifferenced) monthly data. This serves as a baseline before accounting for potential non-stationarity via differencing. Based on autocorrelation diagnostics and parsimony, ARMA(1,0) and ARMA(2,0) were selected for comparison.
-
-```{r}
-# ARMA Models
-arma_1_0 <- arima(train_ts, order = c(1, 0, 0), method = "ML")
-arma_2_0 <- arima(train_ts, order = c(2, 0, 0), method = "ML")
-```
-
-#### **ARMA(1,0) Model Fit and Diagnostics**
-
-The ARMA(1,0) model estimated the following relationship:
-
-$$
-X_t = 16.88 + 0.28 X_{t-1} + \varepsilon_t, \quad \varepsilon_t \sim \mathcal{N}(0, \sigma^2)
-$$
-
-The model returned an AIC of 286.18. Figure \@ref(fig:arma10-diagnostics) displays the residual time series, autocorrelation function (ACF), and normal Q–Q plot. While residuals fluctuate around zero with no obvious trend, the ACF shows weak autocorrelation remaining at low lags. The Ljung–Box test yielded p-values above 0.05, indicating no significant autocorrelation in residuals. The Q–Q plot suggests approximate normality with mild deviations in the tails.
-
-```{r}
-#| label: fig:ARMA(1,0)
-#| fig-cap: "ARMA(1,0)"
-#| echo: false
-#| warning: false
-#| message: false
-par(mfrow = c(1, 3), mar = c(4, 4, 2, 1))
-plot(residuals(arma_1_0), main = "ARMA(1,0) Residuals", ylab = "Residuals", col = "steelblue")
-acf(residuals(arma_1_0), main = "ACF of Residuals")
-qqnorm(residuals(arma_1_0)); qqline(residuals(arma_1_0))
-```
-
-#### **ARMA(2,0) Model Fit and Diagnostics**
-
-To assess whether a second lag improved the model, an ARMA(2,0) specification was estimated:
-
-$$
-X_t = 16.90 + 0.34 X_{t-1} - 0.21 X_{t-2} + \varepsilon_t, \quad \varepsilon_t \sim \mathcal{N}(0, \sigma^2)
-$$
-
-This model achieved a slightly lower AIC of 285.65. Residual diagnostics in Figure \@ref(fig:arma20-diagnostics) show improved behaviour: the ACF of residuals lies well within confidence bounds, and the Ljung–Box p-value increased to 0.26. The Q–Q plot also shows improved linearity.
-
-```{r}
-#| label: fig:ARMA(2,0)
-#| fig-cap: "ARMA(2,0)"
-#| echo: false
-#| warning: false
-#| message: false
-par(mfrow = c(1, 3), mar = c(4, 4, 2, 1))
-plot(residuals(arma_2_0), main = "ARMA(2,0) Residuals", ylab = "Residuals", col = "darkred")
-acf(residuals(arma_2_0), main = "ACF of Residuals")
-qqnorm(residuals(arma_2_0)); qqline(residuals(arma_2_0))
-par(mfrow = c(1, 1))  # Reset layout
-```
-
-#### Model Comparison
-
-| Model | AIC | AR Coefficients | Ljung–Box p-value | Residual Summary |
-|---------------|---------------|---------------|---------------|---------------|
-| ARMA(1,0) | 286.18 | AR(1) = 0.2807 | \> 0.24 | Some residual autocorrelation |
-| ARMA(2,0) | 285.65 | AR(1) = 0.342, AR(2) = -0.209 | 0.26 | Slightly improved white noise |
-
-While ARMA(2,0) outperforms ARMA(1,0) marginally, both models are limited by their reliance on stationarity. Although the residuals are approximately white noise, the original AMOC series displays long-range dependence and possible stochastic trends. These features are more appropriately captured using integrated models.
-
-#### **Rationale for Transitioning to ARIMA**
-
-To account for non-stationarity observed in the AMOC series, we now apply a first-order differencing transformation and proceed to fit ARIMA(\$p\$,1,\$q\$) models. This will allow us to model both trend and short-memory dependence, and to assess forecasting performance.
-
-### ARIMA Model Fitting
+#### Transforming for Stationarity
 
 ```{r}
 #| label: fig:diff-acf-pacf
@@ -1117,17 +1030,81 @@ pacf(diff_amoc,
 
 Visual inspection of the first-order differenced AMOC series (Figure \@ref(fig:diff-acf-pacf)) indicates improved stationarity, with fluctuations more stable around a constant mean. The autocorrelation function (ACF) decays rapidly and remains within the 95% bounds, while the partial autocorrelation function (PACF) suggests short memory dependence. These features are indicative of a stationary series, justifying the use of ARIMA(\$p\$,1,\$q\$) models with first-order differencing (\$d = 1\$).
 
-Based on the observed cut-offs in the ACF and PACF, we proceed to fit the following candidate models:
+#### **Model Rationale and Modelling Strategy**
 
--   ARIMA(1,1,0) — autoregressive only
+To capture the temporal structure of the Atlantic Meridional Overturning Circulation (AMOC), we consider both **ARMA** and **ARIMA** models. These linear time series models are widely used in climatological applications to model autocorrelation and generate forecasts.
 
--   ARIMA(0,1,1) — moving average only
+Since the **ACF displays strong persistence at lag 1 and decays slowly**, the series is likely **non-stationary**, suggesting the presence of a stochastic trend. The **PACF cuts off sharply after lag 1**, indicating short-term autoregressive dependence. Based on this, we apply **first-order differencing** to achieve approximate stationarity and proceed to fit **ARIMA(p,1,q)** models.
 
--   ARIMA(1,1,1) — combined ARMA structure
+We adopt a two-pronged approach:
 
-### ARIMA Model Fitting (d = 1)
+-   **ARMA models** on the original series, to serve as a baseline.
 
-To model the differenced AMOC series, we fit three candidate ARIMA models based on initial ACF/PACF diagnostics: ARIMA(1,1,0), ARIMA(0,1,1), and ARIMA(1,1,1). Each model was estimated via maximum likelihood, and residuals were assessed for autocorrelation (ACF), normality (Q–Q plot), and whiteness (Ljung–Box test).
+-   **ARIMA models** on the differenced series, to handle non-stationarity.
+
+Candidate models:
+
+-   ARMA(1,0) and ARMA(2,0)
+
+-   ARIMA(1,1,0), ARIMA(0,1,1), ARIMA(1,1,1)
+
+Models are fitted via maximum likelihood using `arima()`, and compared using AIC, residual diagnostics, and Ljung–Box tests.
+
+The following candidate models are selected based on ACF/PACF patterns and parsimony:
+
+-   **ARMA(1,0)** and **ARMA(2,0)**: Autoregressive models without differencing.
+
+-   **ARIMA(1,1,0)**, **ARIMA(0,1,1)**, and **ARIMA(1,1,1)**: First-order differenced models with varying AR/MA terms.
+
+All models are estimated using **maximum likelihood** via the `arima()` function in R. Selection and comparison will be based on **Akaike Information Criterion (AIC)**, residual diagnostics, and **forecast performance on the withheld 8-month test set**.
+
+#### ARMA Model Fitting (Undifferenced Series)
+
+```{r}
+# ARMA Models
+arma_10 <- arima(train_ts, order = c(1,0,0), method = "ML")
+arma_20 <- arima(train_ts, order = c(2,0,0), method = "ML")
+```
+
+The ARMA(1,0) model estimated the following relationship:
+
+$$
+X_t = 16.88 + 0.28 X_{t-1} + \varepsilon_t, \quad \varepsilon_t \sim \mathcal{N}(0, \sigma^2)
+$$ The ARMA(1,0) model estimated the following relationship: $$
+X_t = 16.90 + 0.34 X_{t-1} - 0.21 X_{t-2} + \varepsilon_t, \quad \varepsilon_t \sim \mathcal{N}(0, \sigma^2)
+$$
+
+```{r}
+#| label: fig:arma-diagnostics
+#| fig-cap: "Residual Diagnostics for ARMA(1,0) and ARMA(2,0)"
+#| warning: false
+#| message: false
+
+par(mfrow = c(2,3), mar = c(4,4,2,1))
+plot(residuals(arma_10), main = "ARMA(1,0) Residuals")
+acf(residuals(arma_10), main = "ARMA(1,0) ACF")
+qqnorm(residuals(arma_10)); qqline(residuals(arma_10))
+
+plot(residuals(arma_20), main = "ARMA(2,0) Residuals")
+acf(residuals(arma_20), main = "ARMA(2,0) ACF")
+qqnorm(residuals(arma_20)); qqline(residuals(arma_20))
+par(mfrow = c(1,1))
+```
+
+The **ARMA(1,0)** model yielded an AIC of 286.18. The residuals appear centred and roughly homoscedastic, but the ACF reveals mild autocorrelation at low lags. The Ljung–Box test returned a p-value above 0.05, indicating no statistically significant autocorrelation. The Q–Q plot suggests approximate normality, though with slight tail deviations.
+
+The **ARMA(2,0)** model slightly improved the fit, reducing AIC to 285.65. Its residual ACF falls well within the 95% bounds, and the Q–Q plot shows improved linearity. The Ljung–Box p-value increased to 0.26, indicating weaker residual dependence.
+
+#### Model Comparison
+
+| Model | AIC | AR Coefficients | Ljung–Box p-value | Residual Summary |
+|---------------|---------------|---------------|---------------|---------------|
+| ARMA(1,0) | 286.18 | AR(1) = 0.2807 | \> 0.24 | Some residual autocorrelation |
+| ARMA(2,0) | 285.65 | AR(1) = 0.342, AR(2) = -0.209 | 0.26 | Slightly improved white noise |
+
+While ARMA(2,0) provides a marginal improvement, both models remain constrained by the assumption of stationarity. Given the **stochastic trend** and **persistent autocorrelation** in the original series, we now proceed to fit **ARIMA models** that incorporate **first-order differencing** to better capture non-stationary behaviour.
+
+#### ARIMA Model Fitting (Differenced Series)
 
 ```{r}
 arima_110 <- arima(train_ts, order = c(1,1,0), method = "ML")
@@ -1136,85 +1113,1006 @@ arima_111 <- arima(train_ts, order = c(1,1,1), method = "ML")
 ```
 
 ```{r}
-#| label: fig:ARIMA Model Fitting
-#| fig-cap: "ARIMA Model Fitting"
+#| label: fig:arima-diagnostics
+#| fig-cap: "Residual diagnostics for candidate ARIMA models"
+#| message: false
+#| warning: false
+#| echo: false
+#| fig-width: 12
+#| fig-height: 6
+
+# Diagnostic plotting function
+plot_diagnostics <- function(model, model_name, col_line) {
+  layout(matrix(1:3, 1, 3, byrow = TRUE), widths = c(1.4, 1, 1))  # Widen residual plot
+  par(mar = c(4, 4, 3, 1))  # Margins: bottom, left, top, right
+  
+  # Residual time series
+  plot(residuals(model), type = "l", col = col_line, lwd = 1.2,
+       main = paste(model_name, "Residuals"), ylab = "Residuals", xlab = "Time")
+  
+  # ACF
+  acf(residuals(model), main = "ACF of Residuals", col = "black", lwd = 1.2)
+  
+  # Q–Q plot
+  qqnorm(residuals(model), main = "Normal Q–Q Plot")
+  qqline(residuals(model), col = "red", lwd = 1.2)
+  
+  layout(1)  # Reset layout
+}
+
+# Call function for each ARIMA model
+plot_diagnostics(arima_110, "ARIMA(1,1,0)", "steelblue")
+plot_diagnostics(arima_011, "ARIMA(0,1,1)", "darkred")
+plot_diagnostics(arima_111, "ARIMA(1,1,1)", "darkgreen")
+
+```
+
+```{r}
 #| echo: false
 #| warning: false
 #| message: false
-# ---- Fit Models ----
-arima_110 <- arima(train_ts, order = c(1,1,0), method = "ML")
-arima_011 <- arima(train_ts, order = c(0,1,1), method = "ML")
-arima_111 <- arima(train_ts, order = c(1,1,1), method = "ML")
-
-# ---- Diagnostics for ARIMA(1,1,0) ----
-par(mfrow = c(1, 3), mar = c(4, 4, 2, 1))  # 1 row, 3 columns
-
-plot(residuals(arima_110), type = "l", col = "steelblue", 
-     main = "ARIMA(1,1,0) Residuals", ylab = "Residuals", xlab = "Time")
-
-acf(residuals(arima_110), main = "ACF of Residuals", col = "orange")
-
-qqnorm(residuals(arima_110), main = "Normal Q–Q Plot")
-qqline(residuals(arima_110), col = "red")
-
-par(mfrow = c(1, 1))  # Reset layout
-
-
-# ---- Diagnostics for ARIMA(0,1,1) ----
-par(mfrow = c(1, 3), mar = c(4, 4, 2, 1))
-
-plot(residuals(arima_011), type = "l", col = "darkred", 
-     main = "ARIMA(0,1,1) Residuals", ylab = "Residuals", xlab = "Time")
-
-acf(residuals(arima_011), main = "ACF of Residuals", col = "orange")
-
-qqnorm(residuals(arima_011), main = "Normal Q–Q Plot")
-qqline(residuals(arima_011), col = "red")
-
-par(mfrow = c(1, 1))
-
-# ---- Diagnostics for ARIMA(1,1,1) ----
-par(mfrow = c(1, 3), mar = c(4, 4, 2, 1))
-
-plot(residuals(arima_111), type = "l", col = "darkgreen", 
-     main = "ARIMA(1,1,1) Residuals", ylab = "Residuals", xlab = "Time")
-
-acf(residuals(arima_111), main = "ACF of Residuals", col = "orange")
-
-qqnorm(residuals(arima_111), main = "Normal Q–Q Plot")
-qqline(residuals(arima_111), col = "red")
-
-# ---- Reset layout ----
-par(mfrow = c(1, 1))
 
 # ---- Ljung–Box Tests ----
 lb_110 <- Box.test(residuals(arima_110), lag = 10, type = "Ljung-Box")
 lb_011 <- Box.test(residuals(arima_011), lag = 10, type = "Ljung-Box")
 lb_111 <- Box.test(residuals(arima_111), lag = 10, type = "Ljung-Box")
 
-# ---- AIC + p-value summary ----
-cat("ARIMA(1,1,0): AIC =", AIC(arima_110), ", Ljung-Box p =", lb_110$p.value, "\n")
-cat("ARIMA(0,1,1): AIC =", AIC(arima_011), ", Ljung-Box p =", lb_011$p.value, "\n")
-cat("ARIMA(1,1,1): AIC =", AIC(arima_111), ", Ljung-Box p =", lb_111$p.value, "\n")
+knitr::kable(data.frame(
+  Model = c("ARIMA(1,1,0)", "ARIMA(0,1,1)", "ARIMA(1,1,1)"),
+  AIC = c(AIC(arima_110), AIC(arima_011), AIC(arima_111)),
+  Ljung_Box_p = c(lb_110$p.value, lb_011$p.value, lb_111$p.value),
+  Notes = c("Residual autocorr.", "Good fit", "Best fit")
+), caption = "Comparison of ARIMA Models")
 
 ```
 
--   **ARIMA(1,1,0)** produced a strong Q–Q plot with minimal tail deviation, but its Ljung–Box p-value (p = 0.005) suggests significant autocorrelation in the residuals and a poor model fit (AIC = 301.4).
+#### Findings:
 
--   **ARIMA(0,1,1)** improved substantially, with a lower AIC (286.6) and acceptable residual behaviour (p = 0.14).
+-   The **ARIMA(1,1,0)** model exhibited a strong Q–Q plot with minimal tail deviation; however, its **Ljung–Box p-value was 0.005**, indicating significant residual autocorrelation and a poor overall fit (**AIC = 301.4**).
 
--   **ARIMA(1,1,1)** further reduced AIC to **285.1**, with residuals that appeared approximately white (p = 0.13) and normally distributed.
+-   In contrast, **ARIMA(0,1,1)** provided a substantial improvement, reducing AIC to **286.6** and eliminating most residual autocorrelation (**p = 0.14**), while maintaining reasonably normal residuals.
 
-Overall, **ARIMA(1,1,1)** demonstrates the best balance of fit and diagnostic validity. This model will serve as the benchmark for comparison with alternative approaches.
+-   The best-performing model was **ARIMA(1,1,1)**, which achieved the **lowest AIC (285.1)**, and passed diagnostic checks with approximately white residuals (**p = 0.13**) and a nearly linear Q–Q plot. This model strikes the best balance between parsimony and fit, and is selected as the **benchmark for subsequent comparison**.
 
-### Model Refinement and Justification
+#### Model Refinement and Justification
 
-While ARIMA(0,1,1) and ARIMA(1,1,1) showed acceptable residual diagnostics and model fit, minor autocorrelation remains, and Q–Q plots indicate slight non-normality in the tails. To explore potential improvements, we fit two additional models: **ARIMA(2,1,0)** and **ARIMA(2,1,2)**.
+Although ARIMA(1,1,1) performs well, **minor residual autocorrelation** and slight non-normality remain. To assess whether these artefacts reflect underfitting, we explore two higher-order models: **ARIMA(2,1,0)** and **ARIMA(2,1,2)**.
 
-This refinement is justified by:
+This refinement is motivated by:
 
--   **Persistent autocorrelation** in the differenced ACF/PACF plots.
+-   **Persistent low-lag structure** in the differenced ACF/PACF plots
 
--   **Model flexibility**: higher-order terms may better capture medium-term structure.
+-   The potential for **medium-term dependence** not captured by first-order terms
 
--   **Precedent**: ARIMA(2,1,2) has been shown to improve performance in comparable climatological time series.
+-   Precedent from similar climatological time series, where **ARIMA(2,1,2)** often improves predictive performance.
+
+```{r}
+arima_210 <- arima(train_ts, order = c(2,1,0), method = "ML")
+arima_212 <- arima(train_ts, order = c(2,1,2), method = "ML")
+
+lb_210 <- Box.test(residuals(arima_210), lag = 10, type = "Ljung-Box")
+lb_212 <- Box.test(residuals(arima_212), lag = 10, type = "Ljung-Box")
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+knitr::kable(data.frame(
+  Model = c("ARIMA(2,1,0)", "ARIMA(2,1,2)"),
+  AIC = c(AIC(arima_210), AIC(arima_212)),
+  Ljung_Box_p = c(lb_210$p.value, lb_212$p.value),
+  Notes = c("No clear improvement", "Slight AIC gain, more complex")
+), caption = "Refined ARIMA Models")
+
+```
+
+As shown in Table \@ref(tab:refined-arima-models), **ARIMA(2,1,2)** achieved a modest reduction in AIC compared to ARIMA(1,1,1), and both refined models returned Ljung–Box p-values above 0.3, suggesting no significant autocorrelation in the residuals.
+
+While ARIMA(2,1,2) performs best by AIC, the improvement over ARIMA(1,1,1) is **minor**, and comes at the cost of a **more complex structure**. Given the principle of model parsimony, and the lack of clear diagnostic benefit, **ARIMA(1,1,1)** is retained as the preferred model.
+
+Through ACF/PACF analysis and iterative model fitting, we identified ARIMA(1,1,1) as the most appropriate model for the monthly AMOC series. While higher-order alternatives offered marginal AIC improvements, residual diagnostics and parsimony considerations supported retention of ARIMA(1,1,1).
+
+## Part C: Quarterly Modelling of AMOC
+
+To explore lower-frequency dynamics in the AMOC time series, the data is aggregated from monthly to quarterly averages. This aligns with climatological practice where quarterly data can help reveal medium-term structure by smoothing high-frequency noise.
+
+```{r}
+library(dplyr)
+library(zoo)
+
+moc_df_q <- moc_df %>%
+  mutate(quarter = as.yearqtr(date)) %>%
+  group_by(quarter) %>%
+  summarise(amoc_q = mean(amoc, na.rm = TRUE)) %>%
+  ungroup()
+```
+
+The quarterly data is then converted to a time series object (frequency = 4) spanning 2017 Q1 to 2023 Q1. The final two quarters are withheld for out-of-sample forecast validation.
+
+```{r}
+# Create quarterly time series
+amoc_q_ts <- ts(moc_df_q$amoc_q, start = c(2017, 3), frequency = 4)
+
+# Training = up to 2022 Q2
+train_q_ts <- window(amoc_q_ts, end = c(2022, 3))
+
+# Testing = 2022 Q3 and 2022 Q4
+test_q_ts <- window(amoc_q_ts, start = c(2022, 4), end = c(2023, 1))
+
+```
+
+### ACF and PACF of Quarterly AMOC
+
+```{r}
+#| label: fig:acf-pacf-quarterly
+#| fig-cap: "ACF and PACF of Quarterly AMOC (Training Set)"
+#| echo: true
+#| message: false
+#| warning: false
+
+par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
+
+acf(train_q_ts, main = "ACF - Quarterly AMOC", lag.max = 20)
+pacf(train_q_ts, main = "PACF - Quarterly AMOC", lag.max = 20)
+
+par(mfrow = c(1, 1))  # Reset layout
+```
+
+The autocorrelation structure of the quarterly AMOC series is shown in Figure \@ref(fig:acf-pacf-quarterly).
+
+-   The ACF exhibits a very strong spike at lag 1, followed by a gradual decay, indicating the presence of a stochastic trend and non-stationarity.
+
+-   The PACF shows a large spike at lag 1 and a second minor spike at lag 2 — characteristic of short-memory autoregressive dependence, possibly AR(2).
+
+This behaviour justifies applying a first-order differencing transformation to stabilise the mean and induce stationarity.
+
+#### First-Order Differencing of Quarterly Series
+
+```{r}
+# First-order differencing
+diff_q <- diff(train_q_ts)
+
+# Plot ACF and PACF of differenced series
+par(mfrow = c(1, 2), mar = c(4, 4, 3, 2))
+acf(diff_q, main = "ACF - Differenced Quarterly AMOC")
+pacf(diff_q, main = "PACF - Differenced Quarterly AMOC")
+par(mfrow = c(1, 1))
+```
+
+The **ACF** plot displays a prominent spike at lag 1, followed by smaller but non-trivial spikes at subsequent lags. Notably, a spike at approximately lag 1.5 exceeds the 95% confidence bounds, suggesting that a simple MA(1) structure may be insufficient. Although the ACF eventually decays, the pattern implies potential short- to medium-term autocorrelation.
+
+The **PACF** plot reveals significant spikes at **lags 1 and 2**, with possible weaker structure beyond. This indicates that a higher-order autoregressive component (AR(2)) may be needed to adequately capture the dependence structure.
+
+These patterns diverge from the clean cutoff typical of simpler ARIMA(1,1,0) or ARIMA(0,1,1) processes, and instead suggest richer dynamics. Based on this, we extend our candidate model set beyond ARIMA(1,1,1), considering additional terms to capture persistent structure.
+
+The following models are proposed for evaluation:
+
+-   **ARIMA(1,1,1)** – baseline model
+
+-   **ARIMA(2,1,1)** – to capture potential AR(2) structure
+
+-   **ARIMA(1,1,2)** – to address higher-order MA dynamics
+
+-   **ARIMA(2,1,2)** – a flexible model for medium-term correlation
+
+These models will be fitted via maximum likelihood, with performance evaluated using AIC, residual diagnostics (ACF, Q–Q plots), and the Ljung–Box test to assess remaining autocorrelation. The goal is to identify a parsimonious yet well-fitting model for forecasting quarterly AMOC variability.
+
+#### Fitting ARIMA Models to Quarterly Data
+
+```{r}
+# Fit candidate ARIMA models to quarterly data
+arima_111_q <- arima(train_q_ts, order = c(1, 1, 1), method = "ML")
+arima_211_q <- arima(train_q_ts, order = c(2, 1, 1), method = "ML")
+arima_112_q <- arima(train_q_ts, order = c(1, 1, 2), method = "ML")
+arima_212_q <- arima(train_q_ts, order = c(2, 1, 2), method = "ML")
+
+# Ljung–Box tests at lag 5
+lb_111_q <- Box.test(residuals(arima_111_q), lag = 5, type = "Ljung-Box")
+lb_211_q <- Box.test(residuals(arima_211_q), lag = 5, type = "Ljung-Box")
+lb_112_q <- Box.test(residuals(arima_112_q), lag = 5, type = "Ljung-Box")
+lb_212_q <- Box.test(residuals(arima_212_q), lag = 5, type = "Ljung-Box")
+
+# Create summary table
+arima_q_table <- data.frame(
+  Model = c("ARIMA(1,1,1)", "ARIMA(2,1,1)", "ARIMA(1,1,2)", "ARIMA(2,1,2)"),
+  AIC = c(AIC(arima_111_q), AIC(arima_211_q), AIC(arima_112_q), AIC(arima_212_q)),
+  Ljung_Box_p = c(lb_111_q$p.value, lb_211_q$p.value, lb_112_q$p.value, lb_212_q$p.value)
+)
+
+knitr::kable(arima_q_table, digits = 4, caption = "Comparison of ARIMA Models for Quarterly AMOC")
+
+```
+
+The best-performing model by AIC is **ARIMA(1,1,1)**, with an AIC of 92.73 and a Ljung–Box p-value of 0.57, indicating no significant autocorrelation in the residuals. While **ARIMA(2,1,1)** and **ARIMA(1,1,2)** offer similar diagnostic performance, they are slightly less parsimonious and yield marginally higher AIC values. **ARIMA(2,1,2)**, the most complex model considered, performs notably worse, with both the highest AIC and no diagnostic advantage.
+
+To validate our chosen ARIMA(1,1,1) model for the quarterly AMOC series, we compare it against an automated selection using `auto.arima()` from the `forecast` package. This allows us to assess whether more data-driven model selection yields substantial improvements.
+
+```{r}
+library(forecast)
+# Auto.arima with non-seasonal specification
+auto_arima <- auto.arima(train_ts, seasonal = FALSE, stepwise = FALSE, approximation = FALSE)
+
+# Summary of selected model
+summary(auto_arima)
+```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+# Ljung-Box Test for residual autocorrelation
+lb_manual <- Box.test(residuals(arima_111), lag = 10, type = "Ljung-Box")
+lb_auto   <- Box.test(residuals(auto_arima), lag = 10, type = "Ljung-Box")
+
+# Diagnostic plotting function
+plot_diagnostics <- function(model, model_name, col_line) {
+  layout(matrix(1:3, 1, 3, byrow = TRUE), widths = c(1.4, 1, 1))
+  par(mar = c(4, 4, 3, 1))
+
+  plot(residuals(model), type = "l", col = col_line, lwd = 1.2,
+       main = paste(model_name, "Residuals"), ylab = "Residuals", xlab = "Time")
+  acf(residuals(model), main = "ACF of Residuals", col = "black", lwd = 1.2)
+  qqnorm(residuals(model), main = "Normal Q–Q Plot")
+  qqline(residuals(model), col = "red", lwd = 1.2)
+
+  layout(1)
+}
+
+# Plot for ARIMA(1,1,1)
+plot_diagnostics(arima_111, "ARIMA(1,1,1)", "darkgreen")
+
+# Plot for auto.arima
+plot_diagnostics(auto_arima, "auto.arima", "purple")
+```
+
+The selected model was ARIMA(2,1,2), with an AIC of 279.11 — notably lower than the manually fitted ARIMA(1,1,1) (AIC = 285.08).
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+library(gt)
+
+# Create comparison table
+data.frame(
+  Model = c("ARIMA(1,1,1)", paste0("auto.arima (", auto_arima$arma[1], ",1,", auto_arima$arma[2], ")")),
+  AIC = c(AIC(arima_111), AIC(auto_arima)),
+  Ljung_Box_p = c(lb_manual$p.value, lb_auto$p.value)
+) %>%
+  gt() %>%
+  tab_header(
+    title = "Comparison of Manual and auto.arima Models for Quarterly AMOC"
+  ) %>%
+  fmt_number(columns = c(AIC, Ljung_Box_p), decimals = 4)
+
+```
+
+### Residual Diagnostics Comparison
+
+Residual plots for both models (ARIMA(1,1,1) and auto.arima ARIMA(2,1,2)) show:
+
+-   Residuals are approximately centred around zero.
+
+-   The ACF shows no significant autocorrelation.
+
+-   The Q-Q plot shows approximate normality.
+
+While `auto.arima()` identified a more complex ARIMA(2,1,2) model with superior AIC, the simpler ARIMA(1,1,1) still performs well — producing acceptable residual behaviour and satisfying parsimony principles. The slight trade-off in AIC is justified given the desire for interpretability and alignment with the identified ACF/PACF structure.
+
+#### Sarima Models:
+
+Although the quarterly AMOC series showed no clear seasonal structure in the initial ACF and PACF plots, SARIMA models were fitted as a robustness check to confirm the absence of seasonal effects. Specifically, SARIMA(1,1,0)(0,0,1)\[4\] and SARIMA(0,1,1)(0,0,1)\[4\] were tested, where the seasonal period was set to 4 to correspond with quarterly data.
+
+Both models performed worse than the non-seasonal ARIMA(1,1,1) model. The SARIMA(1,1,0)(0,0,1)\[4\] model returned an AIC of 290.5, while SARIMA(0,1,1)(0,0,1)\[4\] produced an AIC of 292.0. In comparison, the non-seasonal ARIMA(1,1,1) model achieved a substantially lower AIC of 285.1. Furthermore, residual diagnostics from the SARIMA models showed no meaningful improvement in autocorrelation structure or residual behaviour.
+
+#### Additional Residual Diagnostics: ARCH Test
+
+While residual autocorrelation and normality have been adequately addressed via Ljung-Box tests and Q-Q plots, it is also important to verify the assumption of constant residual variance (homoscedasticity). Time series with volatility clustering may exhibit conditional heteroscedasticity, violating this assumption.
+
+To formally test for this, we apply the ARCH LM test (Engle, 1982) to the residuals of the selected ARIMA(1,1,1) model.
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+# Load FinTS package for ARCH test
+library(FinTS)
+
+# ARCH LM test with 12 lags
+arch_test <- ArchTest(residuals(arima_111_q), lags = 12)
+arch_test
+```
+
+The ARCH LM test returned a p-value of 0.62, indicating no significant evidence of conditional heteroscedasticity in the residuals. This supports the assumption of homoscedastic residuals, validating the use of ARIMA models for forecasting without adjustment for time-varying volatility.
+
+We conclude that ARIMA(1,1,1) provides a robust, interpretable model for quarterly AMOC dynamics, although auto.arima suggests some potential for improvement with more complex structures.
+
+## Part D – Fitting Dynamic Linear Models
+
+Dynamic Linear Models (DLMs) provide a flexible and powerful framework for modelling time series data in which the underlying level and trend components may evolve over time. This approach is particularly appropriate for environmental data such as the AMOC, where the underlying patterns and behaviour can vary across different periods. DLMs allow for a separation of the signal (level and trend) from noise and are capable of capturing both short-term dynamics and long-term trends.
+
+### Model Set Up
+
+#### General State Space Formulation:
+
+The DLM structure applied follows the general state-space formulation, defined by the observation and system equations:
+
+-   Observation Equation:
+
+-   System Equation:
+
+Where represents the observed AMOC value at time , is the unobserved state vector containing the level, trend, and seasonal components, and and represent the observation and system variances, respectively.
+
+#### Monthly AMOC DML:
+
+To investigate seasonal behaviour within the monthly AMOC series, a seasonal differencing with lag 12 was applied (Figure \@ref(fig:seasonal-diff)). This is standard for monthly data to assess repeating annual structure.
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+library(dplyr)
+library(zoo)
+library(dlm)
+library(FinTS)
+library(forecast)
+plot(diff(train_ts, lag=12), 
+     main="Seasonal Difference (lag=12) - Monthly AMOC",
+     ylab="Difference", xlab="Time", col="steelblue", lwd=2)
+```
+
+Seasonal differencing at lag 12 breveals a clear repeating pattern in the monthly AMOC series, supporting the inclusion of a seasonal component in the DLM specification.
+
+#### Residual Diagnostics:
+
+```{r}
+library(dlm)
+
+# Monthly DLM with Trend + Seasonality
+build_month_dlm <- function(parm) {
+  dlmModPoly(order=2, dV=exp(parm[1]), dW=c(0, exp(parm[2]))) +
+    dlmModSeas(frequency=12, dV=0)
+}
+
+fit_month_dlm <- dlmMLE(train_ts, parm=rep(0,2), build=build_month_dlm)
+mod_month_dlm <- build_month_dlm(fit_month_dlm$par)
+filt_month_dlm <- dlmFilter(train_ts, mod_month_dlm)
+
+resid_month <- residuals(filt_month_dlm, type="raw")$res
+
+```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+par(mfrow=c(1,3))
+plot(resid_month, type='l', main="Monthly DLM Residuals", ylab="Residuals", col='darkgreen')
+acf(resid_month, main="ACF of Residuals")
+qqnorm(resid_month); qqline(resid_month, col="red")
+par(mfrow=c(1,1))
+```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+Box.test(resid_month, lag=10, type="Ljung-Box")
+ArchTest(resid_month, lags=12)
+```
+
+A DLM with a local linear trend and seasonal component (frequency = 12) was fitted to the monthly AMOC data using maximum likelihood estimation. Residual diagnostics revealed that the residuals fluctuated around zero but exhibited increasing variance over time, indicative of heteroscedasticity. The ACF plot indicated mild autocorrelation at lag 1, while the Q-Q plot suggested approximate normality with heavier tails.
+
+Formal tests supported these findings:
+
+-   Ljung-Box test (lag=10): *p* = 0.032 → Evidence of residual autocorrelation.
+
+-   ARCH LM test (lags=12): *p* = 0.008 → Strong evidence of conditional heteroscedasticity.
+
+While the monthly DLM adequately captured the main dynamics of the series, residual behaviour indicated potential improvements could be made by allowing for time-varying volatility.
+
+#### Fitting Quarterly AMOC DLM
+
+Given the lower frequency of the quarterly data, the seasonal pattern was less pronounced. Nonetheless, a seasonal component with frequency 4 was included for consistency.
+
+```{r}
+build_quarter_dlm <- function(parm) {
+  dlmModPoly(order=2, dV=exp(parm[1]), dW=c(0, exp(parm[2]))) +
+    dlmModSeas(frequency=4, dV=0)
+}
+
+fit_quarter_dlm <- dlmMLE(train_q_ts, parm=rep(0,2), build=build_quarter_dlm)
+mod_quarter_dlm <- build_quarter_dlm(fit_quarter_dlm$par)
+filt_quarter_dlm <- dlmFilter(train_q_ts, mod_quarter_dlm)
+
+resid_quarter <- residuals(filt_quarter_dlm, type="raw")$res
+```
+
+Residual Diagnostics:
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+# 6. Residual Diagnostics for Quarterly DLM
+par(mfrow=c(1,3))
+plot(resid_quarter, type='l', main="Quarterly DLM Residuals", ylab="Residuals", col='darkblue')
+acf(resid_quarter, main="ACF of Residuals")
+qqnorm(resid_quarter); qqline(resid_quarter, col="red")
+par(mfrow=c(1,1))
+
+```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+# 7. Residual Tests
+Box.test(resid_quarter, lag=5, type="Ljung-Box")
+ArchTest(resid_quarter, lags=5)
+```
+
+The quarterly AMOC series was modelled using a local linear trend DLM with a seasonal component (frequency = 4). Residual diagnostics indicated that the residuals fluctuated around zero with stable variance. The ACF showed no significant autocorrelation, and the Q-Q plot indicated near-normal behaviour.
+
+Formal tests confirmed these results:
+
+-   Ljung-Box test (lag=5): *p* = 0.104 → No evidence of residual autocorrelation.
+
+-   ARCH LM test (lags=5): *p* = 0.110 → No evidence of conditional heteroscedasticity.
+
+The quarterly DLM performed well, with residuals satisfying key modelling assumptions.
+
+Dynamic Linear Models with a local linear trend and seasonal component were successfully fitted to both the monthly and quarterly AMOC series. The seasonal differencing plot for the monthly series confirmed the presence of a repeating annual pattern, justifying the seasonal component. Residual diagnostics highlighted that while the quarterly DLM provided a clean and robust fit, the monthly DLM exhibited minor residual autocorrelation and evidence of conditional heteroscedasticity, consistent with higher-frequency environmental variability. Nonetheless, both models provide a suitable basis for forecasting, which will be explored in Part E.
+
+## Part E: Forecasting AMOC using ARIMA and DLM Models
+
+#### Forecasting Methodology
+
+To assess the short-term predictability of AMOC, ARIMA(1,1,1) and Dynamic Linear Models (DLM) were fitted to both the monthly and quarterly datasets. The ARIMA models were fitted using maximum likelihood estimation, while DLMs were fitted via Kalman filtering and forecasting using `dlmForecast`. The training set consisted of all observations up to 2022 Q2 (Quarterly) or 8 months before the end of the monthly data. The test set covered the subsequent two quarters or eight months.
+
+#### 
+
+#### Forecasting ARIMA models
+
+```{r}
+library(forecast)
+
+#Forecasting the monthly data (arima_111) for 8 months ahead
+forecast_monthly_arima <- forecast(arima_111, h=8)
+
+# Forecasting the quarterly data (arima_111_q) for 2 quarters ahead
+forecast_quarterly_arima <- forecast(arima_111_q, h=2)
+```
+
+#### Forecasting DLM models
+
+```{r}
+library(dlm)
+
+forecast_dlm_monthly <- dlmForecast(filt_month_dlm, nAhead=8)
+forecast_dlm_quarterly <- dlmForecast(filt_quarter_dlm, nAhead=2)
+```
+
+### Plotting the Forecasted Values:
+
+#### Monthly AMOC Forecast
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+# Combine train, test, forecast, and intervals for Monthly ARIMA
+monthly_arima_combined <- ts.union(
+  train_ts,
+  test_ts,
+  forecast_monthly_arima$mean,
+  forecast_monthly_arima$lower[,2],
+  forecast_monthly_arima$upper[,2]
+)
+
+# Prepare monthly data frame
+monthly_df <- data.frame(
+  Time = time(monthly_arima_combined),
+  Observed = as.numeric(monthly_arima_combined[,1]),
+  Actual = as.numeric(monthly_arima_combined[,2]),
+  Forecast = as.numeric(monthly_arima_combined[,3]),
+  Lower = as.numeric(monthly_arima_combined[,4]),
+  Upper = as.numeric(monthly_arima_combined[,5])
+)
+
+monthly_arima_plot <- ggplot(monthly_df, aes(x=Time)) +
+  geom_line(aes(y=Observed, col="Observed (Train)")) +
+  geom_line(aes(y=Actual, col="Actual (Test)")) +
+  geom_line(aes(y=Forecast, col="Forecast"), linetype="dashed") +
+  geom_ribbon(aes(ymin=Lower, ymax=Upper), fill="blue", alpha=0.2) +
+  geom_vline(xintercept=max(time(train_ts)), linetype="dotted") +
+  labs(title="Monthly ARIMA(1,1,1) Forecast", y="AMOC Value", x="Time") +
+  scale_color_manual(values=c("black", "green", "red")) +
+  theme_minimal() +
+  theme(legend.title=element_blank())
+
+```
+
+#### Monthly DML
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+# DLM forecast values and intervals
+dlm_monthly_mean <- forecast_dlm_monthly$f
+dlm_monthly_sd <- sqrt(unlist(forecast_dlm_monthly$Q))
+
+# Combine train, test, DLM forecast and intervals for Monthly DLM
+monthly_dlm_combined <- ts.union(
+  train_ts,
+  test_ts,
+  dlm_monthly_mean,
+  dlm_monthly_mean - 1.96 * dlm_monthly_sd,
+  dlm_monthly_mean + 1.96 * dlm_monthly_sd
+)
+
+monthly_dlm_df <- data.frame(
+  Time = time(monthly_dlm_combined),
+  Observed = as.numeric(monthly_dlm_combined[,1]),
+  Actual = as.numeric(monthly_dlm_combined[,2]),
+  Forecast = as.numeric(monthly_dlm_combined[,3]),
+  Lower = as.numeric(monthly_dlm_combined[,4]),
+  Upper = as.numeric(monthly_dlm_combined[,5])
+)
+
+monthly_dlm_plot <- ggplot(monthly_dlm_df, aes(x=Time)) +
+  geom_line(aes(y=Observed, col="Observed (Train)")) +
+  geom_line(aes(y=Actual, col="Actual (Test)")) +
+  geom_line(aes(y=Forecast, col="Forecast"), linetype="dashed") +
+  geom_ribbon(aes(ymin=Lower, ymax=Upper), fill="blue", alpha=0.2) +
+  geom_vline(xintercept=max(time(train_ts)), linetype="dotted") +
+  labs(title="Monthly DLM Forecast", y="AMOC Value", x="Time") +
+  scale_color_manual(values=c("black", "green", "red")) +
+  theme_minimal() +
+  theme(legend.title=element_blank())
+
+```
+
+```{r}
+#| label: fig:monthlyforecast
+#| fig-cap: "Monthly AMOC forecasts from ARIMA(1,1,1) and DLM models shown side-by-side. ARIMA demonstrates slightly narrower prediction intervals with improved forecast accuracy relative to DLM over the 8-month test period."
+#| echo: false
+#| message: false
+#| warning: false
+library(patchwork)
+
+monthly_arima_plot + monthly_dlm_plot + 
+  plot_layout(ncol=2, guides = "collect") & 
+  theme(legend.position = "bottom")
+```
+
+Quarterly ARIMA
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+quarterly_arima_combined <- ts.union(
+  train_q_ts, test_q_ts,
+  forecast_quarterly_arima$mean,
+  forecast_quarterly_arima$lower[,2],
+  forecast_quarterly_arima$upper[,2]
+)
+
+quarterly_arima_df <- data.frame(
+  Time = time(quarterly_arima_combined),
+  Observed = as.numeric(quarterly_arima_combined[,1]),
+  Actual = as.numeric(quarterly_arima_combined[,2]),
+  Forecast = as.numeric(quarterly_arima_combined[,3]),
+  Lower = as.numeric(quarterly_arima_combined[,4]),
+  Upper = as.numeric(quarterly_arima_combined[,5])
+)
+
+quarterly_arima_plot <- ggplot(quarterly_arima_df, aes(x=Time)) +
+  geom_line(aes(y=Observed, col="Observed (Train)")) +
+  geom_line(aes(y=Actual, col="Actual (Test)")) +
+  geom_line(aes(y=Forecast, col="Forecast"), linetype="dashed") +
+  geom_ribbon(aes(ymin=Lower, ymax=Upper), fill="blue", alpha=0.2) +
+  geom_vline(xintercept=max(time(train_q_ts)), linetype="dotted") +
+  labs(title="Quarterly ARIMA(1,1,1) Forecast", y="AMOC Value", x="Time") +
+  scale_color_manual(values=c("black", "green", "red")) +
+  theme_minimal() +
+  theme(legend.title=element_blank())
+
+
+```
+
+Quarterly DLM
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+# DLM forecast values and intervals for Quarterly
+dlm_quarterly_mean <- forecast_dlm_quarterly$f
+dlm_quarterly_sd <- sqrt(unlist(forecast_dlm_quarterly$Q))
+
+# Combine train, test, DLM forecast mean and intervals
+quarterly_dlm_combined <- ts.union(
+  train_q_ts,
+  test_q_ts,
+  dlm_quarterly_mean,
+  dlm_quarterly_mean - 1.96 * dlm_quarterly_sd,
+  dlm_quarterly_mean + 1.96 * dlm_quarterly_sd
+)
+
+quarterly_dlm_df <- data.frame(
+  Time = time(quarterly_dlm_combined),
+  Observed = as.numeric(quarterly_dlm_combined[,1]),
+  Actual = as.numeric(quarterly_dlm_combined[,2]),
+  Forecast = as.numeric(quarterly_dlm_combined[,3]),
+  Lower = as.numeric(quarterly_dlm_combined[,4]),
+  Upper = as.numeric(quarterly_dlm_combined[,5])
+)
+
+
+quarterly_dlm_plot <- ggplot(quarterly_dlm_df, aes(x=Time)) +
+  geom_line(aes(y=Observed, col="Observed (Train)")) +
+  geom_line(aes(y=Actual, col="Actual (Test)")) +
+  geom_line(aes(y=Forecast, col="Forecast"), linetype="dashed") +
+  geom_ribbon(aes(ymin=Lower, ymax=Upper), fill="blue", alpha=0.2) +
+  geom_vline(xintercept=max(time(train_q_ts)), linetype="dotted") +
+  labs(title="Quarterly DLM Forecast", y="AMOC Value", x="Time") +
+  scale_color_manual(values=c("black", "green", "red")) +
+  theme_minimal() +
+  theme(legend.title=element_blank())
+
+
+```
+
+```{r}
+#| label: fig:quarterlyforecast
+#| fig-cap: "Quarterly AMOC forecasts from ARIMA(1,1,1) and DLM models shown side-by-side. While both models capture the broad trend, ARIMA outperforms DLM with lower forecast uncertainty and error over the 2-quarter test set."
+
+#| echo: false
+#| message: false
+#| warning: false
+library(patchwork)
+
+quarterly_arima_plot + quarterly_dlm_plot + 
+  plot_layout(ncol=2, guides = "collect") & 
+  theme(legend.position = "bottom")
+
+```
+
+Figures X and Y below present side-by-side visual comparisons of the ARIMA and DLM forecasts for both the monthly and quarterly datasets. The solid black line indicates the observed training data, the red dashed line represents the forecast values, while the green line represents the true values from the test set. Shaded regions indicate the 95% prediction intervals.
+
+Both models capture the broad trend in AMOC reasonably well. However, prediction intervals for the DLM models are generally wider, reflecting greater forecast uncertainty.
+
+#### Model Prediction Accuracy
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+
+# Monthly ARIMA accuracy
+acc_monthly_arima <- accuracy(forecast_monthly_arima, test_ts)
+mae_monthly_arima <- acc_monthly_arima["Test set", "MAE"]
+rmse_monthly_arima <- acc_monthly_arima["Test set", "RMSE"]
+
+# Quarterly ARIMA accuracy
+acc_quarterly_arima <- accuracy(forecast_quarterly_arima, test_q_ts)
+mae_quarterly_arima <- acc_quarterly_arima["Test set", "MAE"]
+rmse_quarterly_arima <- acc_quarterly_arima["Test set", "RMSE"]
+
+# DLM Monthly accuracy
+dlm_monthly_mean <- as.numeric(forecast_dlm_monthly$f)
+actual_monthly <- as.numeric(test_ts)
+mae_monthly_dlm <- mean(abs(actual_monthly - dlm_monthly_mean))
+rmse_monthly_dlm <- sqrt(mean((actual_monthly - dlm_monthly_mean)^2))
+
+# DLM Quarterly accuracy
+dlm_quarterly_mean <- as.numeric(forecast_dlm_quarterly$f)
+actual_quarterly <- as.numeric(test_q_ts)
+mae_quarterly_dlm <- mean(abs(actual_quarterly - dlm_quarterly_mean))
+rmse_quarterly_dlm <- sqrt(mean((actual_quarterly - dlm_quarterly_mean)^2))
+
+```
+
+Summary Table
+
+```{r}
+#| label: tab:forecastacc
+#| tbl-cap: "Forecast accuracy summary for ARIMA(1,1,1) and DLM models fitted to monthly and quarterly AMOC series. ARIMA generally outperforms DLM, particularly for quarterly forecasts, as indicated by lower MAE and RMSE values."
+#| echo: false
+#| message: false
+#| warning: false
+
+library(knitr)
+
+# Create summary dataframe
+summary_df <- data.frame(
+  Model = c("ARIMA(1,1,1)", "DLM", "ARIMA(1,1,1)", "DLM"),
+  Frequency = c("Monthly", "Monthly", "Quarterly", "Quarterly"),
+  MAE = round(c(mae_monthly_arima, mae_monthly_dlm, mae_quarterly_arima, mae_quarterly_dlm), 3),
+  RMSE = round(c(rmse_monthly_arima, rmse_monthly_dlm, rmse_quarterly_arima, rmse_quarterly_dlm), 3)
+)
+
+# Output professional summary table
+kable(summary_df, caption = "Forecast Accuracy Summary for AMOC Models",
+      col.names = c("Model", "Data Frequency", "MAE", "RMSE"),
+      align = c("c", "c", "c", "c"))
+
+```
+
+Results indicate that ARIMA models outperform DLMs in terms of predictive accuracy for both the monthly and quarterly datasets, particularly for quarterly forecasts where DLM exhibits higher error metrics. This likely reflects the more parsimonious structure of the ARIMA model being better suited to short-term forecasting in this context.
+
+#### Final Discussion
+
+Overall, ARIMA(1,1,1) provided superior short-term forecasts for AMOC, especially for quarterly data. While DLMs offer a flexible modelling framework that can accommodate time-varying parameters and capture dynamic behaviour, their greater forecast uncertainty and wider intervals suggest over-parameterisation or structural challenges given the short available test set. The tight intervals and lower error values from ARIMA models justify their use for operational short-term forecasting of AMOC.
+
+# California daily temperatures
+
+## Part A: Exploratory Analysis of Spatial and Temporal Relationships
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+temps <- read.csv("~/GitHub/university-projects/Modelling in Space and Time/In progress/MaxTempCalifornia.csv")
+meta <- read_csv("~/GitHub/university-projects/Modelling in Space and Time/In progress/metadataCA.csv")
+
+library(ggmap)
+library(ggspatial)
+library(sf)
+library(dplyr)
+library(viridis)
+
+```
+
+This section presents an exploratory analysis of daily maximum temperatures recorded at 11 sites across California during 2012, focusing on spatial variation driven by site elevation and coastal proximity.
+
+#### Summary Statistics Table
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+library(dplyr)
+library(gt)
+
+temps_long <- read.csv("MaxTempCalifornia.csv") %>%
+  pivot_longer(-Date, names_to = "Site", values_to = "Temp") %>%
+  mutate(Date = as.Date(as.character(Date), format = "%Y%m%d")) %>%
+  left_join(meta, by = c("Site" = "Location"))
+
+temps_long <- temps_long %>%
+  mutate(Site_order = reorder(Site, Temp, mean))
+
+summary_table <- temps_long %>%
+  group_by(Site) %>%
+  summarise(
+    Mean_Temp = round(mean(Temp, na.rm = TRUE), 1),
+    Median_Temp = round(median(Temp, na.rm = TRUE), 1),
+    Min_Temp = round(min(Temp, na.rm = TRUE), 1),
+    Max_Temp = round(max(Temp, na.rm = TRUE), 1),
+    SD_Temp = round(sd(Temp, na.rm = TRUE), 1)
+  ) %>%
+  arrange(desc(Mean_Temp))
+
+summary_table %>%
+  gt() %>%
+  tab_header(
+    title = "Summary Statistics of Maximum Daily Temperatures",
+    subtitle = "Across 11 California Sites (2012)"
+  ) %>%
+  cols_label(
+    Site = "Site",
+    Mean_Temp = "Mean (°C)",
+    Median_Temp = "Median (°C)",
+    Min_Temp = "Min (°C)",
+    Max_Temp = "Max (°C)",
+    SD_Temp = "SD (°C)"
+  )
+```
+
+Table 10 summarises key temperature statistics. Inland sites generally recorded higher mean temperatures and greater variability than coastal locations.
+
+Death Valley recorded both the highest mean temperature (34.5°C) and the largest variability (SD = 10.5°C), reflecting its extreme inland desert climate. Other inland sites like Barstow (Mean = 27.2°C) and Fresno (Mean = 26.4°C) showed similar patterns.
+
+In contrast, coastal sites like San Francisco (Mean = 18.3°C, SD = 4.0°C) and Santa Cruz (Mean = 20.8°C, SD = 4.8°C) were substantially cooler and more stable, reflecting the moderating influence of the Pacific Ocean.
+
+While elevation does affect temperatures to some extent — with higher inland sites like Redding (1041m) recording lower mean temperatures than nearby lowland regions — coastal proximity remains the dominant driver of temperature patterns.
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 7
+#| label: ca_map_elevation
+#| fig-cap: "Spatial distribution of the 11 temperature monitoring sites across California, overlaid on a terrain basemap."
+
+
+register_stadiamaps(key = "6464b0dc-0207-4438-b618-4894b33199d5")
+
+# Convert to sf object
+meta_sf <- st_as_sf(meta, coords = c("Long", "Lat"), crs = 4326)
+
+ca_map <- get_stadiamap(bbox = c(left = -125, bottom = 32, right = -114, top = 42),
+                        zoom = 7, maptype = "stamen_terrain")
+
+
+# Plot with elevation gradient
+ggmap(ca_map) +
+  geom_sf(data = meta_sf, inherit.aes = FALSE, aes(color = Elev), size = 3) +
+  geom_text(data = meta, aes(x = Long, y = Lat, label = Location), size = 3, color = "black") +
+  scale_color_viridis(
+    option = "C",
+    name = "Elevation (m)",
+    trans = "sqrt",
+    breaks = c(0, 250, 500, 1000, 1500),
+    limits = c(0, 1500)
+  ) +
+  ggtitle("California Sites with Elevation Context") +
+  theme_minimal()
+
+```
+
+Figure 20 shows the spatial distribution of the monitoring sites, coloured by elevation. Elevation varies considerably across locations, from sea level at Santa Cruz (0m) and San Francisco (16m), to inland higher-elevation sites like Redding (1041m) and Cedar Park (948m).
+
+Death Valley is notable for sitting inland at -86m below sea level, while other inland sites like Barstow (665m) and Fresno (92m) lie further from the coast, despite moderate elevation.
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 9
+#| fig-height: 6
+#| label: ca_temp_ridgeline
+#| fig-cap: "Distribution of maximum daily temperatures across 11 California sites in 2012. Sites are ordered by mean temperature. The colour gradient transitions from cooler temperatures (blue) to warmer temperatures (red), enhancing interpretability. Death Valley recorded the hottest temperature (52.8°C), while Santa Cruz recorded the coldest (-6.1°C)."
+
+
+library(ggridges)
+library(dplyr)
+library(hrbrthemes)
+
+temps_long <- read.csv("MaxTempCalifornia.csv") %>%
+  pivot_longer(-Date, names_to = "Site", values_to = "Temp") %>%
+  mutate(Date = as.Date(as.character(Date), format = "%Y%m%d")) %>%
+  left_join(meta, by = c("Site" = "Location"))
+
+temps_long <- temps_long %>%
+  mutate(Site_order = reorder(Site, Temp, mean))
+
+
+temps_long %>%
+  ggplot(aes(x = Temp, y = Site_order, fill = ..x..)) +
+  geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
+  annotate("text", 
+           x = max(temps_long$Temp) + 1, 
+           y = temps_long %>% filter(Temp == max(Temp)) %>% pull(Site_order) %>% unique(),
+           label = paste0("Hottest: ", max(temps_long$Temp), "°C"), 
+           hjust=0, size=3) +
+  annotate("text", 
+           x = min(temps_long$Temp) - 1, 
+           y = temps_long %>% filter(Temp == min(Temp)) %>% pull(Site_order) %>% unique(),
+           label = paste0("Coldest: ", min(temps_long$Temp), "°C"), 
+           hjust=1, size=3) +
+  scale_fill_gradientn(
+    colours = c("navyblue", "deepskyblue", "lightyellow", "orange", "firebrick"),
+    name = "Max Temp (°C)"
+  ) +
+  labs(
+    title = "Distribution of Max Daily Temperatures by Site (2012)",
+    subtitle = "Sites ordered by mean temperature | Colour gradient reflects temperature from cold (blue) to hot (red)",
+    x = "Max Temperature (°C)",
+    y = "Site"
+  ) +
+ theme_minimal() +
+theme(
+  legend.position = "right",
+  plot.title.position = "plot",
+  panel.spacing = unit(0.1, "lines"),
+  panel.grid = element_blank(),
+  axis.text.y = element_text(hjust=0)
+)
+```
+
+Figure 21 displays the distribution of maximum daily temperatures across sites. Inland sites consistently exhibited higher maximum temperatures and wider variability.
+
+Death Valley recorded the hottest temperature of 53.3°C, while the coldest temperature of 0°C was observed at the coastal site of Santa Cruz. Inland sites like Barstow and Fresno also recorded very high maximum temperatures of 43.9°C.
+
+### Interpretation
+
+Inland Californian sites, regardless of elevation, experienced hotter and more variable conditions than coastal locations. Coastal proximity was the primary factor influencing temperature stability, with elevation providing a secondary moderating effect.
+
+Overall, the analysis highlights a clear spatial gradient in temperature across California, reflecting well-established climatic patterns driven mainly by distance from the coast
+
+## Part B: Spatial Gaussian Process Modelling
+
+This section focuses on spatial modelling of maximum daily temperatures recorded across California on 13th December 2012. The primary goal is to fit a spatial Gaussian Process (GP) model to predict temperatures at two withheld locations: San Diego and Fresno.
+
+### Data Preparation:
+
+```{r}
+# I had to manaully add the lon lat values in for some points, 
+# due to computational error
+temps_13 <- temps_long %>%
+  filter(Date == as.Date("2012-12-13")) %>%
+  select(Site, Temp) %>%
+  left_join(meta %>% select(Location, Long, Lat), by = c("Site" = "Location")) %>%
+  mutate(
+    Long = case_when(
+      Site == "San.Francisco" ~ -122.4269,
+      Site == "San.Diego" ~ -117.1831,
+      Site == "Santa.Cruz" ~ -121.9911,
+      Site == "Death.Valley" ~ -116.8669,
+      TRUE ~ Long
+    ),
+    Lat = case_when(
+      Site == "San.Francisco" ~ 37.7705,
+      Site == "San.Diego" ~ 32.7336,
+      Site == "Santa.Cruz" ~ 36.9905,
+      Site == "Death.Valley" ~ 36.4622,
+      TRUE ~ Lat
+    )
+  )
+```
+
+```{r}
+pred_sites <- c("San Diego", "Fresno")
+
+train_data <- temps_13 %>%
+  filter(!Site %in% pred_sites)
+
+test_data <- temps_13 %>%
+  filter(Site %in% pred_sites)
+```
+
+Exploratory Variogram:
+
+```{r}
+library(geoR)
+
+geo_data <- as.geodata(train_data, coords.col = c("Long", "Lat"), data.col = "Temp")
+
+
+vario_emp <- variog(geo_data, max.dist = 600)  # adjust max.dist depending on spread of locations
+
+plot(vario_emp,
+     main = "Empirical Variogram of Maximum Temperatures (13 Dec 2012)",
+     xlab = "Distance",
+     ylab = "Semivariance")
+
+```
+
+### Variogram Model Fitting:
+
+```{r}
+# Exponential model
+vexp <- variofit(vario_emp, cov.model = "exponential")
+
+# Spherical model
+vsph <- variofit(vario_emp, cov.model = "spherical")
+
+# Gaussian model
+vgaus <- variofit(vario_emp, cov.model = "gaussian")
+
+# Plot
+plot(vario_emp, pch = 1)
+lines(vexp, col = "blue")
+lines(vsph, col = "red")
+lines(vgaus, col = "green")
+legend("bottomright", legend = c("Exponential", "Spherical", "Gaussian"),
+       col = c("blue", "red", "green"), lty = 1)
+
+```

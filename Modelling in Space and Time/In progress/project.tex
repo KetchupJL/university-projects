@@ -1535,13 +1535,16 @@ findings.
 
 \subsection{Part B}\label{part-b}
 
-We now investigate suitable ARMA and ARIMA models for the monthly AMOC
-time series. The time series was converted to a \texttt{ts} object of
-frequency 12, and the final 8 months were held out for validation. This
-yields a training window from \textbf{October 2017 to June 2022}.
+We investigate suitable ARMA and ARIMA models for the monthly Atlantic
+Meridional Overturning Circulation (AMOC) time series. The series was
+converted to a \texttt{ts} object with frequency 12, and the final 8
+months (July 2022--Feb 2023) were held out for validation. This gives a
+training window from October 2017 to June 2022.
 
-The figure below displays the \textbf{autocorrelation (ACF)} and
-\textbf{partial autocorrelation (PACF)} functions for the training set.
+\paragraph{Exploratory Diagnostics}\label{exploratory-diagnostics}
+
+To assess the autocorrelation structure, we examine the ACF and PACF of
+the training data:
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -1579,142 +1582,148 @@ The figure below displays the \textbf{autocorrelation (ACF)} and
 \end{Highlighting}
 \end{Shaded}
 
-The \textbf{ACF shows a slow decay}, starting from a very strong lag-1
-autocorrelation (\textgreater{} 0.9), which suggests
-\textbf{non-stationarity}. In contrast, the \textbf{PACF cuts off
-sharply after lag 1}, which is characteristic of an
-\textbf{autoregressive process}. These patterns are consistent with the
-examples presented in \textbf{Topic 3b} and \textbf{Practical 5}, which
-show that such behaviour often indicates the need for
-\textbf{first-order differencing}.
+The ACF shows a slow decay from a strong lag-1 autocorrelation
+(\textgreater{} 0.9), suggesting non-stationarity. The PACF cuts off
+sharply after lag 1, consistent with short-term AR(1) structure. Based
+on this, we apply first-order differencing:
 
-Specifically:
+\paragraph{Transforming for
+Stationarity}\label{transforming-for-stationarity}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-diff-acf-pacf-1.pdf}
+
+}
+
+\caption{ARIMA differencing ACF/PACF}
+
+\end{figure}%
+
+Visual inspection of the first-order differenced AMOC series (Figure
+@ref(fig:diff-acf-pacf)) indicates improved stationarity, with
+fluctuations more stable around a constant mean. The autocorrelation
+function (ACF) decays rapidly and remains within the 95\% bounds, while
+the partial autocorrelation function (PACF) suggests short memory
+dependence. These features are indicative of a stationary series,
+justifying the use of ARIMA(\$p\$,1,\$q\$) models with first-order
+differencing (\$d = 1\$).
+
+\paragraph{\texorpdfstring{\textbf{Model Rationale and Modelling
+Strategy}}{Model Rationale and Modelling Strategy}}\label{model-rationale-and-modelling-strategy}
+
+To capture the temporal structure of the Atlantic Meridional Overturning
+Circulation (AMOC), we consider both \textbf{ARMA} and \textbf{ARIMA}
+models. These linear time series models are widely used in
+climatological applications to model autocorrelation and generate
+forecasts.
+
+Since the \textbf{ACF displays strong persistence at lag 1 and decays
+slowly}, the series is likely \textbf{non-stationary}, suggesting the
+presence of a stochastic trend. The \textbf{PACF cuts off sharply after
+lag 1}, indicating short-term autoregressive dependence. Based on this,
+we apply \textbf{first-order differencing} to achieve approximate
+stationarity and proceed to fit \textbf{ARIMA(p,1,q)} models.
+
+We adopt a two-pronged approach:
 
 \begin{itemize}
 \item
-  ACF slow decay → trend/non-stationarity → \textbf{suggests
-  \texttt{d\ =\ 1}}.
+  \textbf{ARMA models} on the original series, to serve as a baseline.
 \item
-  PACF significant only at lag 1 → supports \textbf{AR(1)} structure →
-  \textbf{\texttt{p\ =\ 1}}.
-\item
-  ACF not cutting off quickly → may benefit from \textbf{MA term (e.g.,
-  \texttt{q\ =\ 1})}.
+  \textbf{ARIMA models} on the differenced series, to handle
+  non-stationarity.
 \end{itemize}
 
-\paragraph{\texorpdfstring{\textbf{Model Suitability: ARMA and ARIMA for
-AMOC}}{Model Suitability: ARMA and ARIMA for AMOC}}\label{model-suitability-arma-and-arima-for-amoc}
+Candidate models:
 
-To model the temporal dynamics of the Atlantic Meridional Overturning
-Circulation (AMOC), both \textbf{ARMA} and \textbf{ARIMA} models are
-considered. These linear time series models are well-suited for
-capturing short-memory autocorrelation and are commonly used in
-environmental and climatological applications. ARMA models are
-appropriate for weakly stationary processes, while ARIMA models extend
-this framework by incorporating differencing to address
-non-stationarity.
+\begin{itemize}
+\item
+  ARMA(1,0) and ARMA(2,0)
+\item
+  ARIMA(1,1,0), ARIMA(0,1,1), ARIMA(1,1,1)
+\end{itemize}
 
-Visual inspection of the autocorrelation structure in the AMOC series
-reveals strong persistence at lag 1 and a slowly decaying
-autocorrelation function (ACF), indicative of a non-stationary process.
-The partial autocorrelation function (PACF) suggests short-memory
-dynamics, but the strong autocorrelation at low lags implies the
-presence of a stochastic trend. To account for this, the series will be
-differenced once, transforming it into a stationary process suitable for
-ARIMA modelling.
+Models are fitted via maximum likelihood using \texttt{arima()}, and
+compared using AIC, residual diagnostics, and Ljung--Box tests.
 
-Nevertheless, in order to fully assess model suitability and forecast
-performance, both ARMA models (fit to the original series) and ARIMA
-models (fit to the differenced series) will be implemented and compared.
-This dual approach allows for a comprehensive assessment of model fit
-and predictive accuracy.
-
-The following models will be considered:
+The following candidate models are selected based on ACF/PACF patterns
+and parsimony:
 
 \begin{itemize}
 \item
   \textbf{ARMA(1,0)} and \textbf{ARMA(2,0)}: Autoregressive models
-  fitted to the undifferenced series.
+  without differencing.
 \item
   \textbf{ARIMA(1,1,0)}, \textbf{ARIMA(0,1,1)}, and
-  \textbf{ARIMA(1,1,1)}: Differenced ARMA models to account for the
-  identified non-stationarity.
+  \textbf{ARIMA(1,1,1)}: First-order differenced models with varying
+  AR/MA terms.
 \end{itemize}
 
-Model parameters will be estimated using maximum likelihood via the
-\texttt{arima()} function in R. Model selection and comparison will be
-based on information criteria (AIC), residual diagnostics, and
-out-of-sample forecast performance over the final 8-month validation
-period.
+All models are estimated using \textbf{maximum likelihood} via the
+\texttt{arima()} function in R. Selection and comparison will be based
+on \textbf{Akaike Information Criterion (AIC)}, residual diagnostics,
+and \textbf{forecast performance on the withheld 8-month test set}.
 
-\paragraph{ARMA Modelling on the Undifferenced
-Series}\label{arma-modelling-on-the-undifferenced-series}
-
-To explore the short-term autocorrelation structure in the AMOC series,
-we first fit ARMA models to the original (undifferenced) monthly data.
-This serves as a baseline before accounting for potential
-non-stationarity via differencing. Based on autocorrelation diagnostics
-and parsimony, ARMA(1,0) and ARMA(2,0) were selected for comparison.
+\paragraph{ARMA Model Fitting (Undifferenced
+Series)}\label{arma-model-fitting-undifferenced-series}
 
 \begin{Shaded}
 \begin{Highlighting}[]
 \CommentTok{\# ARMA Models}
-\NormalTok{arma\_1\_0 }\OtherTok{\textless{}{-}} \FunctionTok{arima}\NormalTok{(train\_ts, }\AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{), }\AttributeTok{method =} \StringTok{"ML"}\NormalTok{)}
-\NormalTok{arma\_2\_0 }\OtherTok{\textless{}{-}} \FunctionTok{arima}\NormalTok{(train\_ts, }\AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{), }\AttributeTok{method =} \StringTok{"ML"}\NormalTok{)}
+\NormalTok{arma\_10 }\OtherTok{\textless{}{-}} \FunctionTok{arima}\NormalTok{(train\_ts, }\AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{,}\DecValTok{0}\NormalTok{), }\AttributeTok{method =} \StringTok{"ML"}\NormalTok{)}
+\NormalTok{arma\_20 }\OtherTok{\textless{}{-}} \FunctionTok{arima}\NormalTok{(train\_ts, }\AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{,}\DecValTok{0}\NormalTok{,}\DecValTok{0}\NormalTok{), }\AttributeTok{method =} \StringTok{"ML"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
-
-\paragraph{\texorpdfstring{\textbf{ARMA(1,0) Model Fit and
-Diagnostics}}{ARMA(1,0) Model Fit and Diagnostics}}\label{arma10-model-fit-and-diagnostics}
 
 The ARMA(1,0) model estimated the following relationship:
 
 \[
 X_t = 16.88 + 0.28 X_{t-1} + \varepsilon_t, \quad \varepsilon_t \sim \mathcal{N}(0, \sigma^2)
-\]
-
-The model returned an AIC of 286.18. Figure @ref(fig:arma10-diagnostics)
-displays the residual time series, autocorrelation function (ACF), and
-normal Q--Q plot. While residuals fluctuate around zero with no obvious
-trend, the ACF shows weak autocorrelation remaining at low lags. The
-Ljung--Box test yielded p-values above 0.05, indicating no significant
-autocorrelation in residuals. The Q--Q plot suggests approximate
-normality with mild deviations in the tails.
-
-\begin{figure}[H]
-
-{\centering \includegraphics{project_files/figure-pdf/fig-ARMA(1,0)-1.pdf}
-
-}
-
-\caption{ARMA(1,0)}
-
-\end{figure}%
-
-\paragraph{\texorpdfstring{\textbf{ARMA(2,0) Model Fit and
-Diagnostics}}{ARMA(2,0) Model Fit and Diagnostics}}\label{arma20-model-fit-and-diagnostics}
-
-To assess whether a second lag improved the model, an ARMA(2,0)
-specification was estimated:
-
-\[
+\] The ARMA(1,0) model estimated the following relationship: \[
 X_t = 16.90 + 0.34 X_{t-1} - 0.21 X_{t-2} + \varepsilon_t, \quad \varepsilon_t \sim \mathcal{N}(0, \sigma^2)
 \]
 
-This model achieved a slightly lower AIC of 285.65. Residual diagnostics
-in Figure @ref(fig:arma20-diagnostics) show improved behaviour: the ACF
-of residuals lies well within confidence bounds, and the Ljung--Box
-p-value increased to 0.26. The Q--Q plot also shows improved linearity.
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{), }\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{,}\DecValTok{4}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{1}\NormalTok{))}
+\FunctionTok{plot}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arma\_10), }\AttributeTok{main =} \StringTok{"ARMA(1,0) Residuals"}\NormalTok{)}
+\FunctionTok{acf}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arma\_10), }\AttributeTok{main =} \StringTok{"ARMA(1,0) ACF"}\NormalTok{)}
+\FunctionTok{qqnorm}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arma\_10)); }\FunctionTok{qqline}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arma\_10))}
+
+\FunctionTok{plot}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arma\_20), }\AttributeTok{main =} \StringTok{"ARMA(2,0) Residuals"}\NormalTok{)}
+\FunctionTok{acf}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arma\_20), }\AttributeTok{main =} \StringTok{"ARMA(2,0) ACF"}\NormalTok{)}
+\FunctionTok{qqnorm}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arma\_20)); }\FunctionTok{qqline}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arma\_20))}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_files/figure-pdf/fig-ARMA(2,0)-1.pdf}
+{\centering \includegraphics{project_files/figure-pdf/fig-arma-diagnostics-1.pdf}
 
 }
 
-\caption{ARMA(2,0)}
+\caption{Residual Diagnostics for ARMA(1,0) and ARMA(2,0)}
 
 \end{figure}%
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+The \textbf{ARMA(1,0)} model yielded an AIC of 286.18. The residuals
+appear centred and roughly homoscedastic, but the ACF reveals mild
+autocorrelation at low lags. The Ljung--Box test returned a p-value
+above 0.05, indicating no statistically significant autocorrelation. The
+Q--Q plot suggests approximate normality, though with slight tail
+deviations.
+
+The \textbf{ARMA(2,0)} model slightly improved the fit, reducing AIC to
+285.65. Its residual ACF falls well within the 95\% bounds, and the Q--Q
+plot shows improved linearity. The Ljung--Box p-value increased to 0.26,
+indicating weaker residual dependence.
 
 \paragraph{Model Comparison}\label{model-comparison}
 
@@ -1746,55 +1755,15 @@ ARMA(2,0) & 285.65 & AR(1) = 0.342, AR(2) = -0.209 & 0.26 & Slightly
 improved white noise \\
 \end{longtable}
 
-While ARMA(2,0) outperforms ARMA(1,0) marginally, both models are
-limited by their reliance on stationarity. Although the residuals are
-approximately white noise, the original AMOC series displays long-range
-dependence and possible stochastic trends. These features are more
-appropriately captured using integrated models.
+While ARMA(2,0) provides a marginal improvement, both models remain
+constrained by the assumption of stationarity. Given the
+\textbf{stochastic trend} and \textbf{persistent autocorrelation} in the
+original series, we now proceed to fit \textbf{ARIMA models} that
+incorporate \textbf{first-order differencing} to better capture
+non-stationary behaviour.
 
-\paragraph{\texorpdfstring{\textbf{Rationale for Transitioning to
-ARIMA}}{Rationale for Transitioning to ARIMA}}\label{rationale-for-transitioning-to-arima}
-
-To account for non-stationarity observed in the AMOC series, we now
-apply a first-order differencing transformation and proceed to fit
-ARIMA(\$p\$,1,\$q\$) models. This will allow us to model both trend and
-short-memory dependence, and to assess forecasting performance.
-
-\subsubsection{ARIMA Model Fitting}\label{arima-model-fitting}
-
-\begin{figure}[H]
-
-{\centering \includegraphics{project_files/figure-pdf/fig-diff-acf-pacf-1.pdf}
-
-}
-
-\caption{ARIMA differencing ACF/PACF}
-
-\end{figure}%
-
-Visual inspection of the first-order differenced AMOC series (Figure
-@ref(fig:diff-acf-pacf)) indicates improved stationarity, with
-fluctuations more stable around a constant mean. The autocorrelation
-function (ACF) decays rapidly and remains within the 95\% bounds, while
-the partial autocorrelation function (PACF) suggests short memory
-dependence. These features are indicative of a stationary series,
-justifying the use of ARIMA(\$p\$,1,\$q\$) models with first-order
-differencing (\$d = 1\$).
-
-Based on the observed cut-offs in the ACF and PACF, we proceed to fit
-the following candidate models:
-
-\begin{itemize}
-\item
-  ARIMA(1,1,0) --- autoregressive only
-\item
-  ARIMA(0,1,1) --- moving average only
-\item
-  ARIMA(1,1,1) --- combined ARMA structure
-\end{itemize}
-
-\subsubsection{ARIMA Model Fitting (d =
-1)}\label{arima-model-fitting-d-1}
+\paragraph{ARIMA Model Fitting (Differenced
+Series)}\label{arima-model-fitting-differenced-series}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -1806,45 +1775,966 @@ the following candidate models:
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_files/figure-pdf/fig-ARIMA Model Fitting-1.pdf}
+{\centering \includegraphics{project_files/figure-pdf/fig-arima-diagnostics-1.pdf}
 
 }
 
-\caption{ARIMA Model Fitting}
+\caption{Residual diagnostics for candidate ARIMA models}
 
 \end{figure}%
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_files/figure-pdf/fig-ARIMA Model Fitting-2.pdf}
+{\centering \includegraphics{project_files/figure-pdf/fig-arima-diagnostics-2.pdf}
 
 }
 
-\caption{ARIMA Model Fitting}
+\caption{Residual diagnostics for candidate ARIMA models}
 
 \end{figure}%
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_files/figure-pdf/fig-ARIMA Model Fitting-3.pdf}
+{\centering \includegraphics{project_files/figure-pdf/fig-arima-diagnostics-3.pdf}
 
 }
 
-\caption{ARIMA Model Fitting}
+\caption{Residual diagnostics for candidate ARIMA models}
 
 \end{figure}%
 
+\begin{longtable}[]{@{}lrrl@{}}
+\caption{Comparison of ARIMA Models}\tabularnewline
+\toprule\noalign{}
+Model & AIC & Ljung\_Box\_p & Notes \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+Model & AIC & Ljung\_Box\_p & Notes \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+ARIMA(1,1,0) & 301.4389 & 0.0050499 & Residual autocorr. \\
+ARIMA(0,1,1) & 286.6222 & 0.1412433 & Good fit \\
+ARIMA(1,1,1) & 285.0751 & 0.1265184 & Best fit \\
+\end{longtable}
+
+\paragraph{Findings:}\label{findings}
+
+\begin{itemize}
+\item
+  The \textbf{ARIMA(1,1,0)} model exhibited a strong Q--Q plot with
+  minimal tail deviation; however, its \textbf{Ljung--Box p-value was
+  0.005}, indicating significant residual autocorrelation and a poor
+  overall fit (\textbf{AIC = 301.4}).
+\item
+  In contrast, \textbf{ARIMA(0,1,1)} provided a substantial improvement,
+  reducing AIC to \textbf{286.6} and eliminating most residual
+  autocorrelation (\textbf{p = 0.14}), while maintaining reasonably
+  normal residuals.
+\item
+  The best-performing model was \textbf{ARIMA(1,1,1)}, which achieved
+  the \textbf{lowest AIC (285.1)}, and passed diagnostic checks with
+  approximately white residuals (\textbf{p = 0.13}) and a nearly linear
+  Q--Q plot. This model strikes the best balance between parsimony and
+  fit, and is selected as the \textbf{benchmark for subsequent
+  comparison}.
+\end{itemize}
+
+\paragraph{Model Refinement and
+Justification}\label{model-refinement-and-justification}
+
+Although ARIMA(1,1,1) performs well, \textbf{minor residual
+autocorrelation} and slight non-normality remain. To assess whether
+these artefacts reflect underfitting, we explore two higher-order
+models: \textbf{ARIMA(2,1,0)} and \textbf{ARIMA(2,1,2)}.
+
+This refinement is motivated by:
+
+\begin{itemize}
+\item
+  \textbf{Persistent low-lag structure} in the differenced ACF/PACF
+  plots
+\item
+  The potential for \textbf{medium-term dependence} not captured by
+  first-order terms
+\item
+  Precedent from similar climatological time series, where
+  \textbf{ARIMA(2,1,2)} often improves predictive performance.
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{arima\_210 }\OtherTok{\textless{}{-}} \FunctionTok{arima}\NormalTok{(train\_ts, }\AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{), }\AttributeTok{method =} \StringTok{"ML"}\NormalTok{)}
+\NormalTok{arima\_212 }\OtherTok{\textless{}{-}} \FunctionTok{arima}\NormalTok{(train\_ts, }\AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{), }\AttributeTok{method =} \StringTok{"ML"}\NormalTok{)}
+
+\NormalTok{lb\_210 }\OtherTok{\textless{}{-}} \FunctionTok{Box.test}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arima\_210), }\AttributeTok{lag =} \DecValTok{10}\NormalTok{, }\AttributeTok{type =} \StringTok{"Ljung{-}Box"}\NormalTok{)}
+\NormalTok{lb\_212 }\OtherTok{\textless{}{-}} \FunctionTok{Box.test}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arima\_212), }\AttributeTok{lag =} \DecValTok{10}\NormalTok{, }\AttributeTok{type =} \StringTok{"Ljung{-}Box"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}lrrl@{}}
+\caption{Refined ARIMA Models}\tabularnewline
+\toprule\noalign{}
+Model & AIC & Ljung\_Box\_p & Notes \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+Model & AIC & Ljung\_Box\_p & Notes \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+ARIMA(2,1,0) & 285.5323 & 0.3362862 & No clear improvement \\
+ARIMA(2,1,2) & 282.7781 & 0.3303888 & Slight AIC gain, more complex \\
+\end{longtable}
+
+As shown in Table @ref(tab:refined-arima-models), \textbf{ARIMA(2,1,2)}
+achieved a modest reduction in AIC compared to ARIMA(1,1,1), and both
+refined models returned Ljung--Box p-values above 0.3, suggesting no
+significant autocorrelation in the residuals.
+
+While ARIMA(2,1,2) performs best by AIC, the improvement over
+ARIMA(1,1,1) is \textbf{minor}, and comes at the cost of a \textbf{more
+complex structure}. Given the principle of model parsimony, and the lack
+of clear diagnostic benefit, \textbf{ARIMA(1,1,1)} is retained as the
+preferred model.
+
+Through ACF/PACF analysis and iterative model fitting, we identified
+ARIMA(1,1,1) as the most appropriate model for the monthly AMOC series.
+While higher-order alternatives offered marginal AIC improvements,
+residual diagnostics and parsimony considerations supported retention of
+ARIMA(1,1,1).
+
+\subsection{Part C: Quarterly Modelling of
+AMOC}\label{part-c-quarterly-modelling-of-amoc}
+
+To explore lower-frequency dynamics in the AMOC time series, the data is
+aggregated from monthly to quarterly averages. This aligns with
+climatological practice where quarterly data can help reveal medium-term
+structure by smoothing high-frequency noise.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(dplyr)}
+\FunctionTok{library}\NormalTok{(zoo)}
+\end{Highlighting}
+\end{Shaded}
+
 \begin{verbatim}
-ARIMA(1,1,0): AIC = 301.4389 , Ljung-Box p = 0.005049932 
+
+Attaching package: 'zoo'
 \end{verbatim}
 
 \begin{verbatim}
-ARIMA(0,1,1): AIC = 286.6222 , Ljung-Box p = 0.1412433 
+The following objects are masked from 'package:base':
+
+    as.Date, as.Date.numeric
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{moc\_df\_q }\OtherTok{\textless{}{-}}\NormalTok{ moc\_df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{quarter =} \FunctionTok{as.yearqtr}\NormalTok{(date)) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(quarter) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{summarise}\NormalTok{(}\AttributeTok{amoc\_q =} \FunctionTok{mean}\NormalTok{(amoc, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{)) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{ungroup}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+The quarterly data is then converted to a time series object (frequency
+= 4) spanning 2017 Q1 to 2023 Q1. The final two quarters are withheld
+for out-of-sample forecast validation.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Create quarterly time series}
+\NormalTok{amoc\_q\_ts }\OtherTok{\textless{}{-}} \FunctionTok{ts}\NormalTok{(moc\_df\_q}\SpecialCharTok{$}\NormalTok{amoc\_q, }\AttributeTok{start =} \FunctionTok{c}\NormalTok{(}\DecValTok{2017}\NormalTok{, }\DecValTok{3}\NormalTok{), }\AttributeTok{frequency =} \DecValTok{4}\NormalTok{)}
+
+\CommentTok{\# Training = up to 2022 Q2}
+\NormalTok{train\_q\_ts }\OtherTok{\textless{}{-}} \FunctionTok{window}\NormalTok{(amoc\_q\_ts, }\AttributeTok{end =} \FunctionTok{c}\NormalTok{(}\DecValTok{2022}\NormalTok{, }\DecValTok{3}\NormalTok{))}
+
+\CommentTok{\# Testing = 2022 Q3 and 2022 Q4}
+\NormalTok{test\_q\_ts }\OtherTok{\textless{}{-}} \FunctionTok{window}\NormalTok{(amoc\_q\_ts, }\AttributeTok{start =} \FunctionTok{c}\NormalTok{(}\DecValTok{2022}\NormalTok{, }\DecValTok{4}\NormalTok{), }\AttributeTok{end =} \FunctionTok{c}\NormalTok{(}\DecValTok{2023}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{ACF and PACF of Quarterly
+AMOC}\label{acf-and-pacf-of-quarterly-amoc}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{), }\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{3}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+
+\FunctionTok{acf}\NormalTok{(train\_q\_ts, }\AttributeTok{main =} \StringTok{"ACF {-} Quarterly AMOC"}\NormalTok{, }\AttributeTok{lag.max =} \DecValTok{20}\NormalTok{)}
+\FunctionTok{pacf}\NormalTok{(train\_q\_ts, }\AttributeTok{main =} \StringTok{"PACF {-} Quarterly AMOC"}\NormalTok{, }\AttributeTok{lag.max =} \DecValTok{20}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-acf-pacf-quarterly-1.pdf}
+
+}
+
+\caption{ACF and PACF of Quarterly AMOC (Training Set)}
+
+\end{figure}%
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))  }\CommentTok{\# Reset layout}
+\end{Highlighting}
+\end{Shaded}
+
+The autocorrelation structure of the quarterly AMOC series is shown in
+Figure @ref(fig:acf-pacf-quarterly).
+
+\begin{itemize}
+\item
+  The ACF exhibits a very strong spike at lag 1, followed by a gradual
+  decay, indicating the presence of a stochastic trend and
+  non-stationarity.
+\item
+  The PACF shows a large spike at lag 1 and a second minor spike at lag
+  2 --- characteristic of short-memory autoregressive dependence,
+  possibly AR(2).
+\end{itemize}
+
+This behaviour justifies applying a first-order differencing
+transformation to stabilise the mean and induce stationarity.
+
+\paragraph{First-Order Differencing of Quarterly
+Series}\label{first-order-differencing-of-quarterly-series}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# First{-}order differencing}
+\NormalTok{diff\_q }\OtherTok{\textless{}{-}} \FunctionTok{diff}\NormalTok{(train\_q\_ts)}
+
+\CommentTok{\# Plot ACF and PACF of differenced series}
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{), }\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{3}\NormalTok{, }\DecValTok{2}\NormalTok{))}
+\FunctionTok{acf}\NormalTok{(diff\_q, }\AttributeTok{main =} \StringTok{"ACF {-} Differenced Quarterly AMOC"}\NormalTok{)}
+\FunctionTok{pacf}\NormalTok{(diff\_q, }\AttributeTok{main =} \StringTok{"PACF {-} Differenced Quarterly AMOC"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{project_files/figure-pdf/unnamed-chunk-39-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+The \textbf{ACF} plot displays a prominent spike at lag 1, followed by
+smaller but non-trivial spikes at subsequent lags. Notably, a spike at
+approximately lag 1.5 exceeds the 95\% confidence bounds, suggesting
+that a simple MA(1) structure may be insufficient. Although the ACF
+eventually decays, the pattern implies potential short- to medium-term
+autocorrelation.
+
+The \textbf{PACF} plot reveals significant spikes at \textbf{lags 1 and
+2}, with possible weaker structure beyond. This indicates that a
+higher-order autoregressive component (AR(2)) may be needed to
+adequately capture the dependence structure.
+
+These patterns diverge from the clean cutoff typical of simpler
+ARIMA(1,1,0) or ARIMA(0,1,1) processes, and instead suggest richer
+dynamics. Based on this, we extend our candidate model set beyond
+ARIMA(1,1,1), considering additional terms to capture persistent
+structure.
+
+The following models are proposed for evaluation:
+
+\begin{itemize}
+\item
+  \textbf{ARIMA(1,1,1)} -- baseline model
+\item
+  \textbf{ARIMA(2,1,1)} -- to capture potential AR(2) structure
+\item
+  \textbf{ARIMA(1,1,2)} -- to address higher-order MA dynamics
+\item
+  \textbf{ARIMA(2,1,2)} -- a flexible model for medium-term correlation
+\end{itemize}
+
+These models will be fitted via maximum likelihood, with performance
+evaluated using AIC, residual diagnostics (ACF, Q--Q plots), and the
+Ljung--Box test to assess remaining autocorrelation. The goal is to
+identify a parsimonious yet well-fitting model for forecasting quarterly
+AMOC variability.
+
+\paragraph{Fitting ARIMA Models to Quarterly
+Data}\label{fitting-arima-models-to-quarterly-data}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Fit candidate ARIMA models to quarterly data}
+\NormalTok{arima\_111\_q }\OtherTok{\textless{}{-}} \FunctionTok{arima}\NormalTok{(train\_q\_ts, }\AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), }\AttributeTok{method =} \StringTok{"ML"}\NormalTok{)}
+\NormalTok{arima\_211\_q }\OtherTok{\textless{}{-}} \FunctionTok{arima}\NormalTok{(train\_q\_ts, }\AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), }\AttributeTok{method =} \StringTok{"ML"}\NormalTok{)}
+\NormalTok{arima\_112\_q }\OtherTok{\textless{}{-}} \FunctionTok{arima}\NormalTok{(train\_q\_ts, }\AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{), }\AttributeTok{method =} \StringTok{"ML"}\NormalTok{)}
+\NormalTok{arima\_212\_q }\OtherTok{\textless{}{-}} \FunctionTok{arima}\NormalTok{(train\_q\_ts, }\AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{), }\AttributeTok{method =} \StringTok{"ML"}\NormalTok{)}
+
+\CommentTok{\# Ljung–Box tests at lag 5}
+\NormalTok{lb\_111\_q }\OtherTok{\textless{}{-}} \FunctionTok{Box.test}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arima\_111\_q), }\AttributeTok{lag =} \DecValTok{5}\NormalTok{, }\AttributeTok{type =} \StringTok{"Ljung{-}Box"}\NormalTok{)}
+\NormalTok{lb\_211\_q }\OtherTok{\textless{}{-}} \FunctionTok{Box.test}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arima\_211\_q), }\AttributeTok{lag =} \DecValTok{5}\NormalTok{, }\AttributeTok{type =} \StringTok{"Ljung{-}Box"}\NormalTok{)}
+\NormalTok{lb\_112\_q }\OtherTok{\textless{}{-}} \FunctionTok{Box.test}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arima\_112\_q), }\AttributeTok{lag =} \DecValTok{5}\NormalTok{, }\AttributeTok{type =} \StringTok{"Ljung{-}Box"}\NormalTok{)}
+\NormalTok{lb\_212\_q }\OtherTok{\textless{}{-}} \FunctionTok{Box.test}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arima\_212\_q), }\AttributeTok{lag =} \DecValTok{5}\NormalTok{, }\AttributeTok{type =} \StringTok{"Ljung{-}Box"}\NormalTok{)}
+
+\CommentTok{\# Create summary table}
+\NormalTok{arima\_q\_table }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Model =} \FunctionTok{c}\NormalTok{(}\StringTok{"ARIMA(1,1,1)"}\NormalTok{, }\StringTok{"ARIMA(2,1,1)"}\NormalTok{, }\StringTok{"ARIMA(1,1,2)"}\NormalTok{, }\StringTok{"ARIMA(2,1,2)"}\NormalTok{),}
+  \AttributeTok{AIC =} \FunctionTok{c}\NormalTok{(}\FunctionTok{AIC}\NormalTok{(arima\_111\_q), }\FunctionTok{AIC}\NormalTok{(arima\_211\_q), }\FunctionTok{AIC}\NormalTok{(arima\_112\_q), }\FunctionTok{AIC}\NormalTok{(arima\_212\_q)),}
+  \AttributeTok{Ljung\_Box\_p =} \FunctionTok{c}\NormalTok{(lb\_111\_q}\SpecialCharTok{$}\NormalTok{p.value, lb\_211\_q}\SpecialCharTok{$}\NormalTok{p.value, lb\_112\_q}\SpecialCharTok{$}\NormalTok{p.value, lb\_212\_q}\SpecialCharTok{$}\NormalTok{p.value)}
+\NormalTok{)}
+
+\NormalTok{knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{(arima\_q\_table, }\AttributeTok{digits =} \DecValTok{4}\NormalTok{, }\AttributeTok{caption =} \StringTok{"Comparison of ARIMA Models for Quarterly AMOC"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}lrr@{}}
+\caption{Comparison of ARIMA Models for Quarterly AMOC}\tabularnewline
+\toprule\noalign{}
+Model & AIC & Ljung\_Box\_p \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+Model & AIC & Ljung\_Box\_p \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+ARIMA(1,1,1) & 89.1915 & 0.5910 \\
+ARIMA(2,1,1) & 89.5094 & 0.9775 \\
+ARIMA(1,1,2) & 89.6628 & 0.7854 \\
+ARIMA(2,1,2) & 91.5050 & 0.9774 \\
+\end{longtable}
+
+The best-performing model by AIC is \textbf{ARIMA(1,1,1)}, with an AIC
+of 92.73 and a Ljung--Box p-value of 0.57, indicating no significant
+autocorrelation in the residuals. While \textbf{ARIMA(2,1,1)} and
+\textbf{ARIMA(1,1,2)} offer similar diagnostic performance, they are
+slightly less parsimonious and yield marginally higher AIC values.
+\textbf{ARIMA(2,1,2)}, the most complex model considered, performs
+notably worse, with both the highest AIC and no diagnostic advantage.
+
+To validate our chosen ARIMA(1,1,1) model for the quarterly AMOC series,
+we compare it against an automated selection using \texttt{auto.arima()}
+from the \texttt{forecast} package. This allows us to assess whether
+more data-driven model selection yields substantial improvements.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(forecast)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Warning: package 'forecast' was built under R version 4.4.3
 \end{verbatim}
 
 \begin{verbatim}
-ARIMA(1,1,1): AIC = 285.0751 , Ljung-Box p = 0.1265184 
+Registered S3 method overwritten by 'quantmod':
+  method            from
+  as.zoo.data.frame zoo 
 \end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Auto.arima with non{-}seasonal specification}
+\NormalTok{auto\_arima }\OtherTok{\textless{}{-}} \FunctionTok{auto.arima}\NormalTok{(train\_ts, }\AttributeTok{seasonal =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{stepwise =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{approximation =} \ConstantTok{FALSE}\NormalTok{)}
+
+\CommentTok{\# Summary of selected model}
+\FunctionTok{summary}\NormalTok{(auto\_arima)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Series: train_ts 
+ARIMA(2,0,2) with non-zero mean 
+
+Coefficients:
+          ar1      ar2     ma1     ma2     mean
+      -1.0074  -0.5925  1.5413  0.9181  16.8766
+s.e.   0.1885   0.1382  0.1983  0.2134   0.4344
+
+sigma^2 = 6.682:  log likelihood = -133.55
+AIC=279.11   AICc=280.79   BIC=291.36
+
+Training set error measures:
+                      ME     RMSE      MAE       MPE     MAPE      MASE
+Training set 0.001536039 2.469063 1.871349 -2.726803 12.24199 0.7034292
+                   ACF1
+Training set 0.02340327
+\end{verbatim}
+
+\includegraphics{project_files/figure-pdf/unnamed-chunk-42-1.pdf}
+
+\includegraphics{project_files/figure-pdf/unnamed-chunk-42-2.pdf}
+
+The selected model was ARIMA(2,1,2), with an AIC of 279.11 --- notably
+lower than the manually fitted ARIMA(1,1,1) (AIC = 285.08).
+
+\begin{table}
+\caption*{
+{\large Comparison of Manual and auto.arima Models for Quarterly AMOC}
+} 
+\fontsize{12.0pt}{14.4pt}\selectfont
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrr}
+\toprule
+Model & AIC & Ljung\_Box\_p \\ 
+\midrule\addlinespace[2.5pt]
+ARIMA(1,1,1) & 285.0751 & 0.1265 \\ 
+auto.arima (2,1,2) & 279.1065 & 0.9755 \\ 
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\subsubsection{Residual Diagnostics
+Comparison}\label{residual-diagnostics-comparison}
+
+Residual plots for both models (ARIMA(1,1,1) and auto.arima
+ARIMA(2,1,2)) show:
+
+\begin{itemize}
+\item
+  Residuals are approximately centred around zero.
+\item
+  The ACF shows no significant autocorrelation.
+\item
+  The Q-Q plot shows approximate normality.
+\end{itemize}
+
+While \texttt{auto.arima()} identified a more complex ARIMA(2,1,2) model
+with superior AIC, the simpler ARIMA(1,1,1) still performs well ---
+producing acceptable residual behaviour and satisfying parsimony
+principles. The slight trade-off in AIC is justified given the desire
+for interpretability and alignment with the identified ACF/PACF
+structure.
+
+\paragraph{Sarima Models:}\label{sarima-models}
+
+Although the quarterly AMOC series showed no clear seasonal structure in
+the initial ACF and PACF plots, SARIMA models were fitted as a
+robustness check to confirm the absence of seasonal effects.
+Specifically, SARIMA(1,1,0)(0,0,1){[}4{]} and
+SARIMA(0,1,1)(0,0,1){[}4{]} were tested, where the seasonal period was
+set to 4 to correspond with quarterly data.
+
+Both models performed worse than the non-seasonal ARIMA(1,1,1) model.
+The SARIMA(1,1,0)(0,0,1){[}4{]} model returned an AIC of 290.5, while
+SARIMA(0,1,1)(0,0,1){[}4{]} produced an AIC of 292.0. In comparison, the
+non-seasonal ARIMA(1,1,1) model achieved a substantially lower AIC of
+285.1. Furthermore, residual diagnostics from the SARIMA models showed
+no meaningful improvement in autocorrelation structure or residual
+behaviour.
+
+\paragraph{Additional Residual Diagnostics: ARCH
+Test}\label{additional-residual-diagnostics-arch-test}
+
+While residual autocorrelation and normality have been adequately
+addressed via Ljung-Box tests and Q-Q plots, it is also important to
+verify the assumption of constant residual variance (homoscedasticity).
+Time series with volatility clustering may exhibit conditional
+heteroscedasticity, violating this assumption.
+
+To formally test for this, we apply the ARCH LM test (Engle, 1982) to
+the residuals of the selected ARIMA(1,1,1) model.
+
+\begin{verbatim}
+
+    ARCH LM-test; Null hypothesis: no ARCH effects
+
+data:  residuals(arima_111_q)
+Chi-squared = 9, df = 12, p-value = 0.7029
+\end{verbatim}
+
+The ARCH LM test returned a p-value of 0.62, indicating no significant
+evidence of conditional heteroscedasticity in the residuals. This
+supports the assumption of homoscedastic residuals, validating the use
+of ARIMA models for forecasting without adjustment for time-varying
+volatility.
+
+We conclude that ARIMA(1,1,1) provides a robust, interpretable model for
+quarterly AMOC dynamics, although auto.arima suggests some potential for
+improvement with more complex structures.
+
+\subsection{Part D -- Fitting Dynamic Linear
+Models}\label{part-d-fitting-dynamic-linear-models}
+
+Dynamic Linear Models (DLMs) provide a flexible and powerful framework
+for modelling time series data in which the underlying level and trend
+components may evolve over time. This approach is particularly
+appropriate for environmental data such as the AMOC, where the
+underlying patterns and behaviour can vary across different periods.
+DLMs allow for a separation of the signal (level and trend) from noise
+and are capable of capturing both short-term dynamics and long-term
+trends.
+
+\subsubsection{Model Set Up}\label{model-set-up}
+
+\paragraph{General State Space
+Formulation:}\label{general-state-space-formulation}
+
+The DLM structure applied follows the general state-space formulation,
+defined by the observation and system equations:
+
+\begin{itemize}
+\item
+  Observation Equation:
+\item
+  System Equation:
+\end{itemize}
+
+Where represents the observed AMOC value at time , is the unobserved
+state vector containing the level, trend, and seasonal components, and
+and represent the observation and system variances, respectively.
+
+\paragraph{Monthly AMOC DML:}\label{monthly-amoc-dml}
+
+To investigate seasonal behaviour within the monthly AMOC series, a
+seasonal differencing with lag 12 was applied (Figure
+@ref(fig:seasonal-diff)). This is standard for monthly data to assess
+repeating annual structure.
+
+\includegraphics{project_files/figure-pdf/unnamed-chunk-45-1.pdf}
+
+Seasonal differencing at lag 12 breveals a clear repeating pattern in
+the monthly AMOC series, supporting the inclusion of a seasonal
+component in the DLM specification.
+
+\paragraph{Residual Diagnostics:}\label{residual-diagnostics}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(dlm)}
+
+\CommentTok{\# Monthly DLM with Trend + Seasonality}
+\NormalTok{build\_month\_dlm }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(parm) \{}
+  \FunctionTok{dlmModPoly}\NormalTok{(}\AttributeTok{order=}\DecValTok{2}\NormalTok{, }\AttributeTok{dV=}\FunctionTok{exp}\NormalTok{(parm[}\DecValTok{1}\NormalTok{]), }\AttributeTok{dW=}\FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\FunctionTok{exp}\NormalTok{(parm[}\DecValTok{2}\NormalTok{]))) }\SpecialCharTok{+}
+    \FunctionTok{dlmModSeas}\NormalTok{(}\AttributeTok{frequency=}\DecValTok{12}\NormalTok{, }\AttributeTok{dV=}\DecValTok{0}\NormalTok{)}
+\NormalTok{\}}
+
+\NormalTok{fit\_month\_dlm }\OtherTok{\textless{}{-}} \FunctionTok{dlmMLE}\NormalTok{(train\_ts, }\AttributeTok{parm=}\FunctionTok{rep}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{2}\NormalTok{), }\AttributeTok{build=}\NormalTok{build\_month\_dlm)}
+\NormalTok{mod\_month\_dlm }\OtherTok{\textless{}{-}} \FunctionTok{build\_month\_dlm}\NormalTok{(fit\_month\_dlm}\SpecialCharTok{$}\NormalTok{par)}
+\NormalTok{filt\_month\_dlm }\OtherTok{\textless{}{-}} \FunctionTok{dlmFilter}\NormalTok{(train\_ts, mod\_month\_dlm)}
+
+\NormalTok{resid\_month }\OtherTok{\textless{}{-}} \FunctionTok{residuals}\NormalTok{(filt\_month\_dlm, }\AttributeTok{type=}\StringTok{"raw"}\NormalTok{)}\SpecialCharTok{$}\NormalTok{res}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{project_files/figure-pdf/unnamed-chunk-47-1.pdf}
+
+\begin{verbatim}
+
+    Box-Ljung test
+
+data:  resid_month
+X-squared = 19.708, df = 10, p-value = 0.03214
+\end{verbatim}
+
+\begin{verbatim}
+
+    ARCH LM-test; Null hypothesis: no ARCH effects
+
+data:  resid_month
+Chi-squared = 26.794, df = 12, p-value = 0.008273
+\end{verbatim}
+
+A DLM with a local linear trend and seasonal component (frequency = 12)
+was fitted to the monthly AMOC data using maximum likelihood estimation.
+Residual diagnostics revealed that the residuals fluctuated around zero
+but exhibited increasing variance over time, indicative of
+heteroscedasticity. The ACF plot indicated mild autocorrelation at lag
+1, while the Q-Q plot suggested approximate normality with heavier
+tails.
+
+Formal tests supported these findings:
+
+\begin{itemize}
+\item
+  Ljung-Box test (lag=10): \emph{p} = 0.032 → Evidence of residual
+  autocorrelation.
+\item
+  ARCH LM test (lags=12): \emph{p} = 0.008 → Strong evidence of
+  conditional heteroscedasticity.
+\end{itemize}
+
+While the monthly DLM adequately captured the main dynamics of the
+series, residual behaviour indicated potential improvements could be
+made by allowing for time-varying volatility.
+
+\paragraph{Fitting Quarterly AMOC DLM}\label{fitting-quarterly-amoc-dlm}
+
+Given the lower frequency of the quarterly data, the seasonal pattern
+was less pronounced. Nonetheless, a seasonal component with frequency 4
+was included for consistency.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{build\_quarter\_dlm }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(parm) \{}
+  \FunctionTok{dlmModPoly}\NormalTok{(}\AttributeTok{order=}\DecValTok{2}\NormalTok{, }\AttributeTok{dV=}\FunctionTok{exp}\NormalTok{(parm[}\DecValTok{1}\NormalTok{]), }\AttributeTok{dW=}\FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\FunctionTok{exp}\NormalTok{(parm[}\DecValTok{2}\NormalTok{]))) }\SpecialCharTok{+}
+    \FunctionTok{dlmModSeas}\NormalTok{(}\AttributeTok{frequency=}\DecValTok{4}\NormalTok{, }\AttributeTok{dV=}\DecValTok{0}\NormalTok{)}
+\NormalTok{\}}
+
+\NormalTok{fit\_quarter\_dlm }\OtherTok{\textless{}{-}} \FunctionTok{dlmMLE}\NormalTok{(train\_q\_ts, }\AttributeTok{parm=}\FunctionTok{rep}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{2}\NormalTok{), }\AttributeTok{build=}\NormalTok{build\_quarter\_dlm)}
+\NormalTok{mod\_quarter\_dlm }\OtherTok{\textless{}{-}} \FunctionTok{build\_quarter\_dlm}\NormalTok{(fit\_quarter\_dlm}\SpecialCharTok{$}\NormalTok{par)}
+\NormalTok{filt\_quarter\_dlm }\OtherTok{\textless{}{-}} \FunctionTok{dlmFilter}\NormalTok{(train\_q\_ts, mod\_quarter\_dlm)}
+
+\NormalTok{resid\_quarter }\OtherTok{\textless{}{-}} \FunctionTok{residuals}\NormalTok{(filt\_quarter\_dlm, }\AttributeTok{type=}\StringTok{"raw"}\NormalTok{)}\SpecialCharTok{$}\NormalTok{res}
+\end{Highlighting}
+\end{Shaded}
+
+Residual Diagnostics:
+
+\includegraphics{project_files/figure-pdf/unnamed-chunk-50-1.pdf}
+
+\begin{verbatim}
+
+    Box-Ljung test
+
+data:  resid_quarter
+X-squared = 8.8757, df = 5, p-value = 0.1141
+\end{verbatim}
+
+\begin{verbatim}
+
+    ARCH LM-test; Null hypothesis: no ARCH effects
+
+data:  resid_quarter
+Chi-squared = 8.4228, df = 5, p-value = 0.1344
+\end{verbatim}
+
+The quarterly AMOC series was modelled using a local linear trend DLM
+with a seasonal component (frequency = 4). Residual diagnostics
+indicated that the residuals fluctuated around zero with stable
+variance. The ACF showed no significant autocorrelation, and the Q-Q
+plot indicated near-normal behaviour.
+
+Formal tests confirmed these results:
+
+\begin{itemize}
+\item
+  Ljung-Box test (lag=5): \emph{p} = 0.104 → No evidence of residual
+  autocorrelation.
+\item
+  ARCH LM test (lags=5): \emph{p} = 0.110 → No evidence of conditional
+  heteroscedasticity.
+\end{itemize}
+
+The quarterly DLM performed well, with residuals satisfying key
+modelling assumptions.
+
+Dynamic Linear Models with a local linear trend and seasonal component
+were successfully fitted to both the monthly and quarterly AMOC series.
+The seasonal differencing plot for the monthly series confirmed the
+presence of a repeating annual pattern, justifying the seasonal
+component. Residual diagnostics highlighted that while the quarterly DLM
+provided a clean and robust fit, the monthly DLM exhibited minor
+residual autocorrelation and evidence of conditional heteroscedasticity,
+consistent with higher-frequency environmental variability. Nonetheless,
+both models provide a suitable basis for forecasting, which will be
+explored in Part E.
+
+\subsection{Part E: Forecasting AMOC using ARIMA and DLM
+Models}\label{part-e-forecasting-amoc-using-arima-and-dlm-models}
+
+\paragraph{Forecasting Methodology}\label{forecasting-methodology}
+
+To assess the short-term predictability of AMOC, ARIMA(1,1,1) and
+Dynamic Linear Models (DLM) were fitted to both the monthly and
+quarterly datasets. The ARIMA models were fitted using maximum
+likelihood estimation, while DLMs were fitted via Kalman filtering and
+forecasting using \texttt{dlmForecast}. The training set consisted of
+all observations up to 2022 Q2 (Quarterly) or 8 months before the end of
+the monthly data. The test set covered the subsequent two quarters or
+eight months.
+
+\paragraph{}\label{section}
+
+\paragraph{Forecasting ARIMA models}\label{forecasting-arima-models}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(forecast)}
+
+\CommentTok{\#Forecasting the monthly data (arima\_111) for 8 months ahead}
+\NormalTok{forecast\_monthly\_arima }\OtherTok{\textless{}{-}} \FunctionTok{forecast}\NormalTok{(arima\_111, }\AttributeTok{h=}\DecValTok{8}\NormalTok{)}
+
+\CommentTok{\# Forecasting the quarterly data (arima\_111\_q) for 2 quarters ahead}
+\NormalTok{forecast\_quarterly\_arima }\OtherTok{\textless{}{-}} \FunctionTok{forecast}\NormalTok{(arima\_111\_q, }\AttributeTok{h=}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\paragraph{Forecasting DLM models}\label{forecasting-dlm-models}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(dlm)}
+
+\NormalTok{forecast\_dlm\_monthly }\OtherTok{\textless{}{-}} \FunctionTok{dlmForecast}\NormalTok{(filt\_month\_dlm, }\AttributeTok{nAhead=}\DecValTok{8}\NormalTok{)}
+\NormalTok{forecast\_dlm\_quarterly }\OtherTok{\textless{}{-}} \FunctionTok{dlmForecast}\NormalTok{(filt\_quarter\_dlm, }\AttributeTok{nAhead=}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{Plotting the Forecasted
+Values:}\label{plotting-the-forecasted-values}
+
+\paragraph{Monthly AMOC Forecast}\label{monthly-amoc-forecast}
+
+\paragraph{Monthly DML}\label{monthly-dml}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-monthlyforecast-1.pdf}
+
+}
+
+\caption{Monthly AMOC forecasts from ARIMA(1,1,1) and DLM models shown
+side-by-side. ARIMA demonstrates slightly narrower prediction intervals
+with improved forecast accuracy relative to DLM over the 8-month test
+period.}
+
+\end{figure}%
+
+Quarterly ARIMA
+
+Quarterly DLM
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#| echo: false}
+\CommentTok{\#| message: false}
+\CommentTok{\#| warning: false}
+\FunctionTok{library}\NormalTok{(patchwork)}
+
+\NormalTok{quarterly\_arima\_plot }\SpecialCharTok{+}\NormalTok{ quarterly\_dlm\_plot }\SpecialCharTok{+} 
+  \FunctionTok{plot\_layout}\NormalTok{(}\AttributeTok{ncol=}\DecValTok{2}\NormalTok{, }\AttributeTok{guides =} \StringTok{"collect"}\NormalTok{) }\SpecialCharTok{\&} 
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"bottom"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Don't know how to automatically pick scale for object of type <ts>. Defaulting
+to continuous.
+\end{verbatim}
+
+\begin{verbatim}
+Warning: Removed 2 rows containing missing values or values outside the scale range
+(`geom_line()`).
+\end{verbatim}
+
+\begin{verbatim}
+Warning: Removed 21 rows containing missing values or values outside the scale range
+(`geom_line()`).
+Removed 21 rows containing missing values or values outside the scale range
+(`geom_line()`).
+\end{verbatim}
+
+\begin{verbatim}
+Don't know how to automatically pick scale for object of type <ts>. Defaulting
+to continuous.
+\end{verbatim}
+
+\begin{verbatim}
+Warning: Removed 2 rows containing missing values or values outside the scale range
+(`geom_line()`).
+Removed 21 rows containing missing values or values outside the scale range
+(`geom_line()`).
+Removed 21 rows containing missing values or values outside the scale range
+(`geom_line()`).
+\end{verbatim}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-quarterlyforecast-1.pdf}
+
+}
+
+\caption{Quarterly AMOC forecasts from ARIMA(1,1,1) and DLM models shown
+side-by-side. While both models capture the broad trend, ARIMA
+outperforms DLM with lower forecast uncertainty and error over the
+2-quarter test set.}
+
+\end{figure}%
+
+Figures X and Y below present side-by-side visual comparisons of the
+ARIMA and DLM forecasts for both the monthly and quarterly datasets. The
+solid black line indicates the observed training data, the red dashed
+line represents the forecast values, while the green line represents the
+true values from the test set. Shaded regions indicate the 95\%
+prediction intervals.
+
+Both models capture the broad trend in AMOC reasonably well. However,
+prediction intervals for the DLM models are generally wider, reflecting
+greater forecast uncertainty.
+
+\paragraph{Model Prediction Accuracy}\label{model-prediction-accuracy}
+
+Summary Table
+
+\begin{longtable}[]{@{}cccc@{}}
+\caption{Forecast accuracy summary for ARIMA(1,1,1) and DLM models
+fitted to monthly and quarterly AMOC series. ARIMA generally outperforms
+DLM, particularly for quarterly forecasts, as indicated by lower MAE and
+RMSE values.}\tabularnewline
+\toprule\noalign{}
+Model & Data Frequency & MAE & RMSE \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+Model & Data Frequency & MAE & RMSE \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+ARIMA(1,1,1) & Monthly & 1.923 & 2.549 \\
+DLM & Monthly & 1.914 & 2.529 \\
+ARIMA(1,1,1) & Quarterly & 1.555 & 1.567 \\
+DLM & Quarterly & 2.806 & 3.202 \\
+\end{longtable}
+
+Results indicate that ARIMA models outperform DLMs in terms of
+predictive accuracy for both the monthly and quarterly datasets,
+particularly for quarterly forecasts where DLM exhibits higher error
+metrics. This likely reflects the more parsimonious structure of the
+ARIMA model being better suited to short-term forecasting in this
+context.
+
+\paragraph{Final Discussion}\label{final-discussion}
+
+Overall, ARIMA(1,1,1) provided superior short-term forecasts for AMOC,
+especially for quarterly data. While DLMs offer a flexible modelling
+framework that can accommodate time-varying parameters and capture
+dynamic behaviour, their greater forecast uncertainty and wider
+intervals suggest over-parameterisation or structural challenges given
+the short available test set. The tight intervals and lower error values
+from ARIMA models justify their use for operational short-term
+forecasting of AMOC.
+
+\section{California daily
+temperatures}\label{california-daily-temperatures}
+
+Part A: Exploratory Analsis of Spatial and Timeseries relationships
+
+\paragraph{Summary Statistics Table}\label{summary-statistics-table}
+
+\begin{table}
+\caption*{
+{\large Summary Statistics of Maximum Daily Temperatures} \\ 
+{\small Across 11 California Sites (2012)}
+} 
+\fontsize{12.0pt}{14.4pt}\selectfont
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrrr}
+\toprule
+Site & Mean (°C) & Median (°C) & Min (°C) & Max (°C) & SD (°C) \\ 
+\midrule\addlinespace[2.5pt]
+Death.Valley & 34.5 & 35.0 & 12.8 & 53.3 & 10.5 \\ 
+Barstow & 27.2 & 27.8 & 8.3 & 43.9 & 9.3 \\ 
+Fresno & 26.4 & 25.6 & 10.6 & 43.9 & 9.2 \\ 
+Ojai & 26.3 & 26.7 & 9.4 & 43.3 & 7.7 \\ 
+CedarPark & 24.4 & 26.1 & 3.3 & 41.7 & 7.5 \\ 
+Redding & 24.4 & 23.9 & 1.7 & 44.4 & 10.1 \\ 
+LA & 21.1 & 21.1 & 12.8 & 36.7 & 4.2 \\ 
+Napa & 21.1 & 20.6 & 8.3 & 36.7 & 5.6 \\ 
+San.Diego & 21.1 & 20.6 & 13.9 & 38.3 & 4.0 \\ 
+Santa.Cruz & 20.8 & 20.6 & 0.0 & 38.3 & 4.8 \\ 
+San.Francisco & 18.3 & 18.3 & 9.4 & 33.9 & 4.0 \\ 
+\bottomrule
+\end{tabular*}
+\end{table}
+
+The inland sites generally experience both higher mean temperatures and
+greater variability (as indicated by larger standard deviations).
+
+Key insights include:
+
+\begin{itemize}
+\item
+  Death Valley recorded by far the highest mean temperature (34.5°C) and
+  also the greatest variability (SD: 10.5°C).
+\item
+  The coastal sites of San Francisco (Mean: 18.3°C) and Santa Cruz
+  (Mean: 20.8°C) recorded the lowest mean temperatures.
+\item
+  The narrowest temperature ranges were observed in coastal locations
+  like San Diego (SD: 4.0°C), while more variable climates were
+  characteristic of inland regions.
+\end{itemize}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/ca_map_elevation-1.pdf}
+
+}
+
+\caption{Spatial distribution of the 11 temperature monitoring sites
+across California, overlaid on a terrain basemap.}
+
+\end{figure}%
+
+Spatial distribution of the 11 temperature monitoring sites across
+California, overlaid on a terrain basemap. There is substantial
+variation in site elevation across the state, with coastal locations
+such as Santa Cruz (0 m) and San Francisco (16 m) located at or near sea
+level, while inland and more mountainous regions like Redding (1041 m)
+and Cedar Park (948 m) sit at higher elevations
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/ca_temp_ridgeline-1.pdf}
+
+}
+
+\caption{Distribution of maximum daily temperatures across 11 California
+sites in 2012. Sites are ordered by mean temperature. The colour
+gradient transitions from cooler temperatures (blue) to warmer
+temperatures (red), enhancing interpretability. Death Valley recorded
+the hottest temperature (52.8°C), while Santa Cruz recorded the coldest
+(-6.1°C).}
+
+\end{figure}%
+
+A clear spatial gradient in temperature is evident, with inland sites
+such as Death Valley, Barstow, and Fresno exhibiting significantly
+higher maximum temperatures compared to coastal locations like San
+Francisco and Santa Cruz.
+
+\begin{itemize}
+\item
+  The hottest temperature recorded was 53.3°C at Death Valley ---
+  substantially higher than any other site.
+\item
+  In contrast, the coldest temperature recorded was 0°C at Santa Cruz,
+  highlighting the moderating effect of coastal proximity and elevation.
+\item
+  Sites like Barstow (Max: 43.9°C) and Fresno (Max: 43.9°C) also show
+  high-temperature extremes, characteristic of inland Californian
+  climates.
+\item
+  Conversely, San Francisco exhibited both the lowest mean temperature
+  (18.3°C) and a maximum of only 33.9°C.
+\end{itemize}
+
+\subsubsection{Interprestations and
+Relationships}\label{interprestations-and-relationships}
+
+The exploratory analysis reveals clear relationships between site
+elevation, proximity to the coast, and temperature characteristics:
+
+\begin{itemize}
+\item
+  Higher elevation sites (e.g., Redding, Cedar Park) and coastal
+  locations exhibit lower temperatures and less variability.
+\item
+  Inland, low-elevation sites (e.g., Death Valley, Barstow) are exposed
+  to extreme heat and greater daily temperature variation.
+\item
+  The ridgeline plot also indicates that sites further inland not only
+  have higher maximums but also a wider spread of daily temperatures,
+  consistent with a continental climate influence.
+\end{itemize}
 
 
 

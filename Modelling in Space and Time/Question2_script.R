@@ -206,6 +206,227 @@ cat("ARIMA(0,1,1): AIC =", AIC(arima_011), ", Ljung-Box p =", lb_011$p.value, "\
 cat("ARIMA(1,1,1): AIC =", AIC(arima_111), ", Ljung-Box p =", lb_111$p.value, "\n")
 
 
+arima_210 <- arima(train_ts, order = c(2,1,0), method = "ML")
+arima_212 <- arima(train_ts, order = c(2,1,2), method = "ML")
+
+lb_210 <- Box.test(residuals(arima_210), lag = 10, type = "Ljung-Box")
+lb_212 <- Box.test(residuals(arima_212), lag = 10, type = "Ljung-Box")
+
+knitr::kable(data.frame(
+  Model = c("ARIMA(2,1,0)", "ARIMA(2,1,2)"),
+  AIC = c(AIC(arima_210), AIC(arima_212)),
+  Ljung_Box_p = c(lb_210$p.value, lb_212$p.value),
+  Notes = c("No clear improvement", "Slight AIC gain, more complex")
+), caption = "Refined ARIMA Models")
+
+###############################################################################
+
+###############################################################################
+
+# Part C
+
+library(dplyr)
+library(zoo)
+
+# Assume moc_df has a column `date` of class Date, and `amoc`
+moc_df_q <- moc_df %>%
+  mutate(quarter = as.yearqtr(date)) %>%
+  group_by(quarter) %>%
+  summarise(amoc_q = mean(amoc, na.rm = TRUE)) %>%
+  ungroup()
+
+# Convert to ts object (quarterly, starting 2017 Q1 or Q4 depending on your data)
+amoc_q_ts <- ts(moc_df_q$amoc_q, start = c(2017, 1), frequency = 4)
+
+# Truncate the final 2 quarters for forecasting later
+train_q_ts <- window(amoc_q_ts, end = c(2022, 2))
+test_q_ts  <- window(amoc_q_ts, start = c(2022, 3))
+
+
+# First-order differencing
+diff_q <- diff(train_q_ts)
+
+# Plot ACF and PACF of differenced series
+par(mfrow = c(1, 2), mar = c(4, 4, 3, 2))
+acf(diff_q, main = "ACF - Differenced Quarterly AMOC")
+pacf(diff_q, main = "PACF - Differenced Quarterly AMOC")
+par(mfrow = c(1, 1))
+
+
+# Fit candidate ARIMA models to quarterly data
+arima_111_q <- arima(train_q_ts, order = c(1, 1, 1), method = "ML")
+arima_211_q <- arima(train_q_ts, order = c(2, 1, 1), method = "ML")
+arima_112_q <- arima(train_q_ts, order = c(1, 1, 2), method = "ML")
+arima_212_q <- arima(train_q_ts, order = c(2, 1, 2), method = "ML")
+
+# Ljung–Box tests at lag 5
+lb_111_q <- Box.test(residuals(arima_111_q), lag = 5, type = "Ljung-Box")
+lb_211_q <- Box.test(residuals(arima_211_q), lag = 5, type = "Ljung-Box")
+lb_112_q <- Box.test(residuals(arima_112_q), lag = 5, type = "Ljung-Box")
+lb_212_q <- Box.test(residuals(arima_212_q), lag = 5, type = "Ljung-Box")
+
+# Create summary table
+arima_q_table <- data.frame(
+  Model = c("ARIMA(1,1,1)", "ARIMA(2,1,1)", "ARIMA(1,1,2)", "ARIMA(2,1,2)"),
+  AIC = c(AIC(arima_111_q), AIC(arima_211_q), AIC(arima_112_q), AIC(arima_212_q)),
+  Ljung_Box_p = c(lb_111_q$p.value, lb_211_q$p.value, lb_112_q$p.value, lb_212_q$p.value)
+)
+
+knitr::kable(arima_q_table, digits = 4, caption = "Comparison of ARIMA Models for Quarterly AMOC")
+
+
+
+# Load required libraries
+library(forecast)
+library(dlm)
+
+# Fit auto.arima model on the quarterly training set
+auto_arima <- auto.arima(train_q_ts, seasonal = FALSE, 
+                         stepwise = FALSE, 
+                         approximation = FALSE)
+
+# Create a diagnostic plotting function
+plot_residual_diagnostics <- function(model, model_name, line_col = "steelblue") {
+  layout(matrix(1:3, nrow = 1), widths = c(1.4, 1, 1))
+  par(mar = c(4, 4, 3.5, 1))  # Top margin slightly increased for titles
+  
+  # 1. Residual Time Series Plot
+  plot(residuals(model), type = "l", col = line_col, lwd = 1.5,
+       main = paste(model_name, "Residuals"),
+       ylab = "Residuals", xlab = "Time")
+  
+  # 2. ACF of Residuals
+  acf(residuals(model), main = "ACF of Residuals", col = "black")
+  
+  # 3. Q–Q Plot
+  qqnorm(residuals(model), main = "Normal Q–Q Plot")
+  qqline(residuals(model), col = "red", lwd = 1.2)
+  
+  layout(1)  # Reset layout
+}
+
+# Plot diagnostics for manually selected ARIMA(1,1,1)
+plot_residual_diagnostics(arima_111_q, "ARIMA(1,1,1)", "darkgreen")
+
+# Plot diagnostics for auto.arima model
+plot_residual_diagnostics(auto_model, "auto.arima", "purple")
+summary(auto_arima)
+
+library(gt)
+
+# Create comparison table
+data.frame(
+  Model = c("ARIMA(1,1,1)", paste0("auto.arima (", auto_arima$arma[1], ",1,", auto_arima$arma[2], ")")),
+  AIC = c(AIC(arima_111), AIC(auto_arima)),
+  Ljung_Box_p = c(lb_manual$p.value, lb_auto$p.value)
+) %>%
+  gt() %>%
+  tab_header(
+    title = "Comparison of Manual and auto.arima Models for Quarterly AMOC"
+  ) %>%
+  fmt_number(columns = c(AIC, Ljung_Box_p), decimals = 4)
+
+
+# Load FinTS package for ARCH test
+library(FinTS)
+
+# ARCH LM test with 12 lags
+arch_test <- ArchTest(residuals(arima_111_q), lags = 12)
+arch_test
+
+
+###############################################################################
+
+###############################################################################
+
+# Part D
+
+library(dlm)
+
+
+### Step 1: Fit Monthly DLM
+
+build_month_dlm <- function(parm) {
+  dlmModPoly(order = 2, dV = exp(parm[1]), dW = c(0, exp(parm[2])))
+}
+
+fit_month_dlm <- dlmMLE(train_ts, parm = rep(0,2), build = build_month_dlm)
+
+mod_month_dlm <- build_month_dlm(fit_month_dlm$par)
+
+filt_month_dlm <- dlmFilter(train_ts, mod_month_dlm)
+
+
+### Step 2: Residual Diagnostics
+
+resid_month <- residuals(filt_month_dlm, type = "raw")$res
+resid_month <- as.numeric(resid_month)
+
+par(mfrow=c(1,3))
+plot(resid_month, type='l', main="Monthly DLM Residuals")
+acf(resid_month, main="ACF - Residuals")
+qqnorm(resid_month); qqline(resid_month)
+par(mfrow=c(1,1))
+
+Box.test(resid_month, lag=10, type="Ljung-Box")
+
+ArchTest(resid_month, lags=12)
+
+
+
+# ========================================
+# Quarterly AMOC DLM
+# ========================================
+
+### Model Set Up
+
+# Using the same Local Linear Trend structure as for monthly data.
+
+
+### Step 1: Fit Quarterly DLM
+
+build_quarter_dlm <- function(parm) {
+  dlmModPoly(order = 2, dV = exp(parm[1]), dW = c(0, exp(parm[2])))
+}
+
+fit_quarter_dlm <- dlmMLE(train_q_ts, parm = rep(0,2), build = build_quarter_dlm)
+
+mod_quarter_dlm <- build_quarter_dlm(fit_quarter_dlm$par)
+
+filt_quarter_dlm <- dlmFilter(train_q_ts, mod_quarter_dlm)
+
+
+### Step 2: Residual Diagnostics
+resid_quarter <- residuals(filt_quarter_dlm, type = "raw")$res
+resid_quarter <- as.numeric(resid_quarter)
+
+
+par(mfrow=c(1,3))
+plot(resid_quarter, type='l', main="Quarterly DLM Residuals")
+acf(resid_quarter, main="ACF - Residuals")
+qqnorm(resid_quarter); qqline(resid_quarter)
+par(mfrow=c(1,1))
+
+Box.test(resid_quarter, lag=5, type="Ljung-Box")
+
+ArchTest(resid_quarter, lags=5)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
