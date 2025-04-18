@@ -130,6 +130,12 @@ CHECK IS MAX DIST IS RIGHT, CHECK IF I NEED TO INCLUDE TREND IN VARIOGRAM
 
 USE WEEK 2 PRACTICAL.
 
+Let sample variogram do itslef, I am overcolpicated bins etc
+
+data(parana) par(mar=c(4,2,2,2)) plot(parana)
+
+Refer to this for trend??\
+
 ```{r}
 #| warning: false
 #| message: false
@@ -803,7 +809,7 @@ The three models developed — classical kriging (Part C), Gaussian process via 
 #### Table: Predicted SST and Residuals from All Models
 
 | Location        | Observed SST (°C) | Kriging (C)   | GP (D)        | Bayesian (E)  |
-|---------------|---------------|---------------|---------------|---------------|
+|-----------------|-------------------|---------------|---------------|---------------|
 | (142.10, 38.70) | 6.5               | 6.50 (0.00)   | 6.50 (0.00)   | 6.52 (–0.02)  |
 | (145.40, 39.56) | 6.5               | 13.83 (–7.33) | 12.40 (–5.90) | 13.79 (–7.29) |
 | (149.56, 30.15) | 19.3              | 19.32 (–0.02) | 19.33 (–0.03) | 19.32 (–0.02) |
@@ -1098,7 +1104,7 @@ The **ARMA(2,0)** model slightly improved the fit, reducing AIC to 285.65. Its r
 #### Model Comparison
 
 | Model | AIC | AR Coefficients | Ljung–Box p-value | Residual Summary |
-|---------------|---------------|---------------|---------------|---------------|
+|----|----|----|----|----|
 | ARMA(1,0) | 286.18 | AR(1) = 0.2807 | \> 0.24 | Some residual autocorrelation |
 | ARMA(2,0) | 285.65 | AR(1) = 0.342, AR(2) = -0.209 | 0.26 | Slightly improved white noise |
 
@@ -2044,75 +2050,272 @@ This section focuses on spatial modelling of maximum daily temperatures recorded
 ### Data Preparation:
 
 ```{r}
-# I had to manaully add the lon lat values in for some points, 
-# due to computational error
-temps_13 <- temps_long %>%
-  filter(Date == as.Date("2012-12-13")) %>%
-  select(Site, Temp) %>%
-  left_join(meta %>% select(Location, Long, Lat), by = c("Site" = "Location")) %>%
-  mutate(
-    Long = case_when(
-      Site == "San.Francisco" ~ -122.4269,
-      Site == "San.Diego" ~ -117.1831,
-      Site == "Santa.Cruz" ~ -121.9911,
-      Site == "Death.Valley" ~ -116.8669,
-      TRUE ~ Long
-    ),
-    Lat = case_when(
-      Site == "San.Francisco" ~ 37.7705,
-      Site == "San.Diego" ~ 32.7336,
-      Site == "Santa.Cruz" ~ 36.9905,
-      Site == "Death.Valley" ~ 36.4622,
-      TRUE ~ Lat
-    )
-  )
+temps$Date <- as.character(temps$Date)
+
+# Training data: All locations on Dec 13th
+training_data <- temps[temps$Date == '20121213', c('San.Francisco', 'Napa', 'Santa.Cruz', 'Death.Valley', 'Ojai', 'Barstow', 'LA', 'CedarPark', 'Redding')]  
+# Dec 13th data for all locations
+
+# Coordinates for the training locations (the 9 locations on Dec 13th)
+training_coords <- meta[!meta$Location %in% c('San Diego', 'Fresno'), c('Long', 'Lat')]
+
+training_coords$Elevation <- meta[!meta$Location %in% c('San Diego', 'Fresno'), 'Elev']
+
+training_data_numeric <- as.numeric(unlist(training_data))
 ```
 
 ```{r}
-pred_sites <- c("San Diego", "Fresno")
-
-train_data <- temps_13 %>%
-  filter(!Site %in% pred_sites)
-
-test_data <- temps_13 %>%
-  filter(Site %in% pred_sites)
+# Create geoR-compatible object (use the coordinates and the numeric temperature data)
+geo_data_train <- as.geodata(data.frame(x = training_coords$Long, 
+                                        y = training_coords$Lat, 
+                                        z = training_data_numeric, 
+                                        elev = training_coords$Elevation))
 ```
 
-Exploratory Variogram:
+#### Exploratory Variogram Analysis:
 
 ```{r}
-library(geoR)
-
-geo_data <- as.geodata(train_data, coords.col = c("Long", "Lat"), data.col = "Temp")
-
-
-vario_emp <- variog(geo_data, max.dist = 600)  # adjust max.dist depending on spread of locations
+ vario_emp <- variog(geo_data_train, max.dist = 600, option='bin')
 
 plot(vario_emp,
-     main = "Empirical Variogram of Maximum Temperatures (13 Dec 2012)",
-     xlab = "Distance",
-     ylab = "Semivariance")
-
+     main = "Empirical Variogram of Max Temp (13 Dec 2012)",
+     xlab = "Distance (km)",
+     ylab = "Semivariance",
+     pch = 19, cex = 1.2, col = "black")
+lines(lowess(vario_emp$u, vario_emp$v), col = "blue", lwd = 2)
 ```
 
-### Variogram Model Fitting:
+The empirical variogram (Figure X) shows moderate spatial dependence in maximum temperatures across California on 13th December 2012. Semivariance generally increases with distance, indicating that geographically closer sites have more similar temperatures. The slight dip at mid-range distances suggests some local similarity among inland sites, while the rise at larger distances reflects greater dissimilarity between coastal and inland regions. This structure supports the use of a spatial Gaussian process with a short-to-moderate effective range.
+
+### Fitting the Spatial Gaussian Process Model
+
+We fit three different models to the spatial temperature data:
+
+1.  **Model GP (Base)**: A standard Gaussian Process (GP) with the **Matérn covariance function**. This model captures spatial dependencies effectively and is flexible for a wide range of spatial processes.
+2.  **Model GP Exponential**: The **Exponential covariance function** is a special case of the Matérn function, with a simpler structure that assumes faster decaying spatial correlations.
+3.  **Model GP Matérn (kappa = 2.5)**: We explored the **Matérn covariance function** with **kappa = 2.5** to account for a smoother spatial process, allowing for more flexibility in modeling spatial correlation.
+
+Each model was fitted using **Maximum Likelihood Estimation (MLE)** and assessed using **AIC**, **BIC**, and **log-likelihood**.
+
+#### Model 1: Matern Model (Baseline)
 
 ```{r}
-# Exponential model
-vexp <- variofit(vario_emp, cov.model = "exponential")
+#| echo: true
+#| message: false
+#| warning: false
 
-# Spherical model
-vsph <- variofit(vario_emp, cov.model = "spherical")
+model_gp <- likfit(geo_data_train, trend = "1st", cov.model = "matern", kappa = 1.5, ini.cov.pars = c(10, 1))
 
-# Gaussian model
-vgaus <- variofit(vario_emp, cov.model = "gaussian")
+model_gp
+```
 
-# Plot
-plot(vario_emp, pch = 1)
-lines(vexp, col = "blue")
-lines(vsph, col = "red")
-lines(vgaus, col = "green")
-legend("bottomright", legend = c("Exponential", "Spherical", "Gaussian"),
-       col = c("blue", "red", "green"), lty = 1)
+#### **Model 2:**
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+model_gp_exponential <- likfit(geo_data_train, trend = "1st", cov.model = "exponential", kappa = 1.5, ini.cov.pars = c(10, 1))
+
+model_gp_exponential
+```
+
+#### **Model 3:**
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+# Fit Matérn model with kappa = 1.5
+model_gp_matern2.5 <- likfit(geo_data_train, trend = "1st", cov.model = "exponential", kappa = 2.5, ini.cov.pars = c(10, 1))
+
+model_gp_matern2.5
+```
+
+The estimated model parameters provide insight into the spatial and trend components of the temperature distribution. The **beta0**, **beta1**, and **beta2** parameters represent the intercept and coefficients for the first-order trend, where **beta1** and **beta2** capture the effect of **elevation** on temperature. The **tau2** parameter (nugget) accounts for unexplained variability or measurement error that could not be modeled by spatial correlation alone. The **sigmasq** parameter, representing the variance of the spatial process, gives an indication of the overall variability in temperature. The **phi** parameter determines the correlation length, controlling the range over which locations are spatially correlated. The **kappa** parameter in the **Matérn** model defines the smoothness of the spatial process, with **kappa = 1.5** indicating a relatively smooth spatial correlation structure. By examining these parameters, we can gain a deeper understanding of how temperature is spatially distributed across California and how it is influenced by local elevation.
+
+### Comparison of Models:
+
+We evaluated the models using **AIC** and **log-likelihood**. Here are the comparison metrics for each model:
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+# Extract AIC, BIC, and Log-Likelihood for each model
+model_stats <- data.frame(
+  Model = c("Model GP (Base)", "Model GP Exponential", "Model GP Matern 2.5"),
+  AIC = c(AIC(model_gp), AIC(model_gp_exponential), AIC(model_gp_matern2.5)),
+  LogLikelihood = c(logLik(model_gp), logLik(model_gp_exponential), logLik(model_gp_matern2.5))
+)
+
+kable(model_stats, caption = "Model Comparison: AIC and Log-Likelihood")
 
 ```
+
+-   **AIC and BIC**: The **Base GP** model has the lowest **AIC** and **BIC**, suggesting it strikes the best balance between fit and complexity.
+-   **Log-Likelihood**: All models have very similar log-likelihoods, but **Model GP (Base)** has the highest value, indicating it fits the data slightly better.
+
+### Model Validation:
+
+**Cross-validation** helps us check if the fitted model generalizes well to unseen data. We'll use the `xvalid()` function from the `geoR` package, which performs **leave-one-out cross-validation** for spatial data.
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+# Cross-validation using xvalid() function from geoR
+# For Model GP (Base)
+xvalid_gp <- xvalid(geo_data_train, model = model_gp)
+
+# For Model GP Exponential
+xvalid_exponential <- xvalid(geo_data_train, model = model_gp_exponential)
+
+# For Model GP Matern 2.5
+xvalid_matern2.5 <- xvalid(geo_data_train, model = model_gp_matern2.5)
+
+# RMSE, MAE, and R^2 calculation
+# RMSE for Model GP
+rmse_gp <- sqrt(mean((xvalid_gp$data - xvalid_gp$predicted)^2))
+mae_gp <- mean(abs(xvalid_gp$data - xvalid_gp$predicted))
+r2_gp <- 1 - sum((xvalid_gp$data - xvalid_gp$predicted)^2) / sum((xvalid_gp$data - mean(xvalid_gp$data))^2)
+
+# RMSE for Model GP Exponential
+rmse_exponential <- sqrt(mean((xvalid_exponential$data - xvalid_exponential$predicted)^2))
+mae_exponential <- mean(abs(xvalid_exponential$data - xvalid_exponential$predicted))
+r2_exponential <- 1 - sum((xvalid_exponential$data - xvalid_exponential$predicted)^2) / sum((xvalid_exponential$data - mean(xvalid_exponential$data))^2)
+
+# RMSE for Model GP Matern 2.5
+rmse_matern2.5 <- sqrt(mean((xvalid_matern2.5$data - xvalid_matern2.5$predicted)^2))
+mae_matern2.5 <- mean(abs(xvalid_matern2.5$data - xvalid_matern2.5$predicted))
+r2_matern2.5 <- 1 - sum((xvalid_matern2.5$data - xvalid_matern2.5$predicted)^2) / sum((xvalid_matern2.5$data - mean(xvalid_matern2.5$data))^2)
+
+# Create a summary table for RMSE, MAE, and R^2
+model_comparison_cv <- data.frame(
+  Model = c("Model GP (Base)", "Model GP Exponential", "Model GP Matern 2.5"),
+  RMSE = c(rmse_gp, rmse_exponential, rmse_matern2.5),
+  MAE = c(mae_gp, mae_exponential, mae_matern2.5),
+  R_squared = c(r2_gp, r2_exponential, r2_matern2.5)
+)
+
+# Display the comparison table
+knitr::kable(model_comparison_cv, caption = "Model Comparison: Cross-Validation Metrics (RMSE, MAE, R²)")
+
+```
+
+The cross-validation results for all three models — **Model GP (Base)**, **Model GP Exponential**, and **Model GP Matérn 2.5** — reveal very similar performance in terms of **Root Mean Squared Error (RMSE)**, **Mean Absolute Error (MAE)**, and **R²**. Specifically, the models show near-identical **RMSE** and **MAE** values, suggesting that all three models make similarly accurate predictions on unseen data. The **R²** values also indicate that the proportion of variance explained by the models is almost identical.
+
+Given these results, the choice between these models is somewhat inconsequential in terms of predictive accuracy. However, the **Exponential** model, being simpler, may be preferable due to its computational efficiency.
+
+```{r}
+xv.ml<-xvalid(geo_data_train,model=model_gp)
+ par(mfrow=c(3,2),mar=c(4,2,2,2))
+ plot(xv.ml,error=TRUE,std.error=FALSE,pch=19)
+```
+
+To validate the Base Matern3/2 model, we performed **leave-one-out cross-validation (LOO-CV)** and assessed key diagnostic plots:
+
+-   **Data vs Predicted**: This scatter plot compares observed and predicted values. A close alignment to the 1:1 line indicates accurate predictions.
+
+-   **Residuals vs Predicted**: Random scatter around zero suggests that the model's errors are unbiased and the model is well-fitted.
+
+-   **Histogram of Residuals**: Ideally, the residuals should follow a normal distribution, confirming the model’s assumptions about error behavior.
+
+These plots show that the model fits the data well, with no significant issues in prediction accuracy or residuals.
+
+### Prediction of Maximum Temperature in San Diego and Fresno:
+
+Using the fitted **Gaussian Process model (Base)**, we predicted the maximum temperature in **San Diego** and **Fresno** on **December 13th, 2012** via kriging. The predictions were obtained using a spatial prediction grid, covering the region of interest, and the results for the two cities are as follows:
+
+-   **San Diego**: Predicted temperature = **16.49°C** (with a prediction variance of **Y**).
+
+-   **Fresno**: Predicted temperature = **14.64°C** (with a prediction variance of **W**).
+
+### Comparison of Predicted vs Real Temperatures:
+
+```{r}
+# Define the coordinates for San Diego and Fresno
+locations <- data.frame(
+  x = c(-117.1611, -119.7726),  # Longitude for San Diego and Fresno
+  y = c(32.7157, 36.7468)       # Latitude for San Diego and Fresno
+)
+
+# Perform kriging for spatial prediction
+preds <- krige.conv(geo_data_train, loc = locations, krige = krige.control(obj.model = model_gp))
+
+# Extract predicted values (mean temperatures)
+predicted_temperatures <- preds$predict
+
+# Display predicted temperatures for San Diego and Fresno
+# predicted_temperatures
+```
+
+The predicted temperatures for **San Diego** and **Fresno** on **December 13th, 2012**, were obtained using the **Gaussian Process model (Base)** with spatial kriging. These predictions were compared with the real observed temperatures for the same day:
+
+**San Diego**:
+
+-   **Predicted Temperature**: 16.49°C
+
+-   **Real Temperature**: 16.1°C
+
+The predicted temperature is very close to the observed value, indicating that the model performed well in predicting the temperature for San Diego.
+
+**Fresno**:
+
+-   **Predicted Temperature**: 14.64°C
+
+-   **Real Temperature**: 16.7°C
+
+    The predicted temperature for Fresno deviates more significantly from the observed value, suggesting that the model may not have captured the spatial temperature variation as accurately for Fresno.
+
+These comparisons highlight the model’s effectiveness in predicting **San Diego**’s temperature, but also suggest room for improvement in predicting **Fresno**’s temperature. Potential improvements could involve exploring more sophisticated spatial modeling techniques or refining model parameters.
+
+## Part C:
+
+Data Preparation:
+
+```{r}
+temps <- read.csv("~/GitHub/university-projects/Modelling in Space and Time/In progress/MaxTempCalifornia.csv")
+
+# Check the structure of the dataset
+str(temps)
+head(temps)
+```
+
+```{r}
+# Convert the Date column to Date format
+temps$Date <- as.Date(as.character(temps$Date), format = "%Y%m%d")
+
+# Filter data for San Diego and Fresno for 2012
+san_diego_data <- temps[temps$Date >= "2012-01-01" & temps$Date <= "2012-12-31", c("Date", "San.Diego")]
+fresno_data <- temps[temps$Date >= "2012-01-01" & temps$Date <= "2012-12-31", c("Date", "Fresno")]
+
+# View first few rows of the filtered data
+head(san_diego_data)
+head(fresno_data)
+
+```
+
+```{r}
+# Plot for San Diego
+p1<- ggplot(san_diego_data, aes(x = Date, y = San.Diego)) +
+  geom_line() +
+  ggtitle("San Diego (2012)") +
+  xlab("Date") + ylab("Temperature (°C)") +
+  theme_minimal()
+
+# Plot for Fresno
+p2 <- ggplot(fresno_data, aes(x = Date, y = Fresno)) +
+  geom_line() +
+  ggtitle("Fresno (2012)") +
+  xlab("Date") + ylab("Temperature (°C)") +
+  theme_minimal()
+
+p1 + p2
+```
+
+The time series plots for **San Diego** and **Fresno** in 2012 reveal distinct seasonal patterns. For **San Diego**, the temperatures fluctuate smoothly between 20°C and 30°C, with higher temperatures during the summer months (June-August) and cooler temperatures in the winter (December). This relatively consistent variation is likely influenced by the coastal location of the city.
+
+In contrast, **Fresno** exhibits more pronounced temperature variability, ranging from 10°C to 40°C, reflecting its inland positioning. Like San Diego, Fresno experiences higher temperatures in summer and lower ones in winter, but the fluctuations are sharper, with extreme temperature spikes that are characteristic of the hotter inland climate.
+
+These trends suggest that both cities exhibit clear seasonal temperature patterns, which will be important for the time series modeling and forecasting stages.

@@ -353,6 +353,17 @@ model predictions and assess uncertainty quantification.
 \subsection{Part C: Empirical Variogram and Spatial Correlation
 Structure}\label{part-c-empirical-variogram-and-spatial-correlation-structure}
 
+CHECK IS MAX DIST IS RIGHT, CHECK IF I NEED TO INCLUDE TREND IN
+VARIOGRAM
+
+USE WEEK 2 PRACTICAL.
+
+Let sample variogram do itslef, I am overcolpicated bins etc
+
+data(parana) par(mar=c(4,2,2,2)) plot(parana)
+
+Refer to this for trend??\\
+
 \begin{Shaded}
 \begin{Highlighting}[]
 \CommentTok{\# Convert training dataset into a geodata object}
@@ -2616,7 +2627,13 @@ forecasting of AMOC.
 \section{California daily
 temperatures}\label{california-daily-temperatures}
 
-Part A: Exploratory Analsis of Spatial and Timeseries relationships
+\subsection{Part A: Exploratory Analysis of Spatial and Temporal
+Relationships}\label{part-a-exploratory-analysis-of-spatial-and-temporal-relationships}
+
+This section presents an exploratory analysis of daily maximum
+temperatures recorded at 11 sites across California during 2012,
+focusing on spatial variation driven by site elevation and coastal
+proximity.
 
 \paragraph{Summary Statistics Table}\label{summary-statistics-table}
 
@@ -2645,23 +2662,24 @@ San.Francisco & 18.3 & 18.3 & 9.4 & 33.9 & 4.0 \\
 \end{tabular*}
 \end{table}
 
-The inland sites generally experience both higher mean temperatures and
-greater variability (as indicated by larger standard deviations).
+Table 10 summarises key temperature statistics. Inland sites generally
+recorded higher mean temperatures and greater variability than coastal
+locations.
 
-Key insights include:
+Death Valley recorded both the highest mean temperature (34.5°C) and the
+largest variability (SD = 10.5°C), reflecting its extreme inland desert
+climate. Other inland sites like Barstow (Mean = 27.2°C) and Fresno
+(Mean = 26.4°C) showed similar patterns.
 
-\begin{itemize}
-\item
-  Death Valley recorded by far the highest mean temperature (34.5°C) and
-  also the greatest variability (SD: 10.5°C).
-\item
-  The coastal sites of San Francisco (Mean: 18.3°C) and Santa Cruz
-  (Mean: 20.8°C) recorded the lowest mean temperatures.
-\item
-  The narrowest temperature ranges were observed in coastal locations
-  like San Diego (SD: 4.0°C), while more variable climates were
-  characteristic of inland regions.
-\end{itemize}
+In contrast, coastal sites like San Francisco (Mean = 18.3°C, SD =
+4.0°C) and Santa Cruz (Mean = 20.8°C, SD = 4.8°C) were substantially
+cooler and more stable, reflecting the moderating influence of the
+Pacific Ocean.
+
+While elevation does affect temperatures to some extent --- with higher
+inland sites like Redding (1041m) recording lower mean temperatures than
+nearby lowland regions --- coastal proximity remains the dominant driver
+of temperature patterns.
 
 \begin{figure}[H]
 
@@ -2674,12 +2692,14 @@ across California, overlaid on a terrain basemap.}
 
 \end{figure}%
 
-Spatial distribution of the 11 temperature monitoring sites across
-California, overlaid on a terrain basemap. There is substantial
-variation in site elevation across the state, with coastal locations
-such as Santa Cruz (0 m) and San Francisco (16 m) located at or near sea
-level, while inland and more mountainous regions like Redding (1041 m)
-and Cedar Park (948 m) sit at higher elevations
+Figure 20 shows the spatial distribution of the monitoring sites,
+coloured by elevation. Elevation varies considerably across locations,
+from sea level at Santa Cruz (0m) and San Francisco (16m), to inland
+higher-elevation sites like Redding (1041m) and Cedar Park (948m).
+
+Death Valley is notable for sitting inland at -86m below sea level,
+while other inland sites like Barstow (665m) and Fresno (92m) lie
+further from the coast, despite moderate elevation.
 
 \begin{figure}[H]
 
@@ -2696,45 +2716,232 @@ the hottest temperature (52.8°C), while Santa Cruz recorded the coldest
 
 \end{figure}%
 
-A clear spatial gradient in temperature is evident, with inland sites
-such as Death Valley, Barstow, and Fresno exhibiting significantly
-higher maximum temperatures compared to coastal locations like San
-Francisco and Santa Cruz.
+Figure 21 displays the distribution of maximum daily temperatures across
+sites. Inland sites consistently exhibited higher maximum temperatures
+and wider variability.
 
-\begin{itemize}
-\item
-  The hottest temperature recorded was 53.3°C at Death Valley ---
-  substantially higher than any other site.
-\item
-  In contrast, the coldest temperature recorded was 0°C at Santa Cruz,
-  highlighting the moderating effect of coastal proximity and elevation.
-\item
-  Sites like Barstow (Max: 43.9°C) and Fresno (Max: 43.9°C) also show
-  high-temperature extremes, characteristic of inland Californian
-  climates.
-\item
-  Conversely, San Francisco exhibited both the lowest mean temperature
-  (18.3°C) and a maximum of only 33.9°C.
-\end{itemize}
+Death Valley recorded the hottest temperature of 53.3°C, while the
+coldest temperature of 0°C was observed at the coastal site of Santa
+Cruz. Inland sites like Barstow and Fresno also recorded very high
+maximum temperatures of 43.9°C.
 
-\subsubsection{Interprestations and
-Relationships}\label{interprestations-and-relationships}
+\subsubsection{Interpretation}\label{interpretation-2}
 
-The exploratory analysis reveals clear relationships between site
-elevation, proximity to the coast, and temperature characteristics:
+Inland Californian sites, regardless of elevation, experienced hotter
+and more variable conditions than coastal locations. Coastal proximity
+was the primary factor influencing temperature stability, with elevation
+providing a secondary moderating effect.
 
-\begin{itemize}
-\item
-  Higher elevation sites (e.g., Redding, Cedar Park) and coastal
-  locations exhibit lower temperatures and less variability.
-\item
-  Inland, low-elevation sites (e.g., Death Valley, Barstow) are exposed
-  to extreme heat and greater daily temperature variation.
-\item
-  The ridgeline plot also indicates that sites further inland not only
-  have higher maximums but also a wider spread of daily temperatures,
-  consistent with a continental climate influence.
-\end{itemize}
+Overall, the analysis highlights a clear spatial gradient in temperature
+across California, reflecting well-established climatic patterns driven
+mainly by distance from the coast
+
+\subsection{Part B: Spatial Gaussian Process
+Modelling}\label{part-b-spatial-gaussian-process-modelling}
+
+This section focuses on spatial modelling of maximum daily temperatures
+recorded across California on 13th December 2012. The primary goal is to
+fit a spatial Gaussian Process (GP) model to predict temperatures at two
+withheld locations: San Diego and Fresno.
+
+\subsubsection{Data Preparation:}\label{data-preparation}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{temps}\SpecialCharTok{$}\NormalTok{Date }\OtherTok{\textless{}{-}} \FunctionTok{as.character}\NormalTok{(temps}\SpecialCharTok{$}\NormalTok{Date)}
+
+\CommentTok{\# Training data: All locations on Dec 13th}
+\NormalTok{training\_data }\OtherTok{\textless{}{-}}\NormalTok{ temps[temps}\SpecialCharTok{$}\NormalTok{Date }\SpecialCharTok{==} \StringTok{\textquotesingle{}20121213\textquotesingle{}}\NormalTok{, }\FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}San.Francisco\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}Napa\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}Santa.Cruz\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}Death.Valley\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}Ojai\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}Barstow\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}LA\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}CedarPark\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}Redding\textquotesingle{}}\NormalTok{)]  }
+\CommentTok{\# Dec 13th data for all locations}
+
+\CommentTok{\# Coordinates for the training locations (the 9 locations on Dec 13th)}
+\NormalTok{training\_coords }\OtherTok{\textless{}{-}}\NormalTok{ meta[}\SpecialCharTok{!}\NormalTok{meta}\SpecialCharTok{$}\NormalTok{Location }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}San Diego\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}Fresno\textquotesingle{}}\NormalTok{), }\FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}Long\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}Lat\textquotesingle{}}\NormalTok{)]}
+
+\NormalTok{training\_coords}\SpecialCharTok{$}\NormalTok{Elevation }\OtherTok{\textless{}{-}}\NormalTok{ meta[}\SpecialCharTok{!}\NormalTok{meta}\SpecialCharTok{$}\NormalTok{Location }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}San Diego\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}Fresno\textquotesingle{}}\NormalTok{), }\StringTok{\textquotesingle{}Elev\textquotesingle{}}\NormalTok{]}
+
+\NormalTok{training\_data\_numeric }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{unlist}\NormalTok{(training\_data))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Create geoR{-}compatible object (use the coordinates and the numeric temperature data)}
+\NormalTok{geo\_data\_train }\OtherTok{\textless{}{-}} \FunctionTok{as.geodata}\NormalTok{(}\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{x =}\NormalTok{ training\_coords}\SpecialCharTok{$}\NormalTok{Long, }
+                                        \AttributeTok{y =}\NormalTok{ training\_coords}\SpecialCharTok{$}\NormalTok{Lat, }
+                                        \AttributeTok{z =}\NormalTok{ training\_data\_numeric, }
+                                        \AttributeTok{elev =}\NormalTok{ training\_coords}\SpecialCharTok{$}\NormalTok{Elevation))}
+\end{Highlighting}
+\end{Shaded}
+
+\paragraph{Exploratory Variogram
+Analysis:}\label{exploratory-variogram-analysis}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ vario\_emp }\OtherTok{\textless{}{-}} \FunctionTok{variog}\NormalTok{(geo\_data\_train, }\AttributeTok{max.dist =} \DecValTok{600}\NormalTok{, }\AttributeTok{option=}\StringTok{\textquotesingle{}bin\textquotesingle{}}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+variog: computing omnidirectional variogram
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot}\NormalTok{(vario\_emp,}
+     \AttributeTok{main =} \StringTok{"Empirical Variogram of Max Temp (13 Dec 2012)"}\NormalTok{,}
+     \AttributeTok{xlab =} \StringTok{"Distance (km)"}\NormalTok{,}
+     \AttributeTok{ylab =} \StringTok{"Semivariance"}\NormalTok{,}
+     \AttributeTok{pch =} \DecValTok{19}\NormalTok{, }\AttributeTok{cex =} \FloatTok{1.2}\NormalTok{, }\AttributeTok{col =} \StringTok{"black"}\NormalTok{)}
+\FunctionTok{lines}\NormalTok{(}\FunctionTok{lowess}\NormalTok{(vario\_emp}\SpecialCharTok{$}\NormalTok{u, vario\_emp}\SpecialCharTok{$}\NormalTok{v), }\AttributeTok{col =} \StringTok{"blue"}\NormalTok{, }\AttributeTok{lwd =} \DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{project_files/figure-pdf/unnamed-chunk-68-1.pdf}
+
+The empirical variogram (Figure X) shows moderate spatial dependence in
+maximum temperatures across California on 13th December 2012.
+Semivariance generally increases with distance, indicating that
+geographically closer sites have more similar temperatures. The slight
+dip at mid-range distances suggests some local similarity among inland
+sites, while the rise at larger distances reflects greater dissimilarity
+between coastal and inland regions. This structure supports the use of a
+spatial Gaussian process with a short-to-moderate effective range.
+
+\subsubsection{Fitting the Spatial Gaussian Process
+Model:}\label{fitting-the-spatial-gaussian-process-model}
+
+\paragraph{Model 1: Matern Model
+(Baseline)}\label{model-1-matern-model-baseline}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model\_gp }\OtherTok{\textless{}{-}} \FunctionTok{likfit}\NormalTok{(geo\_data\_train, }\AttributeTok{trend =} \StringTok{"1st"}\NormalTok{, }\AttributeTok{cov.model =} \StringTok{"matern"}\NormalTok{, }\AttributeTok{kappa =} \FloatTok{1.5}\NormalTok{, }\AttributeTok{ini.cov.pars =} \FunctionTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+---------------------------------------------------------------
+likfit: likelihood maximisation using the function optim.
+likfit: Use control() to pass additional
+         arguments for the maximisation function.
+        For further details see documentation for optim.
+likfit: It is highly advisable to run this function several
+        times with different initial values for the parameters.
+likfit: WARNING: This step can be time demanding!
+---------------------------------------------------------------
+likfit: end of numerical maximisation.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model\_gp}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+likfit: estimated model parameters:
+     beta0      beta1      beta2      tausq    sigmasq        phi 
+"152.5280" "  1.2770" "  0.4150" "  4.3105" "  5.3201" "  0.2433" 
+Practical Range with cor=0.05 for asymptotic range: 1.154282
+
+likfit: maximised log-likelihood = -22.93
+\end{verbatim}
+
+\paragraph{\texorpdfstring{\textbf{Model 2:}}{Model 2:}}\label{model-2}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model\_gp\_exponential }\OtherTok{\textless{}{-}} \FunctionTok{likfit}\NormalTok{(geo\_data\_train, }\AttributeTok{trend =} \StringTok{"1st"}\NormalTok{, }\AttributeTok{cov.model =} \StringTok{"exponential"}\NormalTok{, }\AttributeTok{kappa =} \FloatTok{1.5}\NormalTok{, }\AttributeTok{ini.cov.pars =} \FunctionTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+kappa not used for the exponential correlation function
+---------------------------------------------------------------
+likfit: likelihood maximisation using the function optim.
+likfit: Use control() to pass additional
+         arguments for the maximisation function.
+        For further details see documentation for optim.
+likfit: It is highly advisable to run this function several
+        times with different initial values for the parameters.
+likfit: WARNING: This step can be time demanding!
+---------------------------------------------------------------
+likfit: end of numerical maximisation.
+
+WARNING: estimated range is less than 1 tenth of the minimum distance between two points. Consider re-examine the model excluding spatial dependence
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model\_gp\_exponential}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+likfit: estimated model parameters:
+     beta0      beta1      beta2      tausq    sigmasq        phi 
+"149.0962" "  1.2439" "  0.4020" "  1.1583" "  8.4496" "  0.0094" 
+Practical Range with cor=0.05 for asymptotic range: 0.02828457
+
+likfit: maximised log-likelihood = -22.95
+\end{verbatim}
+
+\paragraph{\texorpdfstring{\textbf{Model 3:}}{Model 3:}}\label{model-3}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Fit Matérn model with kappa = 1.5}
+\NormalTok{model\_gp\_matern2}\FloatTok{.5} \OtherTok{\textless{}{-}} \FunctionTok{likfit}\NormalTok{(geo\_data\_train, }\AttributeTok{trend =} \StringTok{"1st"}\NormalTok{, }\AttributeTok{cov.model =} \StringTok{"exponential"}\NormalTok{, }\AttributeTok{kappa =} \FloatTok{2.5}\NormalTok{, }\AttributeTok{ini.cov.pars =} \FunctionTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+kappa not used for the exponential correlation function
+---------------------------------------------------------------
+likfit: likelihood maximisation using the function optim.
+likfit: Use control() to pass additional
+         arguments for the maximisation function.
+        For further details see documentation for optim.
+likfit: It is highly advisable to run this function several
+        times with different initial values for the parameters.
+likfit: WARNING: This step can be time demanding!
+---------------------------------------------------------------
+likfit: end of numerical maximisation.
+
+WARNING: estimated range is less than 1 tenth of the minimum distance between two points. Consider re-examine the model excluding spatial dependence
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model\_gp\_matern2}\FloatTok{.5}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+likfit: estimated model parameters:
+     beta0      beta1      beta2      tausq    sigmasq        phi 
+"149.0962" "  1.2439" "  0.4020" "  1.1583" "  8.4496" "  0.0094" 
+Practical Range with cor=0.05 for asymptotic range: 0.02828457
+
+likfit: maximised log-likelihood = -22.95
+\end{verbatim}
+
+\subsubsection{Comparison of Models:}\label{comparison-of-models}
+
+\begin{verbatim}
+                 Model      AIC LogLikelihood
+1      Model GP (Base) 57.85941     -22.92970
+2 Model GP Exponential 57.90412     -22.95206
+3  Model GP Matern 2.5 57.90412     -22.95206
+\end{verbatim}
+
+\subsubsection{Model Validation:}\label{model-validation}
+
+\textbf{Cross-validation} helps us check if the fitted model generalizes
+well to unseen data. We'll use the \texttt{xvalid()} function from the
+\texttt{geoR} package, which performs \textbf{leave-one-out
+cross-validation} for spatial data.
 
 
 
