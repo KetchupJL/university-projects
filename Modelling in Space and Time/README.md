@@ -1,5 +1,4 @@
-**Description**:  
-A comprehensive project on statistical modelling in space and time, spanning three domains:
+## A comprehensive project on statistical modelling in space and time, spanning three domains:
 
 - **Spatial Modelling (Sea Surface Temperature – SST)**: Explores spatial interpolation using sample variograms, Kriging, and Gaussian Process models (both MLE and Bayesian). Evaluates model fit and predictive performance using 5 withheld SST measurements from the Kuroshio current region.
   
