@@ -195,7 +195,7 @@ The semi-variance $\gamma(h)$ increases with distance $h$ if spatial correlation
 ```{r}
 #| label: fig:variogcompare
 #| fig-cap: "Figure 3: Empirical variograms computed using three different maximum distance thresholds. The max.dist = 7 version was selected for model fitting due to reduced instability in the tail while preserving the spatial structure."
-#| echo: false
+#| echo: true
 #| warning: false
 #| message: false
 library(tibble)
@@ -434,7 +434,7 @@ test_results <- test_coords %>%
 ```{r}
 #| label: fig:krigscatter
 #| fig-cap: "Observed vs predicted sea surface temperature (SST) at five withheld locations using ordinary kriging with the fitted Matérn model. Most points lie near the 1:1 line, though one outlier indicates higher uncertainty."
-#| echo: false
+#| echo: true
 #| warning: false
 #| message: false
 
@@ -454,7 +454,21 @@ As shown in **Figure** \@ref(fig:krigscatter), predicted SST values closely alig
 
 ### Model Evaluation: Gaussian Kriging
 
-A Gaussian variogram model was fitted via weighted least squares to a detrended empirical variogram (trend \~ latitude), and ordinary kriging was used to predict SST at five withheld test locations. The model’s performance was assessed using both **holdout validation** and **leave-one-out cross-validation (LOOCV)** diagnostics.
+A Gaussian variogram model was fitted to the detrended empirical variogram (trend \~ latitude) using weighted least squares, and was selected based on its superior fit to the residual spatial structure. Ordinary kriging was then performed at five randomly withheld test locations to assess predictive performance, and model diagnostics were generated via leave-one-out cross-validation (LOOCV).
+
+**Table** \@ref(tab:krigsummary) summarises observed and predicted SSTs, residuals, and kriging variances. The model showed:
+
+-   High accuracy at most locations, with **three residuals below 0.5 °C**
+
+-   One large residual (−6.88 °C), which corresponded to the **largest kriging variance** (1.505), demonstrating that the model appropriately reflected increased uncertainty
+
+    Overall **bounded kriging variances**, mostly below 1, indicating moderate prediction confidence across the region
+
+Performance metrics:
+
+-   **Root Mean Squared Error (RMSE)**: **3.22 °C**
+
+-   **Mean Absolute Error (MAE)**: **1.88 °C**
 
 ```{r}
 #| message: false
@@ -468,38 +482,22 @@ par(mfrow = c(3, 2), mar = c(4, 2, 2, 2))
 plot(xv.kriging, error = TRUE, std.error = FALSE, pch = 19)
 ```
 
-Table \@ref(tab:krigsummary) summarises observed and predicted SSTs, residuals, and kriging variances for the five withheld locations. The model shows:
+### **LOOCV Diagnostics**
 
--   **High accuracy** at most locations (e.g. residuals \< 0.5°C at three sites)
+**Figure** \@ref(fig:cvkrig) shows diagnostic plots for leave-one-out cross-validation using the fitted Gaussian model. The results support the assumptions of normality and spatial stationarity:
 
--   A **single large residual** of −6.88°C, coinciding with the largest kriging variance (1.505), indicating model uncertainty was correctly expressed
+-   The **Q–Q plot** and histogram show residuals are approximately normally distributed and centred around zero, indicating minimal bias
 
--   Reasonably bounded kriging variances (mostly \< 1), consistent with well-supported regions in the spatial domain
+-   **Residual vs predicted** and **residual vs observed** plots show no clear heteroscedasticity or systemic patterns
 
-Performance metrics:
+-   The **spatial residual map** (bottom-left) shows no regional clustering of high or low residuals, suggesting residuals are spatially uncorrelated
 
--   **RMSE**: 3.49 °C
-
--   **MAE**: 2.11 °C
-
-These values reflect **strong predictive ability**, with limited bias across the spatial domain. The high residual at one site reflects local variation or limited neighbourhood support — a typical limitation in spatial models with sparse sampling.
-
-Figure \@ref(fig:cvkrig) presents diagnostic plots from leave-one-out cross-validation using the fitted Gaussian model. The key features include:
-
--   **Q–Q plot**: residuals are approximately normally distributed, supporting model assumptions
-
--   **Histogram**: residuals are roughly centred and symmetric, further indicating minimal bias
-
--   **Residual vs predicted**: no clear heteroscedastic pattern, suggesting stable error variance across the SST range
-
--   **Spatial plot**: residuals show no large-scale spatial clustering, which supports the assumption of spatial stationarity post-detrending
-
-The residuals lie largely within ±2 standard deviations, and no clear pattern of spatial misspecification is evident.
+Residuals mostly fall within ±2 standard deviations, indicating appropriate predictive spread and no major violations of kriging assumptions.
 
 ```{r}
 #| label: tab:krigsummary
 #| tbl-cap: "Observed and predicted sea surface temperatures (SST) at five withheld test locations using Gaussian kriging. Residuals and kriging variances quantify spatial uncertainty and prediction error."
-#| echo: false
+#| echo: true
 #| warning: false
 #| message: false
 
@@ -523,91 +521,110 @@ kable(results_table, format = "latex", booktabs = TRUE,
       caption = "Observed and predicted SST values at five withheld locations using the Gaussian variogram model.")
 ```
 
-Using the final Matérn variogram model (κ = 1.5), ordinary kriging was performed at five randomly withheld locations. A constant mean was assumed, and predictions were made using the fitted covariance parameters: nugget = 0.18, partial sill = 26.68, and range = 3.13.
+### **Conclusion**
 
-Predictive accuracy was evaluated against the observed SSTs, yielding a root mean squared error (RMSE) of 3.49 °C and mean absolute error (MAE) of 2.11 °C. As shown in Figure \@ref(fig:krigscatter), most predictions aligned with observations, except for one large residual at a high-variance site. This reflects the model’s ability to express spatial uncertainty through the kriging variance.
-
-The model captured the spatial SST structure well and provided meaningful uncertainty estimates. Further improvements could include denser sampling or Bayesian spatial models to better propagate uncertainty and improve prediction at poorly supported locations.
+The Gaussian kriging model effectively captured residual SST spatial structure and provided credible uncertainty estimates. Despite a single high-error location, the model exhibited **strong overall predictive accuracy**, with errors in line with the kriging variances.
 
 ## Part D: Gaussian Process via Maximum Likelihood
 
-**Need to redo parts of this in line with C. Check the exponential model**
-
 ### Model Setup and Fitting
 
-We now fit a spatial Gaussian Process (GP) model to the training dataset using maximum likelihood estimation. This approach directly maximises the log-likelihood of the spatial model, as opposed to the weighted least squares (WLS) method used in variogram fitting.
+To validate and compare our previous kriging model, we fitted a spatial Gaussian Process (GP) model using **maximum likelihood estimation (MLE)** via the `likfit()` function from the `geoR` package. Unlike the weighted least squares method used in Part C, MLE estimates parameters by directly maximising the likelihood of the full spatial model.
 
-The Matérn covariance function with κ = 1.5 was retained from Part C due to its strong fit and interpretability. The `likfit()` function in the `geoR` package was used to estimate the nugget, partial sill, and range parameters.
+We aimed to fit the Matérn covariance model with κ = 1.5 to match the best-performing model from Part C. However, fixing this smoothness parameter and including a spatial trend caused convergence failures due to non-positive definite covariance matrices — a known limitation when using `likfit()` with fixed κ and trend terms.
 
-#### Model Setup and Attempted Optimisation
+Instead, we fitted a simplified GP model with the following structure:
 
-To fit a Gaussian Process (GP) model via maximum likelihood, the likfit() function from the geoR package was applied to the same training dataset used in Part C. The goal was to estimate the spatial covariance parameters — partial sill, range, and nugget — directly by maximising the full likelihood over all observations, as opposed to the weighted least squares approach used in variogram fitting.
+-   **Covariance model**: Matérn with κ = 0.5 (equivalent to the **exponential** model)
 
-A series of attempts were made to improve or stabilise the model fit:
+-   **Trend**: linear in latitude (`trend = ~ lat`)
 
-\- Fixing the nugget value (e.g., nugget = 0.2, nugget = 0.3) repeatedly led to numerical singularity in the variance-covariance matrix.
-
-\- Introducing a first-order or second-order trend component (e.g., trend = "1st" or "2nd") caused matrix inversion failures due to collinearity and overparameterisation.
-
-\- Explicitly setting the covariance model to Matérn with kappa = 1.5 frequently triggered decomposition errors, despite being theoretically appropriate.
-
-Ultimately, the only configuration that converged successfully used the most minimal and default structure:
-
-\- A constant mean function (default trend = "cte"),
-
-\- Unspecified covariance model and kappa (which defaults to Matérn with kappa = 0.5, i.e., the exponential model). Note that the default covariance model in `likfit()` is the Matérn family with fixed κ = 0.5, corresponding to the exponential model.
-
-\- Automatic nugget estimation.
-
-This resulted in a valid and stable model:
+-   **Estimated parameters**: partial sill, range, nugget (all inferred via MLE)
 
 ```{r}
 #| message: false
 # Fit spatial GP model via MLE using default exponential covariance
-fit_gp <- likfit(
-  kuro_geo_train,
-  ini.cov.pars = c(26, 4)
-)
 
-fit_gp
+likfit_exp <- likfit(
+  geodata = kuro_geo_train,
+  trend = ~ lat,
+  ini.cov.pars = c(5, 2),
+  nugget = 0.3,
+  messages = TRUE
+)
 ```
+
+This model converged successfully and provided interpretable parameter estimates. While the covariance structure differs slightly from the model used in Part C, this approach provides a valid MLE-based comparison using the same underlying data and trend specification.
 
 The fitted model yielded the following parameter estimates:
 
-\- Mean (β): 15.99
+```{r}
+#| label: tab:gp_mle_params
+#| tbl-cap: "Parameter estimates from the maximum likelihood Gaussian Process model using an exponential covariance (Matérn with κ = 0.5) and a linear trend in latitude."
+#| echo: true
+#| warning: false
+#| message: false
 
-\- Nugget (τ²): 0.0067
+library(knitr)
 
-\- Partial Sill (σ²): 8.34
+mle_params <- data.frame(
+  Parameter = c(
+    "Intercept (β₀)",
+    "Latitude Slope (β₁)",
+    "Nugget (τ²)",
+    "Partial Sill (σ²)",
+    "Range (ϕ)",
+    "Practical Range (cor = 0.05)",
+    "Log-Likelihood"
+  ),
+  Estimate = c(
+    59.1480,
+    -1.2535,
+    0.0043,
+    3.1730,
+    1.3448,
+    4.0285,
+    -53.86
+  )
+)
 
-\- Range (φ): 3.9996
+kable(mle_params, format = "latex", booktabs = TRUE,
+      caption = "Parameter estimates from the maximum likelihood Gaussian Process model using an exponential covariance (Matérn with κ = 0.5) and a linear trend in latitude.")
 
-\- Practical Range (cor ≈ 0.05): 11.98 spatial units
+```
 
-\- Maximised log-likelihood: –61.54
+Compared to the kriging model from Part C — which used a Gaussian variogram with nugget = 0.53, partial sill = 5.26, and range = 2.90 — the MLE-based Gaussian Process (GP) model estimated a **much smaller nugget** (0.0043), a **smaller partial sill** (3.17), and a **shorter fitted range** (1.34). However, its **practical range** (the distance at which spatial correlation drops below 0.05) was estimated at **4.03**, suggesting similar overall spatial coverage.
 
-Compared to the kriging model from Part C, which used a Matérn model with κ = 1.5, nugget = 0.18, sill = 26.68, and range = 3.13, the MLE-based GP model estimated a much smaller nugget and sill, and a longer spatial range. Although the fitted GP used a slightly different covariance assumption (Matérn with κ = 0.5), it still captured the dominant spatial structure. This provides a useful benchmark for comparing inference and prediction against both classical kriging and the Bayesian model in Part D2.
+The MLE model also estimated a **linear spatial trend in latitude**, with an intercept of 59.15 and a slope of −1.25 — consistent with the negative latitudinal SST gradient identified earlier. Despite being fit under a slightly different covariance assumption (Matérn with κ = 0.5, i.e., exponential), the model captured the dominant spatial structure effectively.
 
-Model Validation
+Overall, this MLE-based model provides a useful benchmark for comparing inference and prediction against both the classical kriging model in Part C and the fully Bayesian approach in Part E.
+
+#### Model Validation
 
 ```{r}
 #| label: fig:cvgp
 #| fig-cap: "LOOCV residual plots for the GP model fitted via maximum likelihood, showing broadly unbiased predictions with slightly greater residual spread."
 # Perform LOOCV
-xv.gp <- xvalid(kuro_geo_train, model = fit_gp)
+xv.exp <- xvalid(kuro_geo_train, model = likfit_exp)
 
 # Plot residuals
 par(mfrow = c(3, 2), mar = c(4, 2, 2, 2))
-plot(xv.gp, error = TRUE, std.error = FALSE, pch = 19)
+plot(xv.exp, error = TRUE, std.error = FALSE, pch = 19)
 ```
 
-#### Model Output
+Leave-one-out cross-validation (LOOCV) diagnostics for the MLE-based exponential Gaussian Process model are presented in **Figure \@ref(fig:gp_cv)**. The residual plots show broadly consistent behaviour with those observed under the kriging model in Part C.
 
-The maximum likelihood estimation returned updated estimates for the spatial covariance parameters. These will now be used to make predictions at the same five withheld test locations used in Part C.
+-   The **observed vs predicted** panel shows strong alignment, with most predictions falling near the 1:1 line.
+
+-   The **Q–Q plot** and **histogram** indicate approximate normality, although slight deviations in the Q–Q plot tails suggest some residual skewness or kurtosis not fully captured by the model.
+
+-   The **residuals vs predicted/observed** plots show no clear heteroscedasticity, and the **spatial residual map** suggests no major spatial clustering or violation of stationarity.
+
+Overall, the MLE model produces residual patterns that are **very similar to those of the kriging model**, with no clear evidence of improvement or deterioration. Given the model simplification (Matérn with κ = 0.5) and the use of MLE rather than WLS, this consistency supports the robustness of the spatial structure identified in Part C. However, the slight Q–Q plot deviations indicate that more flexible models — such as Bayesian GPs (Part E) — may further improve residual behaviour and uncertainty quantification.
 
 #### GP Prediction at Withheld Locations
 
-Unlike the variogram-based kriging approach in Part C, which fits the spatial correlation structure via weighted least squares, the GP model in Part D maximises the full multivariate Gaussian likelihood. This accounts for spatial correlation among all data points simultaneously, improving parameter coherence.
+Using the Gaussian Process model fitted via maximum likelihood, SST predictions were made at the same five withheld locations used in Part C. Unlike the variogram-based kriging approach, this model estimates spatial covariance parameters by maximising the full joint likelihood, accounting for spatial correlation across all observations.
 
 Predictions were made at the five withheld locations using `krige.conv()` with the MLE-fitted covariance parameters, enabling fully probabilistic interpolation under the GP model.
 
@@ -618,7 +635,7 @@ pred_gp <- krige.conv(
   geodata = kuro_geo_train,
   locations = test_coords,
   krige = krige.control(
-    obj.model = fit_gp
+    obj.model = likfit_exp
   )
 )
 
@@ -635,7 +652,7 @@ gp_results <- test_coords %>%
 ```{r}
 #| label: fig:gp_pred_scatter
 #| fig-cap: "Observed vs predicted SST at withheld locations using the Gaussian Process model (maximum likelihood). The red dashed line shows the 1:1 agreement."
-#| echo: false
+#| echo: true
 #| warning: false
 #| message: false
 # Plot: Observed vs Predicted
@@ -653,7 +670,7 @@ ggplot(gp_results, aes(x = observed_sst, y = predicted_sst)) +
 ```{r}
 #| label: tab:gp_krigsummary
 #| tbl-cap: "Observed vs Predicted SST at Withheld Locations – GP Model"
-#| echo: false
+#| echo: true
 #| warning: false
 #| message: false
 
@@ -664,23 +681,7 @@ mae_gp <- mean(abs(gp_results$residual))
 library(tibble)
 library(gt)
 
-# Create a named summary table
-tibble(
-  Metric = c("RMSE", "MAE"),
-  Value = c(rmse_gp, mae_gp)
-) %>%
-  gt() %>%
-  fmt_number(columns = "Value", decimals = 3) %>%
-  tab_header(
-    title = "Gaussian Process Model Performance",
-    subtitle = "Prediction Error Metrics on Withheld Data"
-  ) %>%
-  tab_options(
-    table.font.size = "small",
-    data_row.padding = px(3)
-  )
-
-# Create evaluation table
+# evaluation table
 library(knitr)
 gp_results %>%
   mutate(
@@ -691,43 +692,65 @@ gp_results %>%
   ) %>%
   select(lon, lat, `Observed SST (°C)`, `Predicted SST (°C)`, `Residual (°C)`, `Kriging Variance`) %>%
   kable(format = "latex", booktabs = TRUE, caption = "Observed vs Predicted SST at Withheld Locations – GP Model")
-
-
-
 ```
 
 #### Interpretation
 
-Using the Gaussian Process model fitted via maximum likelihood, SST predictions were made at the same five withheld locations used in Part C. **Unlike variogram kriging, this method estimates spatial parameters by maximising the full joint likelihood, leveraging spatial correlation between all observations simultaneously.** Figure \@ref(fig:gp_pred_scatter) displays the predicted versus observed values, while Table \@ref(tab:gp_krigsummary) reports the predicted SSTs, residuals, and associated kriging variances.
+**Figure \@ref(fig:gp_pred_scatter)** displays the predicted versus observed SSTs, and **Table \@ref(tab:gp_krigsummary)** summarises the predictions, residuals, and kriging variances.
 
-The GP model achieved a root mean squared error (RMSE) of **3.01 °C** and a mean absolute error (MAE) of **1.96 °C**, both slightly improved relative to the variogram-based model. **Notably, both models underperformed at a high-variance location (kriging variance = 2.71), indicating limitations driven by weak local data support.**
+The model achieved:
 
-**Despite using a default Matérn κ = 0.5 (exponential) covariance structure, the MLE-fitted model captured the main spatial structure effectively and required fewer tuning steps.** This aligns with the spatial distribution of errors and supports the model’s probabilistic reliability.
+-   **Root Mean Squared Error (RMSE)**: **3.16 °C**
 
-One limitation is the lack of flexibility: the Matérn model from Part C was better able to capture longer-range spatial structure. Additionally, the GP model struggled to converge under more complex assumptions, limiting experimentation.
+-   **Mean Absolute Error (MAE)**: **1.81 °C**
 
-Overall, the GP model offered competitive accuracy and uncertainty quantification, making it a robust alternative to traditional variogram-based kriging. **While the kriging approach provides transparent semi-variance interpretation, the GP model delivers a principled statistical framework with strong performance and consistency.**
+These values are very close to the kriging model’s performance in Part C, with slightly lower MAE and comparable RMSE. As with kriging, the largest residual (−6.73 °C) corresponded to the highest kriging variance (2.27), indicating correctly identified uncertainty in a sparsely supported region.
+
+Despite using the default Matérn κ = 0.5 (exponential) covariance structure, the GP model captured the primary spatial structure well and required minimal tuning. The trend in latitude was retained, ensuring consistency with the variogram-based approach.
+
+While the GP model offered coherent parameter estimation and competitive accuracy, its rigidity (e.g., difficulty fitting κ = 1.5) limited flexibility. Nonetheless, the GP provides a principled and probabilistic framework that performs robustly under likelihood-based inference.
 
 ## Part E:
 
 #### Bayesian Parameter Estimation with Discrete Priors
 
-We estimate the parameters of a spatial Gaussian Process model using a Bayesian approach via the `krige.bayes()` function in the `geoR` package. This method uses discrete priors and computes the posterior distribution over spatial parameters by evaluating all combinations within a user-defined grid. As in Part C, we assume a Matérn covariance structure with smoothness parameter κ = 1.5 and a constant mean function. This model structure was selected due to its good empirical fit to the empirical variogram and compatibility with `krige.bayes()`'s variogram-style interface.
+We now fit a spatial Gaussian Process (GP) model using a **Bayesian approach** with discrete priors, via the `krige.bayes()` function from the `geoR` package. This method uses a **grid-based evaluation of posterior probabilities**, exploring combinations of spatial hyperparameters (range, nugget) to produce full posterior distributions rather than point estimates.
 
-Although maximum likelihood estimates were obtained in Part D, the model used there relied on `likfit()` and a default exponential structure (κ = 0.5) due to convergence issues. In contrast, the Bayesian framework requires manual specification of the covariance model, and is more naturally aligned with the Matérn structure successfully fitted in Part C.
+To maintain consistency with Part C, we use the **Matérn covariance model with κ = 1.5**, which provided the best empirical variogram fit. A **linear trend in latitude** (`trend = ~ lat`) is again included to account for the large-scale SST gradient.
 
 #### Prior Specification and Justification
 
-We placed discrete priors on two key hyperparameters: the correlation range (φ) and the nugget effect (τ²). Prior ranges were informed by the maximum likelihood estimates obtained in Part D, where φ ≈ 4.00 and the nugget comprised a very small fraction of the total variance (τ² ≈ 0.0067, σ² ≈ 8.34). Specifically, we defined:
+Discrete priors were placed on two key hyperparameters: the **spatial correlation range** (ϕ) and the **relative nugget effect** (τ² / (σ² + τ²)). These priors were designed to reflect the parameter estimates obtained in Parts C and D, while remaining broad enough to allow posterior exploration.
 
--   A **reciprocal prior** over φ ∈ \[2, 6\], discretised into 50 values. This reflects prior belief that shorter spatial correlation lengths are more plausible, while still allowing exploration of moderate ranges.
--   A **uniform prior** on the relative nugget τ² / (σ² + τ²), defined over the interval \[0.01, 0.3\] using 50 discrete bins.
+-   **Correlation Range (ϕ):**\
+    A **reciprocal prior** was specified over the interval **\[1.5, 5.5\]**, discretised into 50 values.\
+    This captures both:
 
-The partial sill (σ²) was held fixed at 8.34 for computational stability and identifiability.
+    -   The **shorter MLE range** from Part D (ϕ ≈ 1.34, practical range ≈ 4.03)
+
+    -   The **moderate range** from the WLS fit in Part C (ϕ ≈ 2.90)
+
+    The reciprocal form reflects the belief that **shorter ranges are slightly more likely**, while still supporting longer-range spatial dependence if supported by the data.
+
+-   **Relative Nugget (τ² / (σ² + τ²)):**\
+    A **uniform prior** was defined over the interval **\[0.01, 0.3\]**, using 50 discrete bins.\
+    This range was chosen based on:
+
+    -   The very small **nugget estimate in Part D** (≈ 0.004 / 3.17 ≈ 0.0012)
+
+    -   The **moderate nugget proportion** in Part C (≈ 0.53 / (0.53 + 5.26) ≈ 0.09)
+
+-   **Partial Sill (σ²):**\
+    The partial sill was **fixed at 5.26**, as estimated in Part C via weighted least squares.\
+    Fixing σ² improves numerical stability and identifiability of the remaining hyperparameters.
+
+This prior structure provides a well-informed starting point, combining empirical estimates with conservative uncertainty to stabilise posterior inference and avoid singularity issues.
 
 #### Model Stability Adjustment
 
 An initial attempt using a wider nugget prior range (from 0 to 1) resulted in numerical errors due to near-singular covariance matrices. To address this, the lower bound of the nugget prior was increased to 0.01 and the upper bound reduced to 0.3. This ensured numerical stability while preserving model flexibility.
+
+Unlike in Parts C and D, the `krige.bayes()` function does not support including a trend component directly. Therefore, we fit the model without an explicit trend, but retain the covariance structure and parameter ranges aligned with previous sections.
 
 ```{r}
 #| include: true
@@ -737,36 +760,88 @@ An initial attempt using a wider nugget prior range (from 0 to 1) resulted in nu
 
 set.seed(444)
 
+# Bayesian GP model using discrete priors
 bayes_model <- krige.bayes(
   geodata = kuro_geo_train,
   model = model.control(cov.model = "matern", kappa = 1.5),
   prior = prior.control(
-    phi.discrete = seq(2, 6, l = 50),
+    phi.discrete = seq(1.5, 5.5, length.out = 50),
     phi.prior = "reciprocal",
-    tausq.rel.discrete = seq(0.01, 0.3, l = 50),
-    tausq.rel.prior = "unif"
+    tausq.rel.discrete = seq(0.01, 0.3, length.out = 50),
+    tausq.rel.prior = "unif",
+    sigmasq = 5.26
   )
 )
+```
+
+```{r}
 summary(bayes_model$posterior$sample)
 ```
 
 #### Posterior Results and Parameter Comparison
 
-Posterior inference was conducted over 2,500 combinations of φ and relative nugget. The highest posterior density occurred at:
+Posterior inference was conducted over a discrete grid of 2,500 combinations of the correlation range (ϕ) and the relative nugget (τ² / (σ² + τ²)). The model used a fixed Matérn covariance structure with κ = 1.5 and a constant mean, consistent with Part C, though excluding an explicit trend due to interface limitations in `krige.bayes()`.
 
--   φ = 2.00\
--   τ² / (σ² + τ²) = 0.01
+The most supported posterior combination occurred at:
 
-This combination received the most support (292 out of 2,500 samples), indicating strong posterior belief in short-range correlation and a negligible nugget effect.
+-   **ϕ = 1.5**
 
-Summary statistics of the posterior distribution (from `bayes_model$posterior$sample`) reinforce this interpretation:
+-   **τ² / (σ² + τ²) = 0.01**
 
--   **Range (φ):** Median = 2.08, Mean = 2.15 — indicating moderate spatial correlation, slightly shorter than the MLE estimate (φ ≈ 4.00) from Part D.
--   **Relative Nugget (τ² / (σ² + τ²)):** Median = 0.01, Mean = 0.011 — suggesting very low unexplained microscale variability, in line with both the Part C and Part D models.
--   **Partial Sill (σ²):** Mean ≈ 23.12, slightly higher than in the MLE model (σ² ≈ 8.34), possibly compensating for the shorter range estimate.
--   **Mean (β):** Median ≈ 16.64 — consistent with the SST level expected across the region.
+This parameter pair received the highest posterior density (i.e., maximum posterior support), indicating a strong preference for **short-range spatial correlation** and a **minimal nugget effect**.
 
-Compared to the MLE-based GP model in Part D, the Bayesian model estimated a slightly higher partial sill (23.1 vs. 8.3) and a shorter correlation range (φ ≈ 2.15 vs. 4.00). The nugget proportion remained small, indicating limited microscale variability. Overall, the posterior distributions concentrate around stable, interpretable values, with minimal spread — a sign of informative data and appropriate prior design.
+Summary statistics from the posterior sample reinforce this interpretation:
+
+| Parameter | Median | Mean | Comparison |
+|------------------|------------------|------------------|------------------|
+| Correlation range (ϕ) | 1.58 | 1.62 | Slightly longer than Part D (ϕ ≈ 1.34), shorter than Part C (ϕ ≈ 2.90) |
+| Relative Nugget | 0.01 | 0.011 | Consistent with Part D’s very small nugget (≈ 0.004 / 3.17) |
+| Partial Sill (σ²) | fixed | 5.26 | Matched to Part C for comparability |
+| Posterior Mean (β) | 16.49 | — | Consistent with expected SST in this region |
+
+Figure \@ref(fig:posterior_sidebyside) displays the marginal posterior distributions for the correlation range (ϕ) and the relative nugget (τ² / (σ² + τ²)) under the Bayesian GP model. Both distributions are **sharply concentrated**, with the posterior for ϕ peaking near the lower bound (ϕ ≈ 1.5) and most of the nugget posterior mass concentrated around 0.01. This indicates strong posterior support for **short-range spatial dependence** and **minimal microscale variation** — a result that aligns closely with previous findings.
+
+Quantitatively, over 75% of the posterior mass for ϕ lies below 1.66, suggesting high confidence in localised correlation. The skewness of the nugget posterior toward zero reinforces the conclusion that spatial residuals are well-explained by the structured component of the model, with little evidence of measurement error or unstructured noise.
+
+```{r}
+#| label: fig:posterior_sidebyside
+#| fig-cap: "Posterior distributions of correlation range (ϕ) and relative nugget (τ² / (σ² + τ²)) from the Bayesian GP model. Both posteriors are sharply concentrated, indicating stable parameter inference."
+#| echo: true
+#| warning: false
+#| message: false
+
+library(ggplot2)
+library(patchwork)  # For side-by-side layout
+
+# Extract posterior samples
+posterior_samples <- as.data.frame(bayes_model$posterior$sample)
+
+# Plot for phi
+p_phi <- ggplot(posterior_samples, aes(x = phi)) +
+  geom_density(fill = "steelblue", alpha = 0.6) +
+  labs(title = "Posterior of φ (Range)", x = "φ", y = "Density") +
+  theme_minimal(base_size = 13)
+
+# Plot for tausq.rel
+p_nugget <- ggplot(posterior_samples, aes(x = tausq.rel)) +
+  geom_density(fill = "darkorange", alpha = 0.6) +
+  labs(title = "Posterior of τ² / (σ² + τ²)", x = "Relative Nugget", y = "Density") +
+  theme_minimal(base_size = 13)
+
+# Combine side-by-side
+p_phi + p_nugget
+
+```
+
+Compared to the maximum likelihood GP model from **Part D**:
+
+-   The **Bayesian model estimated a slightly longer mean range** (mean ϕ = 1.62 vs. 1.34 in Part D)
+
+-   Both models support a **negligible nugget**, consistent with Part C's Gaussian kriging model
+
+-   The **partial sill was fixed in Part E**, whereas it was estimated (σ² ≈ 3.17) in Part D
+
+These similarities, despite differing estimation frameworks, suggest that the data are **highly informative** about the spatial structure, and that the discrete priors in the Bayesian model appropriately captured parameter uncertainty without overwhelming the likelihood. The sharply peaked posteriors further imply strong identifiability and posterior precision — hallmarks of a well-constrained model.
 
 #### Prediction at Withheld Locations
 
@@ -779,18 +854,19 @@ Bayesian kriging was performed at the same five withheld SST locations used in P
 #| message: false
 test_coords_df <- as_tibble(test_coords)
 
-
-# With predictions
+# Bayesian model with prediction locations
 bayes_model <- krige.bayes(
   geodata = kuro_geo_train,
-  locations = test_coords,
+  locations = as.matrix(test_coords),  # prediction locations
   model = model.control(cov.model = "matern", kappa = 1.5),
   prior = prior.control(
-    phi.discrete = seq(2, 6, l = 50),
+    phi.discrete = seq(1.5, 5.5, length.out = 50),
     phi.prior = "reciprocal",
-    tausq.rel.discrete = seq(0.01, 0.3, l = 50),
-    tausq.rel.prior = "unif"
-  ))
+    tausq.rel.discrete = seq(0.01, 0.3, length.out = 50),
+    tausq.rel.prior = "unif",
+    sigmasq = 5.26
+  )
+)
 
 
 # Summarise predictions
@@ -814,12 +890,10 @@ rmse_bayes
 mae_bayes
 ```
 
-LOOCV diagnostics are not available for the Bayesian kriging model due to the discrete posterior sampling framework, which does not support leave-one-out cross-validation via `xvalid()`.
-
 ```{r}
 #| label: fig:bayes_pred_scatter
 #| fig-cap: "Observed vs predicted SST at withheld locations using the Gaussian Process model (maximum likelihood). The red dashed line shows the 1:1 agreement."
-#| echo: false
+#| echo: true
 # Bayesian observed vs predicted plot
 ggplot(bayes_results, aes(x = observed_sst, y = predicted_sst)) +
   geom_point(size = 3) +
@@ -836,7 +910,7 @@ ggplot(bayes_results, aes(x = observed_sst, y = predicted_sst)) +
 ```{r}
 #| label: tab:bayessummary
 #| tbl-cap: "Summary of SST predictions at withheld locations. Residuals and kriging variances highlight spatial uncertainty and model accuracy."
-#| echo: false
+#| echo: true
 #| warning: false
 #| message: false
 # Output prediction table
@@ -853,13 +927,23 @@ bayes_results %>%
 
 ```
 
-The predicted SSTs largely follow the 1:1 reference line, confirming reasonable accuracy. One notable residual of -7.29°C occurred at the location with the highest kriging variance, reinforcing the relationship between data density and uncertainty.
+**Table \@ref(tab:gp_bayes_pred)** summarises the results, including prediction errors and kriging variances. **Figure \@ref(fig:bayes_pred_scatter)** shows the observed versus predicted SST values.
+
+The model achieved:
+
+-   **Root Mean Squared Error (RMSE):** 3.57 °C
+
+-   **Mean Absolute Error (MAE):** 2.21 °C
+
+These values are slightly higher than those from the MLE model in Part D (RMSE = 3.16 °C, MAE = 1.81 °C), but still within a competitive range. Notably, the largest residual (−7.40 °C) occurred at the location with the **highest kriging variance (2.92)** — a pattern also observed in Parts C and D — highlighting the link between **prediction error and local data sparsity**.
 
 #### Model Interpretation
 
-The Bayesian model offered competitive predictive performance (RMSE = 3.50°C, MAE = 2.14°C), close to the results from Part D. While it did not dramatically outperform the MLE approach, it introduced full posterior distributions over parameters and predictive uncertainty — an important advantage when quantifying inferential risk.
+The Bayesian model delivered reasonable predictive performance, **closely matching the MLE approach** while offering the additional advantage of **full posterior inference**. This allows uncertainty in both parameters and predictions to be explicitly quantified, improving transparency in risk-sensitive applications.
 
-LOOCV could not be performed, as the `krige.bayes()` framework does not support this due to its reliance on discrete posterior sampling. Nevertheless, the posterior predictive summaries and residual plots indicate unbiased performance and sensible uncertainty estimates.
+While the Bayesian model **did not outperform the MLE kriging model** in terms of raw error metrics, its **posterior distribution outputs** provide richer insights into parameter uncertainty. This is particularly valuable when assessing inferential robustness or performing uncertainty propagation in downstream modelling tasks.
+
+Leave-one-out cross-validation (LOOCV) is not available in the `krige.bayes()` framework due to its use of discrete posterior sampling. However, the residual plot and kriging variance estimates suggest a well-calibrated model with **low bias and appropriate spatial uncertainty**.
 
 ## Part F: Comparison of Predictions Across Models
 
@@ -867,13 +951,13 @@ The three models developed — classical kriging (Part C), Gaussian process via 
 
 #### Table: Predicted SST and Residuals from All Models
 
-| Location        | Observed SST (°C) | Kriging (C)   | GP (D)        | Bayesian (E)  |
-|-----------------|-------------------|---------------|---------------|---------------|
-| (142.10, 38.70) | 6.5               | 6.50 (0.00)   | 6.50 (0.00)   | 6.52 (–0.02)  |
-| (145.40, 39.56) | 6.5               | 13.83 (–7.33) | 12.40 (–5.90) | 13.79 (–7.29) |
-| (149.56, 30.15) | 19.3              | 19.32 (–0.02) | 19.33 (–0.03) | 19.32 (–0.02) |
-| (140.70, 35.00) | 18.2              | 15.57 (2.63)  | 15.80 (2.40)  | 15.44 (2.76)  |
-| (142.10, 38.30) | 8.0               | 7.43 (0.57)   | 7.55 (0.45)   | 7.38 (0.62)   |
+| Location        | Observed SST (°C) | Kriging (C)   | GP MLE (D)    | Bayesian (E)  |
+|---------------|---------------|---------------|---------------|---------------|
+| (142.10, 38.70) | 6.5               | 6.50 (0.00)   | 6.50 (0.00)   | 6.53 (−0.03)  |
+| (145.40, 39.56) | 6.5               | 13.38 (−6.88) | 13.23 (−6.73) | 13.90 (−7.40) |
+| (149.56, 30.15) | 19.3              | 19.24 (−0.06) | 19.32 (−0.02) | 19.32 (−0.02) |
+| (140.70, 35.00) | 18.2              | 16.12 (2.08)  | 16.03 (2.17)  | 15.32 (2.88)  |
+| (142.10, 38.30) | 8.0               | 7.62 (0.38)   | 7.88 (0.12)   | 7.28 (0.72)   |
 
 **Note**: Residuals are shown in parentheses.
 
@@ -881,22 +965,26 @@ The three models developed — classical kriging (Part C), Gaussian process via 
 
 | Metric    | Kriging (C) | GP (D) | Bayesian (E) |
 |-----------|-------------|--------|--------------|
-| RMSE (°C) | 3.49        | 2.86   | 3.50         |
-| MAE (°C)  | 2.11        | 1.76   | 2.14         |
+| RMSE (°C) | 3.22        | 3.163  | 3.57         |
+| MAE (°C)  | 1.88        | 1.809  | 2.21         |
 
-#### Interpretation
+### **Interpretation and Comparison of Model Predictions**
 
--   **All three models** captured the dominant SST spatial structure, with similar predictions at well-supported locations (e.g. Locations 1, 3, and 5).
+All three spatial models captured the dominant structure in SST and produced broadly consistent predictions at well-supported locations — notably at Locations 1, 3, and 5 — where all models returned similar estimates and small residuals.
 
--   **GP via MLE (Part D)** slightly outperformed the others, achieving the lowest RMSE and MAE, likely due to its direct likelihood-based parameter estimation.
+The **Gaussian Process model fitted via maximum likelihood (Part D)** slightly outperformed the others, achieving the **lowest RMSE (3.16 °C)** and **MAE (1.81 °C)**. This reflects the benefits of full-likelihood parameter estimation, which effectively balances model flexibility and computational stability.
 
--   **Bayesian kriging (Part E)** achieved comparable accuracy while providing posterior uncertainty estimates — a useful advantage when probabilistic inference is needed.
+The **Kriging model (Part C)** also performed competitively (RMSE = 3.22 °C, MAE = 1.88 °C), capturing spatial patterns well via weighted least squares variogram fitting. It is more interpretable and transparent than the likelihood-based approach but lacks a formal mechanism for capturing parameter uncertainty.
 
--   All models **underperformed** at Location 2, where kriging variances were highest. This consistent error highlights a location with sparse local support.
+The **Bayesian GP model (Part E)** returned the **highest error metrics** (RMSE = 3.57 °C, MAE = 2.21 °C), though it remained close in overall accuracy. Its strength lies in its ability to generate full **posterior distributions over both parameters and predictions**, making it especially valuable when uncertainty quantification is a key requirement. The fixed partial sill and coarser discrete prior grid may have contributed to its slightly less precise point predictions.
 
-#### Conclusion
+All three models **underperformed at Location 2**, where kriging variances were highest and residuals exceeded −6.7 °C. This consistent error across methods highlights a location with sparse spatial support and greater predictive uncertainty.
 
-Despite differing in estimation strategy, all three models produced consistent SST predictions and residual structures. The GP model offered the best balance between fit and computational simplicity, while the Bayesian approach provided richer uncertainty characterisation. These findings highlight trade-offs between interpretability, flexibility, and predictive precision in spatial modelling.
+### **Conclusion**
+
+Despite differing estimation strategies, all three models produced **consistent predictions** and **comparable spatial residual structures**. The **GP MLE model (Part D)** offered the best trade-off between **fit quality and computational efficiency**, while the **Bayesian model (Part E)** provided enhanced interpretability in terms of uncertainty.
+
+These findings illustrate the balance between **interpretability**, **predictive performance**, and **uncertainty quantification** in spatial modelling. For scenarios prioritising precision and speed, MLE may be preferred; for tasks requiring robust uncertainty statements, Bayesian approaches offer clear advantages.
 
 \newpage
 
@@ -909,14 +997,14 @@ To begin our analysis of the Atlantic Meridional Overturning Circulation (AMOC) 
 ```{r}
 #| label: fig:monthly amoc
 #| fig-cap: "Monthly AMOC time series with LOESS trend (Oct 2017 – Feb 2023)"
-#| echo: false
+#| echo: true
 #| warning: false
 #| message: false
 # Load and plot the data
 load("~/GitHub/university-projects/Modelling in Space and Time/In progress/MOC.RData")
 
 
-# --- Convert MOCmean to a tidy data frame ---
+# Converting MOCmean to a tidy data frame
 library(tidyverse)
 library(lubridate)
 library(ggplot2)
@@ -938,8 +1026,7 @@ moc_df <- tibble(
   amoc = moc_values
 ) %>% arrange(date)
 
-# --- Plot ---
-library(ggplot2)
+# Plot
 
 ggplot(moc_df, aes(x = date, y = amoc)) +
   geom_line(color = "steelblue", linewidth = 1) +
@@ -960,14 +1047,14 @@ ggplot(moc_df, aes(x = date, y = amoc)) +
   geom_point(size = 1.5, alpha = 0.7)
 ```
 
-The AMOC time series exhibits notable **short-term variability** around a relatively stable long-term mean. The dashed LOESS trend line captures fluctuations that reflect short-term anomalies and possible intra-annual structure. While there is no pronounced long-term trend, localised peaks and troughs occur — notably in **early 2018**, **late 2020**, and **early 2023**, with **dips in mid-2021 and late 2022**. These observations suggest the possible presence of a **weak seasonal or cyclical component**, which will be explored in subsequent modelling.
+**Figure** \@ref(fig:monthly amoc) shows the monthly time series with a LOESS smoother. The AMOC displays **notable short-term variability**, with values fluctuating around a relatively stable long-term mean. Although no clear linear trend is present, local dips in **mid-2021 and late 2022**, and peaks in **early 2018**, **late 2020**, and **early 2023**, suggest possible **short-memory dynamics** or **mild seasonality**, which will be assessed further through time series modelling.
 
-To further investigate the distributional properties of the series, we consider the histogram and density plot shown in Figure 2.
+To examine distributional properties, **Figure** \@ref(fig:AMOC Histo) presents a histogram and density estimate. The distribution is approximately **unimodal and symmetric**, centred around **16–17 Sv**, with **slight tail weight** on the right side. This suggests near-Gaussian behaviour, though the mild excess kurtosis indicates heavier-than-normal tails.
 
 ```{r}
 #| label: fig:AMOC Histo
 #| fig-cap: "Distribution of AMOC Strength"
-#| echo: false
+#| echo: true
 #| warning: false
 #| message: false
 ggplot(moc_df, aes(x = amoc)) +
@@ -984,12 +1071,12 @@ The distribution is approximately symmetric and unimodal, with a central peak ar
 ```{r}
 #| label: tab:AMOC Summary Stats
 #| tab-cap: "Summary Statistics of AMOC (Oct 2017 – Feb 2023)h"
-#| echo: false
+#| echo: true
 library(dplyr)
 library(gt)
 library(moments)
 
-# Enhanced summary
+# summary
 amoc_summary <- moc_df %>%
   summarise(
     Mean = mean(amoc),
@@ -1005,7 +1092,7 @@ amoc_summary <- moc_df %>%
   ) %>%
   pivot_longer(everything(), names_to = "Statistic", values_to = "Value")
 
-# Display table
+# table
 gt(amoc_summary) %>%
   fmt_number(columns = "Value", decimals = 2) %>%
   tab_header(
@@ -1020,9 +1107,9 @@ gt(amoc_summary) %>%
   )
 ```
 
-The mean overturning strength is **16.81 Sv**, with a standard deviation of **2.93 Sv**, suggesting moderate dispersion. The **coefficient of variation (CV)** is low (0.17), indicating that relative variability is limited. The **interquartile range (IQR)** of **3.37 Sv** further confirms that most monthly values lie within a narrow range. The **kurtosis value of 3.54** suggests heavier tails than a normal distribution, but this is mild. The data do not exhibit any significant skewness (**−0.24**), further justifying Gaussian modelling assumptions.
+**Table** \@ref(tab:AMOC Summary Stats) summarises key statistics. The mean overturning strength is **16.81 Sv**, with a standard deviation of **2.93 Sv** and a low **coefficient of variation (CV)** of **0.17**, indicating limited relative variability. The **interquartile range (IQR)** of **3.37 Sv** confirms moderate dispersion. Skewness (−0.24) and kurtosis (3.54) are within acceptable bounds for Gaussian modelling, supporting the use of classical ARMA-type models.
 
-Overall, these insights provide strong justification for fitting **weakly stationary time series models** (ARMA/ARIMA), possibly with short memory and mild seasonal structure. The stationarity and homoscedasticity assumptions appear reasonable based on the exploratory findings.
+Together, these results support the modelling of AMOC using **weakly stationary time series models**, such as **ARMA or ARIMA**, possibly with short memory and mild seasonal effects. The assumptions of **homoscedasticity** and **stationarity** appear reasonable based on visual and statistical diagnostics.
 
 ## Part B
 
@@ -1058,14 +1145,14 @@ pacf(train_ts, main = "PACF of AMOC (Training Set)")
 par(mfrow = c(1, 1))  # reset
 ```
 
-The ACF shows a slow decay from a strong lag-1 autocorrelation (\> 0.9), suggesting non-stationarity. The PACF cuts off sharply after lag 1, consistent with short-term AR(1) structure. Based on this, we apply first-order differencing:
+The ACF exhibits a strong lag-1 autocorrelation and a slow decay, consistent with a non-stationary process. The PACF shows a clear spike at lag 1 and minimal structure thereafter, suggesting that differencing followed by a low-order AR term may capture the residual dynamics — motivating the selection of ARIMA(1,1,0) and ARIMA(1,1,1) candidates.
 
 #### Transforming for Stationarity
 
 ```{r}
 #| label: fig:diff-acf-pacf
 #| fig-cap: "ARIMA differencing ACF/PACF"
-#| echo: false
+#| echo: true
 #| warning: false
 #| message: false
 # First-order differencing
@@ -1093,51 +1180,57 @@ pacf(diff_amoc,
      col = "black")
 ```
 
-Visual inspection of the first-order differenced AMOC series (Figure \@ref(fig:diff-acf-pacf)) indicates improved stationarity, with fluctuations more stable around a constant mean. The autocorrelation function (ACF) decays rapidly and remains within the 95% bounds, while the partial autocorrelation function (PACF) suggests short memory dependence. These features are indicative of a stationary series, justifying the use of ARIMA(\$p\$,1,\$q\$) models with first-order differencing (\$d = 1\$).
+**Figure** \@ref(fig:diff-acf-pacf) shows the first-order differenced AMOC series and its autocorrelation diagnostics. The differenced series now fluctuates around a constant mean, with no evident trend, indicating that **stationarity has been successfully induced**.
+
+The **ACF** decays rapidly, with most lags falling within the 95% confidence bounds after lag 1 — a strong sign that the **stochastic trend has been removed**. The **PACF** shows a single large spike at lag 1, suggesting the presence of **short memory dependence**, likely capturable with a **low-order AR or MA term**.
+
+These patterns collectively support the use of **ARIMA(\$p\$,1,\$q\$)** models with **first-order differencing** to address non-stationarity, and **either \$p=1\$ or \$q=1\$** to reflect the short memory structure.
 
 #### **Model Rationale and Modelling Strategy**
 
-To capture the temporal structure of the Atlantic Meridional Overturning Circulation (AMOC), we consider both **ARMA** and **ARIMA** models. These linear time series models are widely used in climatological applications to model autocorrelation and generate forecasts.
+To model the temporal dynamics of the Atlantic Meridional Overturning Circulation (AMOC), we consider both **ARMA** and **ARIMA** models — linear time series models commonly applied in climatological and environmental research to capture autocorrelation and generate forecasts.
 
-Since the **ACF displays strong persistence at lag 1 and decays slowly**, the series is likely **non-stationary**, suggesting the presence of a stochastic trend. The **PACF cuts off sharply after lag 1**, indicating short-term autoregressive dependence. Based on this, we apply **first-order differencing** to achieve approximate stationarity and proceed to fit **ARIMA(p,1,q)** models.
+Initial inspection of the raw series revealed **non-stationarity**, with strong autocorrelation at lag 1 and slow ACF decay. After applying **first-order differencing**, the series showed visual stationarity, and its ACF and PACF indicated **short memory structure**: a moderate lag-1 autocorrelation and a large negative spike in PACF at lag 1. These patterns support the use of **ARIMA(\$p\$,1,\$q\$)** models, where \$d = 1\$ accounts for stochastic trend, and \$p\$ or \$q\$ captures the short-term dependence.
 
-We adopt a two-pronged approach:
+We adopt a two-pronged modelling strategy:
 
--   **ARMA models** on the original series, to serve as a baseline.
+-   **ARMA models** on the undifferenced series serve as a benchmark, capturing autocorrelation in the original (non-stationary) data.
 
--   **ARIMA models** on the differenced series, to handle non-stationarity.
+-   **ARIMA models** on the differenced series address the identified non-stationarity more explicitly.
 
-Candidate models:
+Based on the ACF/PACF structure and model parsimony, we examine the following candidates:
 
--   ARMA(1,0) and ARMA(2,0)
+-   **ARMA(1,0)** and **ARMA(2,0)**: simple autoregressive models without differencing.
 
--   ARIMA(1,1,0), ARIMA(0,1,1), ARIMA(1,1,1)
+-   **ARIMA(1,1,0)**, **ARIMA(0,1,1)**, and **ARIMA(1,1,1)**: models with first-order differencing and varying AR/MA terms.
 
-Models are fitted via maximum likelihood using `arima()`, and compared using AIC, residual diagnostics, and Ljung–Box tests.
+All models are estimated using **maximum likelihood** via R’s `arima()` function and evaluated based on:
 
-The following candidate models are selected based on ACF/PACF patterns and parsimony:
+-   **Akaike Information Criterion (AIC)**
 
--   **ARMA(1,0)** and **ARMA(2,0)**: Autoregressive models without differencing.
+-   **Residual diagnostics** (ACF, Q–Q plots, visual residuals
 
--   **ARIMA(1,1,0)**, **ARIMA(0,1,1)**, and **ARIMA(1,1,1)**: First-order differenced models with varying AR/MA terms.
+-   **Ljung–Box tests** for autocorrelation
 
-All models are estimated using **maximum likelihood** via the `arima()` function in R. Selection and comparison will be based on **Akaike Information Criterion (AIC)**, residual diagnostics, and **forecast performance on the withheld 8-month test set**.
+-   And ultimately, **forecast performance on the 8-month test set (July 2022 – February 2023)**
+
+This modelling strategy balances **diagnostic rigour**, **parsimony**, and **forecast relevance**, ensuring that model selection is both statistically defensible and practically informed.
 
 #### ARMA Model Fitting (Undifferenced Series)
+
+We first fit two ARMA models to the undifferenced AMOC series for benchmarking. The **ARMA(1,0)** model estimated:
+
+$$
+X_t = 16.88 + 0.28 X_{t-1} + \varepsilon_t, \quad \varepsilon_t \sim \mathcal{N}(0, \sigma^2)
+$$ The **ARMA(2,0)** model extended this with a second lag: $$
+X_t = 16.90 + 0.34 X_{t-1} - 0.21 X_{t-2} + \varepsilon_t, \quad \varepsilon_t \sim \mathcal{N}(0, \sigma^2)
+$$
 
 ```{r}
 # ARMA Models
 arma_10 <- arima(train_ts, order = c(1,0,0), method = "ML")
 arma_20 <- arima(train_ts, order = c(2,0,0), method = "ML")
 ```
-
-The ARMA(1,0) model estimated the following relationship:
-
-$$
-X_t = 16.88 + 0.28 X_{t-1} + \varepsilon_t, \quad \varepsilon_t \sim \mathcal{N}(0, \sigma^2)
-$$ The ARMA(1,0) model estimated the following relationship: $$
-X_t = 16.90 + 0.34 X_{t-1} - 0.21 X_{t-2} + \varepsilon_t, \quad \varepsilon_t \sim \mathcal{N}(0, \sigma^2)
-$$
 
 ```{r}
 #| label: fig:arma-diagnostics
@@ -1156,18 +1249,18 @@ qqnorm(residuals(arma_20)); qqline(residuals(arma_20))
 par(mfrow = c(1,1))
 ```
 
-The **ARMA(1,0)** model yielded an AIC of 286.18. The residuals appear centred and roughly homoscedastic, but the ACF reveals mild autocorrelation at low lags. The Ljung–Box test returned a p-value above 0.05, indicating no statistically significant autocorrelation. The Q–Q plot suggests approximate normality, though with slight tail deviations.
-
-The **ARMA(2,0)** model slightly improved the fit, reducing AIC to 285.65. Its residual ACF falls well within the 95% bounds, and the Q–Q plot shows improved linearity. The Ljung–Box p-value increased to 0.26, indicating weaker residual dependence.
-
 #### Model Comparison
 
 | Model | AIC | AR Coefficients | Ljung–Box p-value | Residual Summary |
-|----|----|----|----|----|
+|---------------|---------------|---------------|---------------|---------------|
 | ARMA(1,0) | 286.18 | AR(1) = 0.2807 | \> 0.24 | Some residual autocorrelation |
 | ARMA(2,0) | 285.65 | AR(1) = 0.342, AR(2) = -0.209 | 0.26 | Slightly improved white noise |
 
-While ARMA(2,0) provides a marginal improvement, both models remain constrained by the assumption of stationarity. Given the **stochastic trend** and **persistent autocorrelation** in the original series, we now proceed to fit **ARIMA models** that incorporate **first-order differencing** to better capture non-stationary behaviour.
+The **ARMA(1,0)** model yielded an AIC of **286.18**. Residuals appear mean-centred and approximately homoscedastic, though the **ACF shows mild low-lag autocorrelation**, consistent with an underfitted model. The Q–Q plot indicates reasonably normal residuals with only slight tail deviations.
+
+The **ARMA(2,0)** model provided a **marginal AIC improvement to 285.65**. The residual ACF falls entirely within the 95% bounds, suggesting reduced autocorrelation. However, the Q–Q plot shows **slightly heavier left-tail deviation**, with residuals straying from normality more than in the ARMA(1,0) case. The **Ljung–Box p-value increased to 0.26**, further supporting weaker residual dependence.
+
+Although ARMA(2,0) shows statistical improvement in AIC and whiteness, **its residual distribution is slightly less normal**, and both models remain limited by the assumption of stationarity. This, combined with the underlying stochastic trend in the original series, justifies moving forward with differenced models — namely **ARIMA**.
 
 #### ARIMA Model Fitting (Differenced Series)
 
@@ -1182,7 +1275,7 @@ arima_111 <- arima(train_ts, order = c(1,1,1), method = "ML")
 #| fig-cap: "Residual diagnostics for candidate ARIMA models"
 #| message: false
 #| warning: false
-#| echo: false
+#| echo: true
 #| fig-width: 12
 #| fig-height: 6
 
@@ -1213,7 +1306,7 @@ plot_diagnostics(arima_111, "ARIMA(1,1,1)", "darkgreen")
 ```
 
 ```{r}
-#| echo: false
+#| echo: true
 #| warning: false
 #| message: false
 
@@ -1233,11 +1326,13 @@ knitr::kable(data.frame(
 
 #### Findings:
 
--   The **ARIMA(1,1,0)** model exhibited a strong Q–Q plot with minimal tail deviation; however, its **Ljung–Box p-value was 0.005**, indicating significant residual autocorrelation and a poor overall fit (**AIC = 301.4**).
+The three ARIMA models were evaluated using AIC, residual autocorrelation (via ACF and Ljung–Box test), and normality (via Q–Q plots).
 
--   In contrast, **ARIMA(0,1,1)** provided a substantial improvement, reducing AIC to **286.6** and eliminating most residual autocorrelation (**p = 0.14**), while maintaining reasonably normal residuals.
+-   The **ARIMA(1,1,0)** model performed poorly. It yielded an AIC of **301.4**, and its residuals displayed **significant autocorrelation** (Ljung–Box p = **0.005**) and noticeable non-normality in the left tail of the Q–Q plot. These features indicate an underfitted model that fails to adequately capture the series dynamics.
 
--   The best-performing model was **ARIMA(1,1,1)**, which achieved the **lowest AIC (285.1)**, and passed diagnostic checks with approximately white residuals (**p = 0.13**) and a nearly linear Q–Q plot. This model strikes the best balance between parsimony and fit, and is selected as the **benchmark for subsequent comparison**.
+-   In contrast, the **ARIMA(0,1,1)** model achieved a substantial improvement, reducing AIC to **286.6**, and removing most autocorrelation (Ljung–Box p = **0.14**). The residuals were stable, and the Q–Q plot showed only slight tail curvature, indicating a much better overall fit.
+
+-   The **ARIMA(1,1,1)** model yielded the **lowest AIC (285.1)** and the best residual diagnostics. Its residual ACF showed no significant autocorrelation (Ljung–Box p = **0.13**), and the Q–Q plot followed the 1:1 line closely. This model effectively balances goodness-of-fit with simplicity and is therefore selected as the **benchmark model**.
 
 #### Model Refinement and Justification
 
@@ -1260,7 +1355,7 @@ lb_212 <- Box.test(residuals(arima_212), lag = 10, type = "Ljung-Box")
 ```
 
 ```{r}
-#| echo: false
+#| echo: true
 #| warning: false
 #| message: false
 
@@ -1284,6 +1379,9 @@ Through ACF/PACF analysis and iterative model fitting, we identified ARIMA(1,1,1
 To explore lower-frequency dynamics in the AMOC time series, the data is aggregated from monthly to quarterly averages. This aligns with climatological practice where quarterly data can help reveal medium-term structure by smoothing high-frequency noise.
 
 ```{r}
+#| echo: true
+#| message: false
+#| warning: false
 library(dplyr)
 library(zoo)
 
@@ -1346,7 +1444,7 @@ pacf(diff_q, main = "PACF - Differenced Quarterly AMOC")
 par(mfrow = c(1, 1))
 ```
 
-The **ACF** plot displays a prominent spike at lag 1, followed by smaller but non-trivial spikes at subsequent lags. Notably, a spike at approximately lag 1.5 exceeds the 95% confidence bounds, suggesting that a simple MA(1) structure may be insufficient. Although the ACF eventually decays, the pattern implies potential short- to medium-term autocorrelation.
+The **ACF** plot displays a prominent spike at lag 1, followed by smaller but non-trivial spikes at subsequent lags. Notably, a spike between lags 1 and 2 appears to breach the 95% bounds, suggesting local autocorrelation that may not be captured by an MA(1) term alone. Although the ACF eventually decays, the pattern implies potential short- to medium-term autocorrelation.
 
 The **PACF** plot reveals significant spikes at **lags 1 and 2**, with possible weaker structure beyond. This indicates that a higher-order autoregressive component (AR(2)) may be needed to adequately capture the dependence structure.
 
@@ -1397,7 +1495,7 @@ To validate our chosen ARIMA(1,1,1) model for the quarterly AMOC series, we comp
 ```{r}
 library(forecast)
 # Auto.arima with non-seasonal specification
-auto_arima <- auto.arima(train_ts, seasonal = FALSE, stepwise = FALSE, approximation = FALSE)
+auto_arima <- auto.arima(train_q_ts, seasonal = FALSE, stepwise = FALSE, approximation = FALSE)
 
 # Summary of selected model
 summary(auto_arima)
@@ -1640,8 +1738,6 @@ Dynamic Linear Models with a local linear trend and seasonal component were succ
 #### Forecasting Methodology
 
 To assess the short-term predictability of AMOC, ARIMA(1,1,1) and Dynamic Linear Models (DLM) were fitted to both the monthly and quarterly datasets. The ARIMA models were fitted using maximum likelihood estimation, while DLMs were fitted via Kalman filtering and forecasting using `dlmForecast`. The training set consisted of all observations up to 2022 Q2 (Quarterly) or 8 months before the end of the monthly data. The test set covered the subsequent two quarters or eight months.
-
-#### 
 
 #### Forecasting ARIMA models
 
