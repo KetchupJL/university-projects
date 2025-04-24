@@ -169,11 +169,9 @@ To address this, a linear trend in latitude was incorporated into variogram esti
 #| warning: false
 #| message: false
 # Empirical variogram with binning
-# Empirical variograms with linear trend in latitude accounted for
 emp_variog_5 <- variog(kuro_geo_train, option = "bin", max.dist = 5, trend = ~ lat)
 emp_variog_7 <- variog(kuro_geo_train, option = "bin", max.dist = 7, trend = ~ lat)
 emp_variog_10 <- variog(kuro_geo_train, option = "bin", max.dist = 10, trend = ~ lat)
-
 ```
 
 To assess the spatial dependence in SST, the semi-variance is computed as:
@@ -206,7 +204,6 @@ variog_df <- bind_rows(
   tibble(dist = emp_variog_7$u, semivar = emp_variog_7$v, version = "max.dist = 7"),
   tibble(dist = emp_variog_10$u, semivar = emp_variog_10$v, version = "max.dist =10")
 )
-
 
 ggplot(variog_df, aes(x = dist, y = semivar)) +
   geom_point(size = 2, colour = "black") +
@@ -1184,13 +1181,13 @@ pacf(diff_amoc,
 
 The **ACF** decays rapidly, with most lags falling within the 95% confidence bounds after lag 1 — a strong sign that the **stochastic trend has been removed**. The **PACF** shows a single large spike at lag 1, suggesting the presence of **short memory dependence**, likely capturable with a **low-order AR or MA term**.
 
-These patterns collectively support the use of **ARIMA(\$p\$,1,\$q\$)** models with **first-order differencing** to address non-stationarity, and **either \$p=1\$ or \$q=1\$** to reflect the short memory structure.
+These patterns collectively support the use of **ARIMA(**$p$**,1,**$q$**)** models with **first-order differencing** to address non-stationarity, and **either** $p=1$ **or** $q=1$ to reflect the short memory structure.
 
 #### **Model Rationale and Modelling Strategy**
 
 To model the temporal dynamics of the Atlantic Meridional Overturning Circulation (AMOC), we consider both **ARMA** and **ARIMA** models — linear time series models commonly applied in climatological and environmental research to capture autocorrelation and generate forecasts.
 
-Initial inspection of the raw series revealed **non-stationarity**, with strong autocorrelation at lag 1 and slow ACF decay. After applying **first-order differencing**, the series showed visual stationarity, and its ACF and PACF indicated **short memory structure**: a moderate lag-1 autocorrelation and a large negative spike in PACF at lag 1. These patterns support the use of **ARIMA(\$p\$,1,\$q\$)** models, where \$d = 1\$ accounts for stochastic trend, and \$p\$ or \$q\$ captures the short-term dependence.
+Initial inspection of the raw series revealed **non-stationarity**, with strong autocorrelation at lag 1 and slow ACF decay. After applying **first-order differencing**, the series showed visual stationarity, and its ACF and PACF indicated **short memory structure**: a moderate lag-1 autocorrelation and a large negative spike in PACF at lag 1. These patterns support the use of **ARIMA(**$p$**,1,**$q$**)** models, where $d=1$ accounts for stochastic trend, and $p$ or $q$ captures the short-term dependence.
 
 We adopt a two-pronged modelling strategy:
 
@@ -1444,9 +1441,9 @@ pacf(diff_q, main = "PACF - Differenced Quarterly AMOC")
 par(mfrow = c(1, 1))
 ```
 
-The **ACF** plot displays a prominent spike at lag 1, followed by smaller but non-trivial spikes at subsequent lags. Notably, a spike between lags 1 and 2 appears to breach the 95% bounds, suggesting local autocorrelation that may not be captured by an MA(1) term alone. Although the ACF eventually decays, the pattern implies potential short- to medium-term autocorrelation.
+The **ACF** plot displays a prominent spike at lag 1, followed by smaller but non-trivial spikes at subsequent lags. Notably, a spike between lags 1 appears to breach the 95% bounds, suggesting local autocorrelation that may not be captured by an MA(1) term alone. Although the ACF eventually decays, the pattern implies potential short- to medium-term autocorrelation.
 
-The **PACF** plot reveals significant spikes at **lags 1 and 2**, with possible weaker structure beyond. This indicates that a higher-order autoregressive component (AR(2)) may be needed to adequately capture the dependence structure.
+The **PACF** plot reveals significant spikes at **lags 0.5 and 1.5**, with possible weaker structure beyond. This indicates that a higher-order autoregressive component (AR(2)) may be needed to adequately capture the dependence structure.
 
 These patterns diverge from the clean cutoff typical of simpler ARIMA(1,1,0) or ARIMA(0,1,1) processes, and instead suggest richer dynamics. Based on this, we extend our candidate model set beyond ARIMA(1,1,1), considering additional terms to capture persistent structure.
 
@@ -1493,6 +1490,7 @@ The best-performing model by AIC is **ARIMA(1,1,1)**, with an AIC of 92.73 and a
 To validate our chosen ARIMA(1,1,1) model for the quarterly AMOC series, we compare it against an automated selection using `auto.arima()` from the `forecast` package. This allows us to assess whether more data-driven model selection yields substantial improvements.
 
 ```{r}
+set.seed(444)
 library(forecast)
 # Auto.arima with non-seasonal specification
 auto_arima <- auto.arima(train_q_ts, seasonal = FALSE, stepwise = FALSE, approximation = FALSE)
@@ -1556,7 +1554,7 @@ data.frame(
 
 ### Residual Diagnostics Comparison
 
-Residual plots for both models (ARIMA(1,1,1) and auto.arima ARIMA(2,1,2)) show:
+Residual plots for both models (ARIMA(1,1,1) and auto.arima ARIMA(0,1,0)) show:
 
 -   Residuals are approximately centred around zero.
 
@@ -1564,13 +1562,13 @@ Residual plots for both models (ARIMA(1,1,1) and auto.arima ARIMA(2,1,2)) show:
 
 -   The Q-Q plot shows approximate normality.
 
-While `auto.arima()` identified a more complex ARIMA(2,1,2) model with superior AIC, the simpler ARIMA(1,1,1) still performs well — producing acceptable residual behaviour and satisfying parsimony principles. The slight trade-off in AIC is justified given the desire for interpretability and alignment with the identified ACF/PACF structure.
+While `auto.arima()` identified a more simple ARIMA(0,1,0) model with superior AIC, the simpler ARIMA(1,1,1) still performs well — producing acceptable residual behaviour and satisfying parsimony principles. The slight trade-off in AIC is justified given the desire for interpretability and alignment with the identified ACF/PACF structure.
 
 #### Sarima Models:
 
-Although the quarterly AMOC series showed no clear seasonal structure in the initial ACF and PACF plots, SARIMA models were fitted as a robustness check to confirm the absence of seasonal effects. Specifically, SARIMA(1,1,0)(0,0,1)\[4\] and SARIMA(0,1,1)(0,0,1)\[4\] were tested, where the seasonal period was set to 4 to correspond with quarterly data.
+Although the quarterly AMOC series showed no clear seasonal structure in the initial ACF and PACF plots, SARIMA models were fitted as a robustness check to confirm the absence of seasonal effects. Specifically, SARIMA(1,1,0) and SARIMA(0,1,1) were tested, where the seasonal period was set to 4 to correspond with quarterly data.
 
-Both models performed worse than the non-seasonal ARIMA(1,1,1) model. The SARIMA(1,1,0)(0,0,1)\[4\] model returned an AIC of 290.5, while SARIMA(0,1,1)(0,0,1)\[4\] produced an AIC of 292.0. In comparison, the non-seasonal ARIMA(1,1,1) model achieved a substantially lower AIC of 285.1. Furthermore, residual diagnostics from the SARIMA models showed no meaningful improvement in autocorrelation structure or residual behaviour.
+Both models performed worse than the non-seasonal ARIMA(1,1,1) model. The SARIMA(1,1,0) model returned an AIC of 290.5, while SARIMA(0,1,1) produced an AIC of 292.0. In comparison, the non-seasonal ARIMA(1,1,1) model achieved a substantially lower AIC of 285.1. Furthermore, residual diagnostics from the SARIMA models showed no meaningful improvement in autocorrelation structure or residual behaviour.
 
 #### Additional Residual Diagnostics: ARCH Test
 
@@ -1579,37 +1577,25 @@ While residual autocorrelation and normality have been adequately addressed via 
 To formally test for this, we apply the ARCH LM test (Engle, 1982) to the residuals of the selected ARIMA(1,1,1) model.
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 
 # Load FinTS package for ARCH test
 library(FinTS)
 
-# ARCH LM test with 12 lags
-arch_test <- ArchTest(residuals(arima_111_q), lags = 12)
+# ARCH LM test with 4 lags
+arch_test <- ArchTest(residuals(arima_111_q), lags = 4)
 arch_test
 ```
 
-The ARCH LM test returned a p-value of 0.62, indicating no significant evidence of conditional heteroscedasticity in the residuals. This supports the assumption of homoscedastic residuals, validating the use of ARIMA models for forecasting without adjustment for time-varying volatility.
+The ARCH LM test returned a p-value of 0.46, indicating no significant evidence of conditional heteroscedasticity in the residuals. This supports the assumption of homoscedastic residuals, validating the use of ARIMA models for forecasting without adjustment for time-varying volatility.
 
 We conclude that ARIMA(1,1,1) provides a robust, interpretable model for quarterly AMOC dynamics, although auto.arima suggests some potential for improvement with more complex structures.
 
 ## Part D – Fitting Dynamic Linear Models
 
 Dynamic Linear Models (DLMs) provide a flexible and powerful framework for modelling time series data in which the underlying level and trend components may evolve over time. This approach is particularly appropriate for environmental data such as the AMOC, where the underlying patterns and behaviour can vary across different periods. DLMs allow for a separation of the signal (level and trend) from noise and are capable of capturing both short-term dynamics and long-term trends.
-
-### Model Set Up
-
-#### General State Space Formulation:
-
-The DLM structure applied follows the general state-space formulation, defined by the observation and system equations:
-
--   Observation Equation:
-
--   System Equation:
-
-Where represents the observed AMOC value at time , is the unobserved state vector containing the level, trend, and seasonal components, and and represent the observation and system variances, respectively.
 
 #### Monthly AMOC DML:
 
@@ -1652,7 +1638,7 @@ resid_month <- residuals(filt_month_dlm, type="raw")$res
 ```
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 par(mfrow=c(1,3))
@@ -1663,7 +1649,7 @@ par(mfrow=c(1,1))
 ```
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 Box.test(resid_month, lag=10, type="Ljung-Box")
@@ -1725,9 +1711,9 @@ The quarterly AMOC series was modelled using a local linear trend DLM with a sea
 
 Formal tests confirmed these results:
 
--   Ljung-Box test (lag=5): *p* = 0.104 → No evidence of residual autocorrelation.
+-   Ljung-Box test (lag=5): *p* = 0.114 → No evidence of residual autocorrelation.
 
--   ARCH LM test (lags=5): *p* = 0.110 → No evidence of conditional heteroscedasticity.
+-   ARCH LM test (lags=5): *p* = 0.134 → No evidence of conditional heteroscedasticity.
 
 The quarterly DLM performed well, with residuals satisfying key modelling assumptions.
 
@@ -1765,7 +1751,7 @@ forecast_dlm_quarterly <- dlmForecast(filt_quarter_dlm, nAhead=2)
 #### Monthly AMOC Forecast
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 
@@ -1804,7 +1790,7 @@ monthly_arima_plot <- ggplot(monthly_df, aes(x=Time)) +
 #### Monthly DML
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 
@@ -1846,7 +1832,7 @@ monthly_dlm_plot <- ggplot(monthly_dlm_df, aes(x=Time)) +
 ```{r}
 #| label: fig:monthlyforecast
 #| fig-cap: "Monthly AMOC forecasts from ARIMA(1,1,1) and DLM models shown side-by-side. ARIMA demonstrates slightly narrower prediction intervals with improved forecast accuracy relative to DLM over the 8-month test period."
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 library(patchwork)
@@ -1859,7 +1845,7 @@ monthly_arima_plot + monthly_dlm_plot +
 Quarterly ARIMA
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 
@@ -1896,7 +1882,7 @@ quarterly_arima_plot <- ggplot(quarterly_arima_df, aes(x=Time)) +
 Quarterly DLM
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 
@@ -1941,7 +1927,7 @@ quarterly_dlm_plot <- ggplot(quarterly_dlm_df, aes(x=Time)) +
 #| label: fig:quarterlyforecast
 #| fig-cap: "Quarterly AMOC forecasts from ARIMA(1,1,1) and DLM models shown side-by-side. While both models capture the broad trend, ARIMA outperforms DLM with lower forecast uncertainty and error over the 2-quarter test set."
 
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 library(patchwork)
@@ -1959,7 +1945,7 @@ Both models capture the broad trend in AMOC reasonably well. However, prediction
 #### Model Prediction Accuracy
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 
@@ -1993,7 +1979,7 @@ Summary Table
 ```{r}
 #| label: tab:forecastacc
 #| tbl-cap: "Forecast accuracy summary for ARIMA(1,1,1) and DLM models fitted to monthly and quarterly AMOC series. ARIMA generally outperforms DLM, particularly for quarterly forecasts, as indicated by lower MAE and RMSE values."
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 
@@ -2020,12 +2006,14 @@ Results indicate that ARIMA models outperform DLMs in terms of predictive accura
 
 Overall, ARIMA(1,1,1) provided superior short-term forecasts for AMOC, especially for quarterly data. While DLMs offer a flexible modelling framework that can accommodate time-varying parameters and capture dynamic behaviour, their greater forecast uncertainty and wider intervals suggest over-parameterisation or structural challenges given the short available test set. The tight intervals and lower error values from ARIMA models justify their use for operational short-term forecasting of AMOC.
 
+\newpage
+
 # California daily temperatures
 
 ## Part A: Exploratory Analysis of Spatial and Temporal Relationships
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 temps <- read.csv("~/GitHub/university-projects/Modelling in Space and Time/In progress/MaxTempCalifornia.csv")
@@ -2044,7 +2032,7 @@ This section presents an exploratory analysis of daily maximum temperatures reco
 #### Summary Statistics Table
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 library(dplyr)
@@ -2094,7 +2082,7 @@ In contrast, coastal sites like San Francisco (Mean = 18.3°C, SD = 4.0°C) and 
 While elevation does affect temperatures to some extent — with higher inland sites like Redding (1041m) recording lower mean temperatures than nearby lowland regions — coastal proximity remains the dominant driver of temperature patterns.
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 #| fig-width: 10
@@ -2133,7 +2121,7 @@ Figure 20 shows the spatial distribution of the monitoring sites, coloured by el
 Death Valley is notable for sitting inland at -86m below sea level, while other inland sites like Barstow (665m) and Fresno (92m) lie further from the coast, despite moderate elevation.
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 #| fig-width: 9
@@ -2230,7 +2218,7 @@ geo_data_train <- as.geodata(data.frame(x = training_coords$Long,
 #### Exploratory Variogram Analysis:
 
 ```{r}
- vario_emp <- variog(geo_data_train, max.dist = 600, option='bin')
+vario_emp <- variog(geo_data_train, max.dist = 600, option='bin')
 
 plot(vario_emp,
      main = "Empirical Variogram of Max Temp (13 Dec 2012)",
@@ -2260,7 +2248,6 @@ DOUBLE CHECK I AM ADDING THE ELEV RELATIONSHOP PROPERLY, AND IT SHOULDNT BE tren
 #| echo: true
 #| message: false
 #| warning: false
-
 model_gp <- likfit(geo_data_train, trend = "1st", cov.model = "matern", kappa = 1.5, ini.cov.pars = c(10, 1))
 
 model_gp
@@ -2296,7 +2283,7 @@ The estimated model parameters provide insight into the spatial and trend compon
 We evaluated the models using **AIC** and **log-likelihood**. Here are the comparison metrics for each model:
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 # Extract AIC, BIC, and Log-Likelihood for each model
@@ -2307,7 +2294,6 @@ model_stats <- data.frame(
 )
 
 kable(model_stats, caption = "Model Comparison: AIC and Log-Likelihood")
-
 ```
 
 -   **AIC and BIC**: The **Base GP** model has the lowest **AIC** and **BIC**, suggesting it strikes the best balance between fit and complexity.
@@ -2318,7 +2304,7 @@ kable(model_stats, caption = "Model Comparison: AIC and Log-Likelihood")
 **Cross-validation** helps us check if the fitted model generalizes well to unseen data. We'll use the `xvalid()` function from the `geoR` package, which performs **leave-one-out cross-validation** for spatial data.
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 # Cross-validation using xvalid() function from geoR
@@ -2365,7 +2351,7 @@ The cross-validation results for all three models — **Model GP (Base)**, **Mod
 Given these results, the choice between these models is somewhat inconsequential in terms of predictive accuracy. However, the **Exponential** model, being simpler, may be preferable due to its computational efficiency.
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 xv.ml<-xvalid(geo_data_train,model=model_gp)
@@ -2393,23 +2379,22 @@ Using the fitted **Gaussian Process model (Base)**, we predicted the maximum tem
 
 ### Comparison of Predicted vs Real Temperatures:
 
-MANUALLY ADD ELEV POINTS!!
-
 ```{r}
-# Define the coordinates for San Diego and Fresno
+# Define the coordinates and elevation for San Diego and Fresno
 locations <- data.frame(
   x = c(-117.1611, -119.7726),  # Longitude for San Diego and Fresno
-  y = c(32.7157, 36.7468)       # Latitude for San Diego and Fresno
+  y = c(32.7157, 36.7468),      # Latitude for San Diego and Fresno
+  Elevation = c(32.7, 106)      # Elevation for San Diego (32.7m) and Fresno (106m)
 )
 
-# Perform kriging for spatial prediction
+# Perform kriging for spatial prediction, including elevation
 preds <- krige.conv(geo_data_train, loc = locations, krige = krige.control(obj.model = model_gp))
 
 # Extract predicted values (mean temperatures)
 predicted_temperatures <- preds$predict
 
 # Display predicted temperatures for San Diego and Fresno
-# predicted_temperatures
+predicted_temperatures
 ```
 
 The predicted temperatures for **San Diego** and **Fresno** on **December 13th, 2012**, were obtained using the **Gaussian Process model (Base)** with spatial kriging. These predictions were compared with the real observed temperatures for the same day:
@@ -2437,7 +2422,8 @@ These comparisons highlight the model’s effectiveness in predicting **San Dieg
 Data Preparation:
 
 ```{r}
-#| echo: false
+#| echo: true
+#| results: hide
 #| message: false
 #| warning: false
 temps <- read.csv("~/GitHub/university-projects/Modelling in Space and Time/In progress/MaxTempCalifornia.csv")
@@ -2457,7 +2443,7 @@ fresno_data <- temps[temps$Date >= "2012-01-01" & temps$Date <= "2012-12-31", c(
 ```
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 # Plot for San Diego
@@ -2486,7 +2472,7 @@ This is an important consideration for the time series modeling, as non-stationa
 ### Model Fitting
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 # First-order differencing to make data stationary
@@ -2511,7 +2497,7 @@ The differenced data for both **San Diego** and **Fresno** shows distinct charac
 ### ARIMA/ARMA Model Fitting
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 # Plot the differenced data to visually check if stationarity is achieved
@@ -2523,7 +2509,7 @@ pacf(san_diego_diff, main = "PACF for San Diego (Differenced)")
 ```
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 # Plot the differenced data to visually check if stationarity is achieved
@@ -2574,7 +2560,7 @@ A **SARIMA** model would have been ideal for capturing the seasonal patterns in 
 Diagnostic tests:
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 par(mfrow = c(2, 2)) 
@@ -2617,7 +2603,7 @@ arima_fresno <- arima(train_fresno, order = c(2, 1, 1))
 ```
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 par(mfrow = c(1, 2)) 
@@ -2724,7 +2710,7 @@ The **San Diego** plot revealed a slight dip in temperature around **Dec 11th** 
 The forecasted values were plotted in the same way as the first period, with **blue lines** representing the forecasted temperatures and **red lines** showing the actual observed data.
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 par(mfrow = c(1, 2)) 
@@ -2812,12 +2798,14 @@ legend("topright", legend = c("Forecasted", "Actual", "95% CI"), col = c("blue",
 
 ```
 
-For **Dec 13th to Dec 17th**, the ARIMA model continued to provide reasonable predictions, although the actual temperatures exhibited more variation compared to the first period. For **San Diego**, the forecast predicted a small drop in temperature, while the actual temperatures showed more significant fluctuations, leading to higher **RMSE** and **MAE** values compared to the first period. Similarly, in **Fresno**, the forecast closely mirrored the trend of the observed data but showed more pronounced deviations in the later part of the period. Despite these fluctuations, the model continued to offer useful insights, with the **confidence intervals** reflecting the uncertainty in the predictions. Overall, the model’s performance remained satisfactory, although the larger deviations in actual temperatures during this period highlighted some challenges with the forecast.
+For **Dec 13th to Dec 17th**, the ARIMA model continued to provide reasonable predictions, although the actual temperatures exhibited more variation compared to the first period. For **San Diego**, the forecast predicted a small drop in temperature, while the actual temperatures showed more significant fluctuations, leading to higher **RMSE** and **MAE** values compared to the first period.
+
+Similarly, in **Fresno**, the forecast closely mirrored the trend of the observed data but showed more pronounced deviations in the later part of the period. Despite these fluctuations, the model continued to offer useful insights, with the **confidence intervals** reflecting the uncertainty in the predictions. Overall, the model’s performance remained satisfactory, although the larger deviations in actual temperatures during this period highlighted some challenges with the forecast.
 
 ### Evaluating Forecast accuracy
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 # Actual observed data for Dec 9th–Dec 13th (San Diego and Fresno)

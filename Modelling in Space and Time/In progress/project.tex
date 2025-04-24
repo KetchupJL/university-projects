@@ -482,7 +482,6 @@ correlation. \textbf{Figure 3} visualises this latitudinal trend.
 \begin{Shaded}
 \begin{Highlighting}[]
 \CommentTok{\# Empirical variogram with binning}
-\CommentTok{\# Empirical variograms with linear trend in latitude accounted for}
 \NormalTok{emp\_variog\_5 }\OtherTok{\textless{}{-}} \FunctionTok{variog}\NormalTok{(kuro\_geo\_train, }\AttributeTok{option =} \StringTok{"bin"}\NormalTok{, }\AttributeTok{max.dist =} \DecValTok{5}\NormalTok{, }\AttributeTok{trend =} \SpecialCharTok{\textasciitilde{}}\NormalTok{ lat)}
 \end{Highlighting}
 \end{Shaded}
@@ -531,6 +530,37 @@ where:
 
 The semi-variance \(\gamma(h)\) increases with distance \(h\) if spatial
 correlation is present.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(tibble)}
+\FunctionTok{library}\NormalTok{(dplyr)}
+
+\NormalTok{variog\_df }\OtherTok{\textless{}{-}} \FunctionTok{bind\_rows}\NormalTok{(}
+  \FunctionTok{tibble}\NormalTok{(}\AttributeTok{dist =}\NormalTok{ emp\_variog\_5}\SpecialCharTok{$}\NormalTok{u, }\AttributeTok{semivar =}\NormalTok{ emp\_variog\_5}\SpecialCharTok{$}\NormalTok{v, }\AttributeTok{version =} \StringTok{"max.dist = 5"}\NormalTok{),}
+  \FunctionTok{tibble}\NormalTok{(}\AttributeTok{dist =}\NormalTok{ emp\_variog\_7}\SpecialCharTok{$}\NormalTok{u, }\AttributeTok{semivar =}\NormalTok{ emp\_variog\_7}\SpecialCharTok{$}\NormalTok{v, }\AttributeTok{version =} \StringTok{"max.dist = 7"}\NormalTok{),}
+  \FunctionTok{tibble}\NormalTok{(}\AttributeTok{dist =}\NormalTok{ emp\_variog\_10}\SpecialCharTok{$}\NormalTok{u, }\AttributeTok{semivar =}\NormalTok{ emp\_variog\_10}\SpecialCharTok{$}\NormalTok{v, }\AttributeTok{version =} \StringTok{"max.dist =10"}\NormalTok{)}
+\NormalTok{)}
+
+\FunctionTok{ggplot}\NormalTok{(variog\_df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ dist, }\AttributeTok{y =}\NormalTok{ semivar)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{size =} \DecValTok{2}\NormalTok{, }\AttributeTok{colour =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\AttributeTok{colour =} \StringTok{"darkred"}\NormalTok{, }\AttributeTok{linewidth =} \DecValTok{1}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{facet\_wrap}\NormalTok{(}\SpecialCharTok{\textasciitilde{}}\NormalTok{ version, }\AttributeTok{ncol =} \DecValTok{1}\NormalTok{, }\AttributeTok{scales =} \StringTok{"free\_x"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"Comparison of Empirical Variograms"}\NormalTok{,}
+    \AttributeTok{x =} \StringTok{"Distance (spatial units)"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"Semi{-}variance"}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{13}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}
+    \AttributeTok{plot.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{, }\AttributeTok{size =} \DecValTok{14}\NormalTok{, }\AttributeTok{hjust =} \FloatTok{0.5}\NormalTok{),}
+    \AttributeTok{axis.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{),}
+    \AttributeTok{strip.text =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{, }\AttributeTok{size =} \DecValTok{12}\NormalTok{),}
+    \AttributeTok{panel.grid.major =} \FunctionTok{element\_line}\NormalTok{(}\AttributeTok{color =} \StringTok{"grey85"}\NormalTok{),}
+    \AttributeTok{panel.grid.minor =} \FunctionTok{element\_blank}\NormalTok{()}
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{figure}[H]
 
@@ -929,6 +959,21 @@ krige.conv: Kriging performed using global neighbourhood
 \end{Highlighting}
 \end{Shaded}
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Visualise prediction accuracy}
+\FunctionTok{ggplot}\NormalTok{(test\_results, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ observed\_sst, }\AttributeTok{y =}\NormalTok{ predicted\_sst)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{size =} \DecValTok{3}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_abline}\NormalTok{(}\AttributeTok{slope =} \DecValTok{1}\NormalTok{, }\AttributeTok{intercept =} \DecValTok{0}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{colour =} \StringTok{"red"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"Observed vs Predicted SST at Withheld Locations"}\NormalTok{,}
+    \AttributeTok{x =} \StringTok{"Observed SST (°C)"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"Predicted SST (°C)"}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{13}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
 \begin{figure}[H]
 
 {\centering \includegraphics{project_files/figure-pdf/fig-krigscatter-1.pdf}
@@ -1041,6 +1086,29 @@ Residuals mostly fall within ±2 standard deviations, indicating
 appropriate predictive spread and no major violations of kriging
 assumptions.
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Compute RMSE and MAE}
+\NormalTok{rmse }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{(test\_results}\SpecialCharTok{$}\NormalTok{residual}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{mae }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{abs}\NormalTok{(test\_results}\SpecialCharTok{$}\NormalTok{residual))}
+
+\CommentTok{\# Summary table}
+\FunctionTok{library}\NormalTok{(knitr)}
+
+\NormalTok{results\_table }\OtherTok{\textless{}{-}}\NormalTok{ test\_results }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(observed\_sst, }\DecValTok{2}\NormalTok{),}
+    \StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(predicted\_sst, }\DecValTok{2}\NormalTok{),}
+    \StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(residual, }\DecValTok{2}\NormalTok{),}
+    \StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(kriging\_var, }\DecValTok{3}\NormalTok{)}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{select}\NormalTok{(lon, lat, }\StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}}\NormalTok{)}
+
+\FunctionTok{kable}\NormalTok{(results\_table, }\AttributeTok{format =} \StringTok{"latex"}\NormalTok{, }\AttributeTok{booktabs =} \ConstantTok{TRUE}\NormalTok{,}
+      \AttributeTok{caption =} \StringTok{"Observed and predicted SST values at five withheld locations using the Gaussian variogram model."}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
 \begin{table}
 
 \caption{Observed and predicted sea surface temperatures (SST) at five withheld
@@ -1132,6 +1200,36 @@ model used in Part C, this approach provides a valid MLE-based
 comparison using the same underlying data and trend specification.
 
 The fitted model yielded the following parameter estimates:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(knitr)}
+
+\NormalTok{mle\_params }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Parameter =} \FunctionTok{c}\NormalTok{(}
+    \StringTok{"Intercept (β₀)"}\NormalTok{,}
+    \StringTok{"Latitude Slope (β₁)"}\NormalTok{,}
+    \StringTok{"Nugget (τ²)"}\NormalTok{,}
+    \StringTok{"Partial Sill (σ²)"}\NormalTok{,}
+    \StringTok{"Range (ϕ)"}\NormalTok{,}
+    \StringTok{"Practical Range (cor = 0.05)"}\NormalTok{,}
+    \StringTok{"Log{-}Likelihood"}
+\NormalTok{  ),}
+  \AttributeTok{Estimate =} \FunctionTok{c}\NormalTok{(}
+    \FloatTok{59.1480}\NormalTok{,}
+    \SpecialCharTok{{-}}\FloatTok{1.2535}\NormalTok{,}
+    \FloatTok{0.0043}\NormalTok{,}
+    \FloatTok{3.1730}\NormalTok{,}
+    \FloatTok{1.3448}\NormalTok{,}
+    \FloatTok{4.0285}\NormalTok{,}
+    \SpecialCharTok{{-}}\FloatTok{53.86}
+\NormalTok{  )}
+\NormalTok{)}
+
+\FunctionTok{kable}\NormalTok{(mle\_params, }\AttributeTok{format =} \StringTok{"latex"}\NormalTok{, }\AttributeTok{booktabs =} \ConstantTok{TRUE}\NormalTok{,}
+      \AttributeTok{caption =} \StringTok{"Parameter estimates from the maximum likelihood Gaussian Process model using an exponential covariance (Matérn with κ = 0.5) and a linear trend in latitude."}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{table}
 
@@ -1282,6 +1380,21 @@ krige.conv: Kriging performed using global neighbourhood
 \end{Highlighting}
 \end{Shaded}
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Plot: Observed vs Predicted}
+\FunctionTok{ggplot}\NormalTok{(gp\_results, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ observed\_sst, }\AttributeTok{y =}\NormalTok{ predicted\_sst)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{size =} \DecValTok{3}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_abline}\NormalTok{(}\AttributeTok{slope =} \DecValTok{1}\NormalTok{, }\AttributeTok{intercept =} \DecValTok{0}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{color =} \StringTok{"red"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"Observed vs Predicted SST (GP Model)"}\NormalTok{,}
+    \AttributeTok{x =} \StringTok{"Observed SST (°C)"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"Predicted SST (°C)"}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{13}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
 \begin{figure}[H]
 
 {\centering \includegraphics{project_files/figure-pdf/fig-gp_pred_scatter-1.pdf}
@@ -1293,6 +1406,29 @@ Gaussian Process model (maximum likelihood). The red dashed line shows
 the 1:1 agreement.}
 
 \end{figure}%
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Compute error metrics}
+\NormalTok{rmse\_gp }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{(gp\_results}\SpecialCharTok{$}\NormalTok{residual}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{mae\_gp }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{abs}\NormalTok{(gp\_results}\SpecialCharTok{$}\NormalTok{residual))}
+
+\FunctionTok{library}\NormalTok{(tibble)}
+\FunctionTok{library}\NormalTok{(gt)}
+
+\CommentTok{\# evaluation table}
+\FunctionTok{library}\NormalTok{(knitr)}
+\NormalTok{gp\_results }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(observed\_sst, }\DecValTok{2}\NormalTok{),}
+    \StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(predicted\_sst, }\DecValTok{2}\NormalTok{),}
+    \StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(residual, }\DecValTok{2}\NormalTok{),}
+    \StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(kriging\_var, }\DecValTok{3}\NormalTok{)}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{select}\NormalTok{(lon, lat, }\StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{kable}\NormalTok{(}\AttributeTok{format =} \StringTok{"latex"}\NormalTok{, }\AttributeTok{booktabs =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{caption =} \StringTok{"Observed vs Predicted SST at Withheld Locations – GP Model"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{table}
 
@@ -1531,6 +1667,31 @@ nugget posterior toward zero reinforces the conclusion that spatial
 residuals are well-explained by the structured component of the model,
 with little evidence of measurement error or unstructured noise.
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(ggplot2)}
+\FunctionTok{library}\NormalTok{(patchwork)  }\CommentTok{\# For side{-}by{-}side layout}
+
+\CommentTok{\# Extract posterior samples}
+\NormalTok{posterior\_samples }\OtherTok{\textless{}{-}} \FunctionTok{as.data.frame}\NormalTok{(bayes\_model}\SpecialCharTok{$}\NormalTok{posterior}\SpecialCharTok{$}\NormalTok{sample)}
+
+\CommentTok{\# Plot for phi}
+\NormalTok{p\_phi }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(posterior\_samples, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ phi)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_density}\NormalTok{(}\AttributeTok{fill =} \StringTok{"steelblue"}\NormalTok{, }\AttributeTok{alpha =} \FloatTok{0.6}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Posterior of φ (Range)"}\NormalTok{, }\AttributeTok{x =} \StringTok{"φ"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Density"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{13}\NormalTok{)}
+
+\CommentTok{\# Plot for tausq.rel}
+\NormalTok{p\_nugget }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(posterior\_samples, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ tausq.rel)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_density}\NormalTok{(}\AttributeTok{fill =} \StringTok{"darkorange"}\NormalTok{, }\AttributeTok{alpha =} \FloatTok{0.6}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Posterior of τ² / (σ² + τ²)"}\NormalTok{, }\AttributeTok{x =} \StringTok{"Relative Nugget"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Density"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{13}\NormalTok{)}
+
+\CommentTok{\# Combine side{-}by{-}side}
+\NormalTok{p\_phi }\SpecialCharTok{+}\NormalTok{ p\_nugget}
+\end{Highlighting}
+\end{Shaded}
+
 \begin{figure}[H]
 
 {\centering \includegraphics{project_files/figure-pdf/fig-posterior_sidebyside-1.pdf}
@@ -1627,6 +1788,21 @@ extracted, and evaluation metrics were computed:
 [1] 2.209019
 \end{verbatim}
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Bayesian observed vs predicted plot}
+\FunctionTok{ggplot}\NormalTok{(bayes\_results, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ observed\_sst, }\AttributeTok{y =}\NormalTok{ predicted\_sst)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{size =} \DecValTok{3}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_abline}\NormalTok{(}\AttributeTok{slope =} \DecValTok{1}\NormalTok{, }\AttributeTok{intercept =} \DecValTok{0}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{colour =} \StringTok{"red"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"Observed vs Predicted SST (Bayesian Model)"}\NormalTok{,}
+    \AttributeTok{x =} \StringTok{"Observed SST (°C)"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"Predicted SST (°C)"}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{13}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
 \begin{figure}[H]
 
 {\centering \includegraphics{project_files/figure-pdf/fig-bayes_pred_scatter-1.pdf}
@@ -1638,6 +1814,22 @@ Gaussian Process model (maximum likelihood). The red dashed line shows
 the 1:1 agreement.}
 
 \end{figure}%
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Output prediction table}
+\NormalTok{bayes\_results }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(observed\_sst, }\DecValTok{2}\NormalTok{),}
+    \StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(predicted\_sst, }\DecValTok{2}\NormalTok{),}
+    \StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(residual, }\DecValTok{2}\NormalTok{),}
+    \StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(kriging\_var, }\DecValTok{3}\NormalTok{)}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{select}\NormalTok{(lon, lat, }\StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{(}\AttributeTok{format =} \StringTok{"latex"}\NormalTok{, }\AttributeTok{booktabs =} \ConstantTok{TRUE}\NormalTok{,}
+               \AttributeTok{caption =} \StringTok{"Observed vs Predicted SST at Withheld Locations – Bayesian Model"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{table}
 
@@ -1818,6 +2010,56 @@ values from \textbf{October 2017 to February 2023}. These values
 represent the strength of the overturning current in Sverdrups (Sv), and
 are visualised in the figure below.
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Load and plot the data}
+\FunctionTok{load}\NormalTok{(}\StringTok{"\textasciitilde{}/GitHub/university{-}projects/Modelling in Space and Time/In progress/MOC.RData"}\NormalTok{)}
+
+
+\CommentTok{\# Converting MOCmean to a tidy data frame}
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\FunctionTok{library}\NormalTok{(lubridate)}
+\FunctionTok{library}\NormalTok{(ggplot2)}
+\CommentTok{\# Extract names and values}
+\NormalTok{moc\_values }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(MOCmean)}
+\NormalTok{moc\_dates }\OtherTok{\textless{}{-}} \FunctionTok{names}\NormalTok{(MOCmean)}
+
+\CommentTok{\# Fix formatting of date strings    }
+\NormalTok{moc\_dates\_fixed }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{(}\FunctionTok{nchar}\NormalTok{(moc\_dates) }\SpecialCharTok{==} \DecValTok{6}\NormalTok{,}
+                          \FunctionTok{paste0}\NormalTok{(}\FunctionTok{substr}\NormalTok{(moc\_dates, }\DecValTok{1}\NormalTok{, }\DecValTok{5}\NormalTok{), }\StringTok{"0"}\NormalTok{, }\FunctionTok{substr}\NormalTok{(moc\_dates, }\DecValTok{6}\NormalTok{, }\DecValTok{6}\NormalTok{)),}
+\NormalTok{                          moc\_dates)}
+
+\CommentTok{\# Convert to actual Date objects (use first of each month)}
+\NormalTok{moc\_dates\_parsed }\OtherTok{\textless{}{-}} \FunctionTok{ym}\NormalTok{(moc\_dates\_fixed)}
+
+\CommentTok{\# Create tidy tibble}
+\NormalTok{moc\_df }\OtherTok{\textless{}{-}} \FunctionTok{tibble}\NormalTok{(}
+  \AttributeTok{date =}\NormalTok{ moc\_dates\_parsed,}
+  \AttributeTok{amoc =}\NormalTok{ moc\_values}
+\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{arrange}\NormalTok{(date)}
+
+\CommentTok{\# Plot}
+
+\FunctionTok{ggplot}\NormalTok{(moc\_df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ date, }\AttributeTok{y =}\NormalTok{ amoc)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\AttributeTok{color =} \StringTok{"steelblue"}\NormalTok{, }\AttributeTok{linewidth =} \DecValTok{1}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_smooth}\NormalTok{(}\AttributeTok{method =} \StringTok{"loess"}\NormalTok{, }\AttributeTok{span =} \FloatTok{0.2}\NormalTok{, }\AttributeTok{se =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{color =} \StringTok{"darkred"}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"Atlantic Meridional Overturning Circulation (AMOC) at 26°N"}\NormalTok{,}
+    \AttributeTok{subtitle =} \StringTok{"Monthly Mean Values from October 2017 to February 2023"}\NormalTok{,}
+    \AttributeTok{x =} \StringTok{"Date"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"AMOC Strength (Sv)"}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{13}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}
+    \AttributeTok{plot.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{, }\AttributeTok{hjust =} \FloatTok{0.5}\NormalTok{),}
+    \AttributeTok{plot.subtitle =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{hjust =} \FloatTok{0.5}\NormalTok{),}
+    \AttributeTok{axis.text.x =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{angle =} \DecValTok{45}\NormalTok{, }\AttributeTok{hjust =} \DecValTok{1}\NormalTok{)}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{scale\_x\_date}\NormalTok{(}\AttributeTok{date\_breaks =} \StringTok{"4 months"}\NormalTok{, }\AttributeTok{date\_labels =} \StringTok{"\%b \%Y"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{size =} \FloatTok{1.5}\NormalTok{, }\AttributeTok{alpha =} \FloatTok{0.7}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
 \begin{figure}[H]
 
 {\centering \includegraphics{project_files/figure-pdf/fig-monthly amoc-1.pdf}
@@ -1828,18 +2070,32 @@ are visualised in the figure below.
 
 \end{figure}%
 
-The AMOC time series exhibits notable \textbf{short-term variability}
-around a relatively stable long-term mean. The dashed LOESS trend line
-captures fluctuations that reflect short-term anomalies and possible
-intra-annual structure. While there is no pronounced long-term trend,
-localised peaks and troughs occur --- notably in \textbf{early 2018},
-\textbf{late 2020}, and \textbf{early 2023}, with \textbf{dips in
-mid-2021 and late 2022}. These observations suggest the possible
-presence of a \textbf{weak seasonal or cyclical component}, which will
-be explored in subsequent modelling.
+\textbf{Figure} @ref(fig:monthly amoc) shows the monthly time series
+with a LOESS smoother. The AMOC displays \textbf{notable short-term
+variability}, with values fluctuating around a relatively stable
+long-term mean. Although no clear linear trend is present, local dips in
+\textbf{mid-2021 and late 2022}, and peaks in \textbf{early 2018},
+\textbf{late 2020}, and \textbf{early 2023}, suggest possible
+\textbf{short-memory dynamics} or \textbf{mild seasonality}, which will
+be assessed further through time series modelling.
 
-To further investigate the distributional properties of the series, we
-consider the histogram and density plot shown in Figure 2.
+To examine distributional properties, \textbf{Figure} @ref(fig:AMOC
+Histo) presents a histogram and density estimate. The distribution is
+approximately \textbf{unimodal and symmetric}, centred around
+\textbf{16--17 Sv}, with \textbf{slight tail weight} on the right side.
+This suggests near-Gaussian behaviour, though the mild excess kurtosis
+indicates heavier-than-normal tails.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(moc\_df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ amoc)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_histogram}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{y =}\NormalTok{ ..density..), }\AttributeTok{fill =} \StringTok{"lightblue"}\NormalTok{, }\AttributeTok{colour =} \StringTok{"black"}\NormalTok{, }\AttributeTok{bins =} \DecValTok{15}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_density}\NormalTok{(}\AttributeTok{colour =} \StringTok{"darkred"}\NormalTok{, }\AttributeTok{size =} \DecValTok{1}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Distribution of AMOC Strength"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"AMOC Strength (Sv)"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Density"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{figure}[H]
 
@@ -1856,6 +2112,44 @@ peak around \textbf{16--17 Sv}. The density curve closely resembles a
 Gaussian shape but with \textbf{slight right tail elongation},
 consistent with the \textbf{slight negative skewness} observed in the
 summary statistics below.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(dplyr)}
+\FunctionTok{library}\NormalTok{(gt)}
+\FunctionTok{library}\NormalTok{(moments)}
+
+\CommentTok{\# summary}
+\NormalTok{amoc\_summary }\OtherTok{\textless{}{-}}\NormalTok{ moc\_df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{summarise}\NormalTok{(}
+    \AttributeTok{Mean =} \FunctionTok{mean}\NormalTok{(amoc),}
+    \AttributeTok{SD =} \FunctionTok{sd}\NormalTok{(amoc),}
+    \AttributeTok{Min =} \FunctionTok{min}\NormalTok{(amoc),}
+    \AttributeTok{Max =} \FunctionTok{max}\NormalTok{(amoc),}
+    \AttributeTok{Median =} \FunctionTok{median}\NormalTok{(amoc),}
+    \AttributeTok{IQR =} \FunctionTok{IQR}\NormalTok{(amoc),}
+    \AttributeTok{CV =} \FunctionTok{sd}\NormalTok{(amoc) }\SpecialCharTok{/} \FunctionTok{mean}\NormalTok{(amoc),}
+    \AttributeTok{Skewness =} \FunctionTok{skewness}\NormalTok{(amoc),}
+    \AttributeTok{Kurtosis =} \FunctionTok{kurtosis}\NormalTok{(amoc),}
+    \AttributeTok{N =} \FunctionTok{n}\NormalTok{()}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{pivot\_longer}\NormalTok{(}\FunctionTok{everything}\NormalTok{(), }\AttributeTok{names\_to =} \StringTok{"Statistic"}\NormalTok{, }\AttributeTok{values\_to =} \StringTok{"Value"}\NormalTok{)}
+
+\CommentTok{\# table}
+\FunctionTok{gt}\NormalTok{(amoc\_summary) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{fmt\_number}\NormalTok{(}\AttributeTok{columns =} \StringTok{"Value"}\NormalTok{, }\AttributeTok{decimals =} \DecValTok{2}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{tab\_header}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"Expanded Summary Statistics of AMOC Time Series"}\NormalTok{,}
+    \AttributeTok{subtitle =} \StringTok{"October 2017 – February 2023"}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{tab\_options}\NormalTok{(}
+    \AttributeTok{table.font.size =} \StringTok{"smaller"}\NormalTok{,        }\CommentTok{\# smaller overall font}
+    \AttributeTok{data\_row.padding =} \FunctionTok{px}\NormalTok{(}\DecValTok{2}\NormalTok{),           }\CommentTok{\# tighter row padding}
+    \AttributeTok{heading.padding =} \FunctionTok{px}\NormalTok{(}\DecValTok{3}\NormalTok{),            }\CommentTok{\# tighter heading spacing}
+    \AttributeTok{row\_group.padding =} \FunctionTok{px}\NormalTok{(}\DecValTok{2}\NormalTok{)}
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{table}
 \caption*{
@@ -1880,21 +2174,20 @@ N & 67.00 \\
 \end{tabular*}
 \end{table}
 
+\textbf{Table} @ref(tab:AMOC Summary Stats) summarises key statistics.
 The mean overturning strength is \textbf{16.81 Sv}, with a standard
-deviation of \textbf{2.93 Sv}, suggesting moderate dispersion. The
-\textbf{coefficient of variation (CV)} is low (0.17), indicating that
-relative variability is limited. The \textbf{interquartile range (IQR)}
-of \textbf{3.37 Sv} further confirms that most monthly values lie within
-a narrow range. The \textbf{kurtosis value of 3.54} suggests heavier
-tails than a normal distribution, but this is mild. The data do not
-exhibit any significant skewness (\textbf{−0.24}), further justifying
-Gaussian modelling assumptions.
+deviation of \textbf{2.93 Sv} and a low \textbf{coefficient of variation
+(CV)} of \textbf{0.17}, indicating limited relative variability. The
+\textbf{interquartile range (IQR)} of \textbf{3.37 Sv} confirms moderate
+dispersion. Skewness (−0.24) and kurtosis (3.54) are within acceptable
+bounds for Gaussian modelling, supporting the use of classical ARMA-type
+models.
 
-Overall, these insights provide strong justification for fitting
-\textbf{weakly stationary time series models} (ARMA/ARIMA), possibly
-with short memory and mild seasonal structure. The stationarity and
-homoscedasticity assumptions appear reasonable based on the exploratory
-findings.
+Together, these results support the modelling of AMOC using
+\textbf{weakly stationary time series models}, such as \textbf{ARMA or
+ARIMA}, possibly with short memory and mild seasonal effects. The
+assumptions of \textbf{homoscedasticity} and \textbf{stationarity}
+appear reasonable based on visual and statistical diagnostics.
 
 \subsection{Part B}\label{part-b}
 
@@ -1945,13 +2238,42 @@ the training data:
 \end{Highlighting}
 \end{Shaded}
 
-The ACF shows a slow decay from a strong lag-1 autocorrelation
-(\textgreater{} 0.9), suggesting non-stationarity. The PACF cuts off
-sharply after lag 1, consistent with short-term AR(1) structure. Based
-on this, we apply first-order differencing:
+The ACF exhibits a strong lag-1 autocorrelation and a slow decay,
+consistent with a non-stationary process. The PACF shows a clear spike
+at lag 1 and minimal structure thereafter, suggesting that differencing
+followed by a low-order AR term may capture the residual dynamics ---
+motivating the selection of ARIMA(1,1,0) and ARIMA(1,1,1) candidates.
 
 \paragraph{Transforming for
 Stationarity}\label{transforming-for-stationarity}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# First{-}order differencing}
+\NormalTok{diff\_amoc }\OtherTok{\textless{}{-}} \FunctionTok{diff}\NormalTok{(train\_ts)}
+
+\CommentTok{\# Plot layout: 1 row, 3 plots}
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{3}\NormalTok{), }\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{, }\DecValTok{4}\NormalTok{, }\FloatTok{3.5}\NormalTok{, }\DecValTok{1}\NormalTok{))  }\CommentTok{\# slightly increase top margin for spacing}
+
+\CommentTok{\# Plot 1: Differenced Series}
+\FunctionTok{plot}\NormalTok{(diff\_amoc, }
+     \AttributeTok{main =} \StringTok{"First{-}order Differenced AMOC"}\NormalTok{, }
+     \AttributeTok{ylab =} \StringTok{"Differenced Value"}\NormalTok{, }
+     \AttributeTok{xlab =} \StringTok{"Time"}\NormalTok{, }
+     \AttributeTok{col =} \StringTok{"steelblue"}\NormalTok{, }
+     \AttributeTok{lwd =} \FloatTok{1.2}\NormalTok{)}
+
+\CommentTok{\# Plot 2: ACF}
+\FunctionTok{acf}\NormalTok{(diff\_amoc, }
+    \AttributeTok{main =} \StringTok{"ACF of Differenced Series"}\NormalTok{, }
+    \AttributeTok{col =} \StringTok{"black"}\NormalTok{)}
+
+\CommentTok{\# Plot 3: PACF}
+\FunctionTok{pacf}\NormalTok{(diff\_amoc, }
+     \AttributeTok{main =} \StringTok{"PACF of Differenced Series"}\NormalTok{, }
+     \AttributeTok{col =} \StringTok{"black"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{figure}[H]
 
@@ -1963,73 +2285,98 @@ Stationarity}\label{transforming-for-stationarity}
 
 \end{figure}%
 
-Visual inspection of the first-order differenced AMOC series (Figure
-@ref(fig:diff-acf-pacf)) indicates improved stationarity, with
-fluctuations more stable around a constant mean. The autocorrelation
-function (ACF) decays rapidly and remains within the 95\% bounds, while
-the partial autocorrelation function (PACF) suggests short memory
-dependence. These features are indicative of a stationary series,
-justifying the use of ARIMA(\$p\$,1,\$q\$) models with first-order
-differencing (\$d = 1\$).
+\textbf{Figure} @ref(fig:diff-acf-pacf) shows the first-order
+differenced AMOC series and its autocorrelation diagnostics. The
+differenced series now fluctuates around a constant mean, with no
+evident trend, indicating that \textbf{stationarity has been
+successfully induced}.
+
+The \textbf{ACF} decays rapidly, with most lags falling within the 95\%
+confidence bounds after lag 1 --- a strong sign that the
+\textbf{stochastic trend has been removed}. The \textbf{PACF} shows a
+single large spike at lag 1, suggesting the presence of \textbf{short
+memory dependence}, likely capturable with a \textbf{low-order AR or MA
+term}.
+
+These patterns collectively support the use of
+\textbf{ARIMA(}\(p\)\textbf{,1,}\(q\)\textbf{)} models with
+\textbf{first-order differencing} to address non-stationarity, and
+\textbf{either} \(p=1\) \textbf{or} \(q=1\) to reflect the short memory
+structure.
 
 \paragraph{\texorpdfstring{\textbf{Model Rationale and Modelling
 Strategy}}{Model Rationale and Modelling Strategy}}\label{model-rationale-and-modelling-strategy}
 
-To capture the temporal structure of the Atlantic Meridional Overturning
+To model the temporal dynamics of the Atlantic Meridional Overturning
 Circulation (AMOC), we consider both \textbf{ARMA} and \textbf{ARIMA}
-models. These linear time series models are widely used in
-climatological applications to model autocorrelation and generate
+models --- linear time series models commonly applied in climatological
+and environmental research to capture autocorrelation and generate
 forecasts.
 
-Since the \textbf{ACF displays strong persistence at lag 1 and decays
-slowly}, the series is likely \textbf{non-stationary}, suggesting the
-presence of a stochastic trend. The \textbf{PACF cuts off sharply after
-lag 1}, indicating short-term autoregressive dependence. Based on this,
-we apply \textbf{first-order differencing} to achieve approximate
-stationarity and proceed to fit \textbf{ARIMA(p,1,q)} models.
+Initial inspection of the raw series revealed \textbf{non-stationarity},
+with strong autocorrelation at lag 1 and slow ACF decay. After applying
+\textbf{first-order differencing}, the series showed visual
+stationarity, and its ACF and PACF indicated \textbf{short memory
+structure}: a moderate lag-1 autocorrelation and a large negative spike
+in PACF at lag 1. These patterns support the use of
+\textbf{ARIMA(}\(p\)\textbf{,1,}\(q\)\textbf{)} models, where \(d=1\)
+accounts for stochastic trend, and \(p\) or \(q\) captures the
+short-term dependence.
 
-We adopt a two-pronged approach:
+We adopt a two-pronged modelling strategy:
 
 \begin{itemize}
 \item
-  \textbf{ARMA models} on the original series, to serve as a baseline.
+  \textbf{ARMA models} on the undifferenced series serve as a benchmark,
+  capturing autocorrelation in the original (non-stationary) data.
 \item
-  \textbf{ARIMA models} on the differenced series, to handle
-  non-stationarity.
+  \textbf{ARIMA models} on the differenced series address the identified
+  non-stationarity more explicitly.
 \end{itemize}
 
-Candidate models:
+Based on the ACF/PACF structure and model parsimony, we examine the
+following candidates:
 
 \begin{itemize}
 \item
-  ARMA(1,0) and ARMA(2,0)
-\item
-  ARIMA(1,1,0), ARIMA(0,1,1), ARIMA(1,1,1)
-\end{itemize}
-
-Models are fitted via maximum likelihood using \texttt{arima()}, and
-compared using AIC, residual diagnostics, and Ljung--Box tests.
-
-The following candidate models are selected based on ACF/PACF patterns
-and parsimony:
-
-\begin{itemize}
-\item
-  \textbf{ARMA(1,0)} and \textbf{ARMA(2,0)}: Autoregressive models
-  without differencing.
+  \textbf{ARMA(1,0)} and \textbf{ARMA(2,0)}: simple autoregressive
+  models without differencing.
 \item
   \textbf{ARIMA(1,1,0)}, \textbf{ARIMA(0,1,1)}, and
-  \textbf{ARIMA(1,1,1)}: First-order differenced models with varying
-  AR/MA terms.
+  \textbf{ARIMA(1,1,1)}: models with first-order differencing and
+  varying AR/MA terms.
 \end{itemize}
 
-All models are estimated using \textbf{maximum likelihood} via the
-\texttt{arima()} function in R. Selection and comparison will be based
-on \textbf{Akaike Information Criterion (AIC)}, residual diagnostics,
-and \textbf{forecast performance on the withheld 8-month test set}.
+All models are estimated using \textbf{maximum likelihood} via R's
+\texttt{arima()} function and evaluated based on:
+
+\begin{itemize}
+\item
+  \textbf{Akaike Information Criterion (AIC)}
+\item
+  \textbf{Residual diagnostics} (ACF, Q--Q plots, visual residuals
+\item
+  \textbf{Ljung--Box tests} for autocorrelation
+\item
+  And ultimately, \textbf{forecast performance on the 8-month test set
+  (July 2022 -- February 2023)}
+\end{itemize}
+
+This modelling strategy balances \textbf{diagnostic rigour},
+\textbf{parsimony}, and \textbf{forecast relevance}, ensuring that model
+selection is both statistically defensible and practically informed.
 
 \paragraph{ARMA Model Fitting (Undifferenced
 Series)}\label{arma-model-fitting-undifferenced-series}
+
+We first fit two ARMA models to the undifferenced AMOC series for
+benchmarking. The \textbf{ARMA(1,0)} model estimated:
+
+\[
+X_t = 16.88 + 0.28 X_{t-1} + \varepsilon_t, \quad \varepsilon_t \sim \mathcal{N}(0, \sigma^2)
+\] The \textbf{ARMA(2,0)} model extended this with a second lag: \[
+X_t = 16.90 + 0.34 X_{t-1} - 0.21 X_{t-2} + \varepsilon_t, \quad \varepsilon_t \sim \mathcal{N}(0, \sigma^2)
+\]
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -2038,14 +2385,6 @@ Series)}\label{arma-model-fitting-undifferenced-series}
 \NormalTok{arma\_20 }\OtherTok{\textless{}{-}} \FunctionTok{arima}\NormalTok{(train\_ts, }\AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{,}\DecValTok{0}\NormalTok{,}\DecValTok{0}\NormalTok{), }\AttributeTok{method =} \StringTok{"ML"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
-
-The ARMA(1,0) model estimated the following relationship:
-
-\[
-X_t = 16.88 + 0.28 X_{t-1} + \varepsilon_t, \quad \varepsilon_t \sim \mathcal{N}(0, \sigma^2)
-\] The ARMA(1,0) model estimated the following relationship: \[
-X_t = 16.90 + 0.34 X_{t-1} - 0.21 X_{t-2} + \varepsilon_t, \quad \varepsilon_t \sim \mathcal{N}(0, \sigma^2)
-\]
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -2075,18 +2414,6 @@ X_t = 16.90 + 0.34 X_{t-1} - 0.21 X_{t-2} + \varepsilon_t, \quad \varepsilon_t \
 \FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{))}
 \end{Highlighting}
 \end{Shaded}
-
-The \textbf{ARMA(1,0)} model yielded an AIC of 286.18. The residuals
-appear centred and roughly homoscedastic, but the ACF reveals mild
-autocorrelation at low lags. The Ljung--Box test returned a p-value
-above 0.05, indicating no statistically significant autocorrelation. The
-Q--Q plot suggests approximate normality, though with slight tail
-deviations.
-
-The \textbf{ARMA(2,0)} model slightly improved the fit, reducing AIC to
-285.65. Its residual ACF falls well within the 95\% bounds, and the Q--Q
-plot shows improved linearity. The Ljung--Box p-value increased to 0.26,
-indicating weaker residual dependence.
 
 \paragraph{Model Comparison}\label{model-comparison}
 
@@ -2118,12 +2445,25 @@ ARMA(2,0) & 285.65 & AR(1) = 0.342, AR(2) = -0.209 & 0.26 & Slightly
 improved white noise \\
 \end{longtable}
 
-While ARMA(2,0) provides a marginal improvement, both models remain
-constrained by the assumption of stationarity. Given the
-\textbf{stochastic trend} and \textbf{persistent autocorrelation} in the
-original series, we now proceed to fit \textbf{ARIMA models} that
-incorporate \textbf{first-order differencing} to better capture
-non-stationary behaviour.
+The \textbf{ARMA(1,0)} model yielded an AIC of \textbf{286.18}.
+Residuals appear mean-centred and approximately homoscedastic, though
+the \textbf{ACF shows mild low-lag autocorrelation}, consistent with an
+underfitted model. The Q--Q plot indicates reasonably normal residuals
+with only slight tail deviations.
+
+The \textbf{ARMA(2,0)} model provided a \textbf{marginal AIC improvement
+to 285.65}. The residual ACF falls entirely within the 95\% bounds,
+suggesting reduced autocorrelation. However, the Q--Q plot shows
+\textbf{slightly heavier left-tail deviation}, with residuals straying
+from normality more than in the ARMA(1,0) case. The \textbf{Ljung--Box
+p-value increased to 0.26}, further supporting weaker residual
+dependence.
+
+Although ARMA(2,0) shows statistical improvement in AIC and whiteness,
+\textbf{its residual distribution is slightly less normal}, and both
+models remain limited by the assumption of stationarity. This, combined
+with the underlying stochastic trend in the original series, justifies
+moving forward with differenced models --- namely \textbf{ARIMA}.
 
 \paragraph{ARIMA Model Fitting (Differenced
 Series)}\label{arima-model-fitting-differenced-series}
@@ -2133,6 +2473,32 @@ Series)}\label{arima-model-fitting-differenced-series}
 \NormalTok{arima\_110 }\OtherTok{\textless{}{-}} \FunctionTok{arima}\NormalTok{(train\_ts, }\AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{), }\AttributeTok{method =} \StringTok{"ML"}\NormalTok{)}
 \NormalTok{arima\_011 }\OtherTok{\textless{}{-}} \FunctionTok{arima}\NormalTok{(train\_ts, }\AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{), }\AttributeTok{method =} \StringTok{"ML"}\NormalTok{)}
 \NormalTok{arima\_111 }\OtherTok{\textless{}{-}} \FunctionTok{arima}\NormalTok{(train\_ts, }\AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{), }\AttributeTok{method =} \StringTok{"ML"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Diagnostic plotting function}
+\NormalTok{plot\_diagnostics }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(model, model\_name, col\_line) \{}
+  \FunctionTok{layout}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\DecValTok{3}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{3}\NormalTok{, }\AttributeTok{byrow =} \ConstantTok{TRUE}\NormalTok{), }\AttributeTok{widths =} \FunctionTok{c}\NormalTok{(}\FloatTok{1.4}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))  }\CommentTok{\# Widen residual plot}
+  \FunctionTok{par}\NormalTok{(}\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{3}\NormalTok{, }\DecValTok{1}\NormalTok{))  }\CommentTok{\# Margins: bottom, left, top, right}
+  
+  \CommentTok{\# Residual time series}
+  \FunctionTok{plot}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(model), }\AttributeTok{type =} \StringTok{"l"}\NormalTok{, }\AttributeTok{col =}\NormalTok{ col\_line, }\AttributeTok{lwd =} \FloatTok{1.2}\NormalTok{,}
+       \AttributeTok{main =} \FunctionTok{paste}\NormalTok{(model\_name, }\StringTok{"Residuals"}\NormalTok{), }\AttributeTok{ylab =} \StringTok{"Residuals"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Time"}\NormalTok{)}
+  
+  \CommentTok{\# ACF}
+  \FunctionTok{acf}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(model), }\AttributeTok{main =} \StringTok{"ACF of Residuals"}\NormalTok{, }\AttributeTok{col =} \StringTok{"black"}\NormalTok{, }\AttributeTok{lwd =} \FloatTok{1.2}\NormalTok{)}
+  
+  \CommentTok{\# Q–Q plot}
+  \FunctionTok{qqnorm}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(model), }\AttributeTok{main =} \StringTok{"Normal Q–Q Plot"}\NormalTok{)}
+  \FunctionTok{qqline}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(model), }\AttributeTok{col =} \StringTok{"red"}\NormalTok{, }\AttributeTok{lwd =} \FloatTok{1.2}\NormalTok{)}
+  
+  \FunctionTok{layout}\NormalTok{(}\DecValTok{1}\NormalTok{)  }\CommentTok{\# Reset layout}
+\NormalTok{\}}
+
+\CommentTok{\# Call function for each ARIMA model}
+\FunctionTok{plot\_diagnostics}\NormalTok{(arima\_110, }\StringTok{"ARIMA(1,1,0)"}\NormalTok{, }\StringTok{"steelblue"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -2146,6 +2512,12 @@ Series)}\label{arima-model-fitting-differenced-series}
 
 \end{figure}%
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot\_diagnostics}\NormalTok{(arima\_011, }\StringTok{"ARIMA(0,1,1)"}\NormalTok{, }\StringTok{"darkred"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
 \begin{figure}[H]
 
 {\centering \includegraphics{project_files/figure-pdf/fig-arima-diagnostics-2.pdf}
@@ -2156,6 +2528,12 @@ Series)}\label{arima-model-fitting-differenced-series}
 
 \end{figure}%
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot\_diagnostics}\NormalTok{(arima\_111, }\StringTok{"ARIMA(1,1,1)"}\NormalTok{, }\StringTok{"darkgreen"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
 \begin{figure}[H]
 
 {\centering \includegraphics{project_files/figure-pdf/fig-arima-diagnostics-3.pdf}
@@ -2165,6 +2543,22 @@ Series)}\label{arima-model-fitting-differenced-series}
 \caption{Residual diagnostics for candidate ARIMA models}
 
 \end{figure}%
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# {-}{-}{-}{-} Ljung–Box Tests {-}{-}{-}{-}}
+\NormalTok{lb\_110 }\OtherTok{\textless{}{-}} \FunctionTok{Box.test}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arima\_110), }\AttributeTok{lag =} \DecValTok{10}\NormalTok{, }\AttributeTok{type =} \StringTok{"Ljung{-}Box"}\NormalTok{)}
+\NormalTok{lb\_011 }\OtherTok{\textless{}{-}} \FunctionTok{Box.test}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arima\_011), }\AttributeTok{lag =} \DecValTok{10}\NormalTok{, }\AttributeTok{type =} \StringTok{"Ljung{-}Box"}\NormalTok{)}
+\NormalTok{lb\_111 }\OtherTok{\textless{}{-}} \FunctionTok{Box.test}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arima\_111), }\AttributeTok{lag =} \DecValTok{10}\NormalTok{, }\AttributeTok{type =} \StringTok{"Ljung{-}Box"}\NormalTok{)}
+
+\NormalTok{knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{(}\FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Model =} \FunctionTok{c}\NormalTok{(}\StringTok{"ARIMA(1,1,0)"}\NormalTok{, }\StringTok{"ARIMA(0,1,1)"}\NormalTok{, }\StringTok{"ARIMA(1,1,1)"}\NormalTok{),}
+  \AttributeTok{AIC =} \FunctionTok{c}\NormalTok{(}\FunctionTok{AIC}\NormalTok{(arima\_110), }\FunctionTok{AIC}\NormalTok{(arima\_011), }\FunctionTok{AIC}\NormalTok{(arima\_111)),}
+  \AttributeTok{Ljung\_Box\_p =} \FunctionTok{c}\NormalTok{(lb\_110}\SpecialCharTok{$}\NormalTok{p.value, lb\_011}\SpecialCharTok{$}\NormalTok{p.value, lb\_111}\SpecialCharTok{$}\NormalTok{p.value),}
+  \AttributeTok{Notes =} \FunctionTok{c}\NormalTok{(}\StringTok{"Residual autocorr."}\NormalTok{, }\StringTok{"Good fit"}\NormalTok{, }\StringTok{"Best fit"}\NormalTok{)}
+\NormalTok{), }\AttributeTok{caption =} \StringTok{"Comparison of ARIMA Models"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{longtable}[]{@{}lrrl@{}}
 \caption{Comparison of ARIMA Models}\tabularnewline
@@ -2185,24 +2579,31 @@ ARIMA(1,1,1) & 285.0751 & 0.1265184 & Best fit \\
 
 \paragraph{Findings:}\label{findings}
 
+The three ARIMA models were evaluated using AIC, residual
+autocorrelation (via ACF and Ljung--Box test), and normality (via Q--Q
+plots).
+
 \begin{itemize}
 \item
-  The \textbf{ARIMA(1,1,0)} model exhibited a strong Q--Q plot with
-  minimal tail deviation; however, its \textbf{Ljung--Box p-value was
-  0.005}, indicating significant residual autocorrelation and a poor
-  overall fit (\textbf{AIC = 301.4}).
+  The \textbf{ARIMA(1,1,0)} model performed poorly. It yielded an AIC of
+  \textbf{301.4}, and its residuals displayed \textbf{significant
+  autocorrelation} (Ljung--Box p = \textbf{0.005}) and noticeable
+  non-normality in the left tail of the Q--Q plot. These features
+  indicate an underfitted model that fails to adequately capture the
+  series dynamics.
 \item
-  In contrast, \textbf{ARIMA(0,1,1)} provided a substantial improvement,
-  reducing AIC to \textbf{286.6} and eliminating most residual
-  autocorrelation (\textbf{p = 0.14}), while maintaining reasonably
-  normal residuals.
+  In contrast, the \textbf{ARIMA(0,1,1)} model achieved a substantial
+  improvement, reducing AIC to \textbf{286.6}, and removing most
+  autocorrelation (Ljung--Box p = \textbf{0.14}). The residuals were
+  stable, and the Q--Q plot showed only slight tail curvature,
+  indicating a much better overall fit.
 \item
-  The best-performing model was \textbf{ARIMA(1,1,1)}, which achieved
-  the \textbf{lowest AIC (285.1)}, and passed diagnostic checks with
-  approximately white residuals (\textbf{p = 0.13}) and a nearly linear
-  Q--Q plot. This model strikes the best balance between parsimony and
-  fit, and is selected as the \textbf{benchmark for subsequent
-  comparison}.
+  The \textbf{ARIMA(1,1,1)} model yielded the \textbf{lowest AIC
+  (285.1)} and the best residual diagnostics. Its residual ACF showed no
+  significant autocorrelation (Ljung--Box p = \textbf{0.13}), and the
+  Q--Q plot followed the 1:1 line closely. This model effectively
+  balances goodness-of-fit with simplicity and is therefore selected as
+  the \textbf{benchmark model}.
 \end{itemize}
 
 \paragraph{Model Refinement and
@@ -2234,6 +2635,17 @@ This refinement is motivated by:
 
 \NormalTok{lb\_210 }\OtherTok{\textless{}{-}} \FunctionTok{Box.test}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arima\_210), }\AttributeTok{lag =} \DecValTok{10}\NormalTok{, }\AttributeTok{type =} \StringTok{"Ljung{-}Box"}\NormalTok{)}
 \NormalTok{lb\_212 }\OtherTok{\textless{}{-}} \FunctionTok{Box.test}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arima\_212), }\AttributeTok{lag =} \DecValTok{10}\NormalTok{, }\AttributeTok{type =} \StringTok{"Ljung{-}Box"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{(}\FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Model =} \FunctionTok{c}\NormalTok{(}\StringTok{"ARIMA(2,1,0)"}\NormalTok{, }\StringTok{"ARIMA(2,1,2)"}\NormalTok{),}
+  \AttributeTok{AIC =} \FunctionTok{c}\NormalTok{(}\FunctionTok{AIC}\NormalTok{(arima\_210), }\FunctionTok{AIC}\NormalTok{(arima\_212)),}
+  \AttributeTok{Ljung\_Box\_p =} \FunctionTok{c}\NormalTok{(lb\_210}\SpecialCharTok{$}\NormalTok{p.value, lb\_212}\SpecialCharTok{$}\NormalTok{p.value),}
+  \AttributeTok{Notes =} \FunctionTok{c}\NormalTok{(}\StringTok{"No clear improvement"}\NormalTok{, }\StringTok{"Slight AIC gain, more complex"}\NormalTok{)}
+\NormalTok{), }\AttributeTok{caption =} \StringTok{"Refined ARIMA Models"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -2282,22 +2694,7 @@ structure by smoothing high-frequency noise.
 \begin{Highlighting}[]
 \FunctionTok{library}\NormalTok{(dplyr)}
 \FunctionTok{library}\NormalTok{(zoo)}
-\end{Highlighting}
-\end{Shaded}
 
-\begin{verbatim}
-
-Attaching package: 'zoo'
-\end{verbatim}
-
-\begin{verbatim}
-The following objects are masked from 'package:base':
-
-    as.Date, as.Date.numeric
-\end{verbatim}
-
-\begin{Shaded}
-\begin{Highlighting}[]
 \NormalTok{moc\_df\_q }\OtherTok{\textless{}{-}}\NormalTok{ moc\_df }\SpecialCharTok{\%\textgreater{}\%}
   \FunctionTok{mutate}\NormalTok{(}\AttributeTok{quarter =} \FunctionTok{as.yearqtr}\NormalTok{(date)) }\SpecialCharTok{\%\textgreater{}\%}
   \FunctionTok{group\_by}\NormalTok{(quarter) }\SpecialCharTok{\%\textgreater{}\%}
@@ -2392,14 +2789,14 @@ Series}\label{first-order-differencing-of-quarterly-series}
 \end{Shaded}
 
 The \textbf{ACF} plot displays a prominent spike at lag 1, followed by
-smaller but non-trivial spikes at subsequent lags. Notably, a spike at
-approximately lag 1.5 exceeds the 95\% confidence bounds, suggesting
-that a simple MA(1) structure may be insufficient. Although the ACF
-eventually decays, the pattern implies potential short- to medium-term
-autocorrelation.
+smaller but non-trivial spikes at subsequent lags. Notably, a spike
+between lags 1 appears to breach the 95\% bounds, suggesting local
+autocorrelation that may not be captured by an MA(1) term alone.
+Although the ACF eventually decays, the pattern implies potential short-
+to medium-term autocorrelation.
 
-The \textbf{PACF} plot reveals significant spikes at \textbf{lags 1 and
-2}, with possible weaker structure beyond. This indicates that a
+The \textbf{PACF} plot reveals significant spikes at \textbf{lags 0.5
+and 1.5}, with possible weaker structure beyond. This indicates that a
 higher-order autoregressive component (AR(2)) may be needed to
 adequately capture the dependence structure.
 
@@ -2489,6 +2886,7 @@ more data-driven model selection yields substantial improvements.
 
 \begin{Shaded}
 \begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{444}\NormalTok{)}
 \FunctionTok{library}\NormalTok{(forecast)}
 \end{Highlighting}
 \end{Shaded}
@@ -2506,7 +2904,7 @@ Registered S3 method overwritten by 'quantmod':
 \begin{Shaded}
 \begin{Highlighting}[]
 \CommentTok{\# Auto.arima with non{-}seasonal specification}
-\NormalTok{auto\_arima }\OtherTok{\textless{}{-}} \FunctionTok{auto.arima}\NormalTok{(train\_ts, }\AttributeTok{seasonal =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{stepwise =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{approximation =} \ConstantTok{FALSE}\NormalTok{)}
+\NormalTok{auto\_arima }\OtherTok{\textless{}{-}} \FunctionTok{auto.arima}\NormalTok{(train\_q\_ts, }\AttributeTok{seasonal =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{stepwise =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{approximation =} \ConstantTok{FALSE}\NormalTok{)}
 
 \CommentTok{\# Summary of selected model}
 \FunctionTok{summary}\NormalTok{(auto\_arima)}
@@ -2514,22 +2912,22 @@ Registered S3 method overwritten by 'quantmod':
 \end{Shaded}
 
 \begin{verbatim}
-Series: train_ts 
-ARIMA(2,0,2) with non-zero mean 
+Series: train_q_ts 
+ARIMA(0,0,0) with non-zero mean 
 
 Coefficients:
-          ar1      ar2     ma1     ma2     mean
-      -1.0074  -0.5925  1.5413  0.9181  16.8766
-s.e.   0.1885   0.1382  0.1983  0.2134   0.4344
+         mean
+      16.8716
+s.e.   0.3937
 
-sigma^2 = 6.682:  log likelihood = -133.55
-AIC=279.11   AICc=280.79   BIC=291.36
+sigma^2 = 3.417:  log likelihood = -42.19
+AIC=88.38   AICc=89.04   BIC=90.47
 
 Training set error measures:
-                      ME     RMSE      MAE       MPE     MAPE      MASE
-Training set 0.001536039 2.469063 1.871349 -2.726803 12.24199 0.7034292
-                   ACF1
-Training set 0.02340327
+                       ME     RMSE      MAE       MPE     MAPE      MASE
+Training set 3.045126e-15 1.804089 1.428281 -1.226133 8.838226 0.7246567
+                  ACF1
+Training set 0.1261586
 \end{verbatim}
 
 \includegraphics{project_files/figure-pdf/unnamed-chunk-48-1.pdf}
@@ -2549,7 +2947,7 @@ lower than the manually fitted ARIMA(1,1,1) (AIC = 285.08).
 Model & AIC & Ljung\_Box\_p \\ 
 \midrule\addlinespace[2.5pt]
 ARIMA(1,1,1) & 285.0751 & 0.1265 \\ 
-auto.arima (2,1,2) & 279.1065 & 0.9755 \\ 
+auto.arima (0,1,0) & 88.3778 & 0.4988 \\ 
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -2558,7 +2956,7 @@ auto.arima (2,1,2) & 279.1065 & 0.9755 \\
 Comparison}\label{residual-diagnostics-comparison}
 
 Residual plots for both models (ARIMA(1,1,1) and auto.arima
-ARIMA(2,1,2)) show:
+ARIMA(0,1,0)) show:
 
 \begin{itemize}
 \item
@@ -2569,7 +2967,7 @@ ARIMA(2,1,2)) show:
   The Q-Q plot shows approximate normality.
 \end{itemize}
 
-While \texttt{auto.arima()} identified a more complex ARIMA(2,1,2) model
+While \texttt{auto.arima()} identified a more simple ARIMA(0,1,0) model
 with superior AIC, the simpler ARIMA(1,1,1) still performs well ---
 producing acceptable residual behaviour and satisfying parsimony
 principles. The slight trade-off in AIC is justified given the desire
@@ -2581,17 +2979,15 @@ structure.
 Although the quarterly AMOC series showed no clear seasonal structure in
 the initial ACF and PACF plots, SARIMA models were fitted as a
 robustness check to confirm the absence of seasonal effects.
-Specifically, SARIMA(1,1,0)(0,0,1){[}4{]} and
-SARIMA(0,1,1)(0,0,1){[}4{]} were tested, where the seasonal period was
-set to 4 to correspond with quarterly data.
+Specifically, SARIMA(1,1,0) and SARIMA(0,1,1) were tested, where the
+seasonal period was set to 4 to correspond with quarterly data.
 
 Both models performed worse than the non-seasonal ARIMA(1,1,1) model.
-The SARIMA(1,1,0)(0,0,1){[}4{]} model returned an AIC of 290.5, while
-SARIMA(0,1,1)(0,0,1){[}4{]} produced an AIC of 292.0. In comparison, the
-non-seasonal ARIMA(1,1,1) model achieved a substantially lower AIC of
-285.1. Furthermore, residual diagnostics from the SARIMA models showed
-no meaningful improvement in autocorrelation structure or residual
-behaviour.
+The SARIMA(1,1,0) model returned an AIC of 290.5, while SARIMA(0,1,1)
+produced an AIC of 292.0. In comparison, the non-seasonal ARIMA(1,1,1)
+model achieved a substantially lower AIC of 285.1. Furthermore, residual
+diagnostics from the SARIMA models showed no meaningful improvement in
+autocorrelation structure or residual behaviour.
 
 \paragraph{Additional Residual Diagnostics: ARCH
 Test}\label{additional-residual-diagnostics-arch-test}
@@ -2605,15 +3001,26 @@ heteroscedasticity, violating this assumption.
 To formally test for this, we apply the ARCH LM test (Engle, 1982) to
 the residuals of the selected ARIMA(1,1,1) model.
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Load FinTS package for ARCH test}
+\FunctionTok{library}\NormalTok{(FinTS)}
+
+\CommentTok{\# ARCH LM test with 4 lags}
+\NormalTok{arch\_test }\OtherTok{\textless{}{-}} \FunctionTok{ArchTest}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arima\_111\_q), }\AttributeTok{lags =} \DecValTok{4}\NormalTok{)}
+\NormalTok{arch\_test}
+\end{Highlighting}
+\end{Shaded}
+
 \begin{verbatim}
 
     ARCH LM-test; Null hypothesis: no ARCH effects
 
 data:  residuals(arima_111_q)
-Chi-squared = 9, df = 12, p-value = 0.7029
+Chi-squared = 3.6184, df = 4, p-value = 0.4601
 \end{verbatim}
 
-The ARCH LM test returned a p-value of 0.62, indicating no significant
+The ARCH LM test returned a p-value of 0.46, indicating no significant
 evidence of conditional heteroscedasticity in the residuals. This
 supports the assumption of homoscedastic residuals, validating the use
 of ARIMA models for forecasting without adjustment for time-varying
@@ -2634,25 +3041,6 @@ underlying patterns and behaviour can vary across different periods.
 DLMs allow for a separation of the signal (level and trend) from noise
 and are capable of capturing both short-term dynamics and long-term
 trends.
-
-\subsubsection{Model Set Up}\label{model-set-up}
-
-\paragraph{General State Space
-Formulation:}\label{general-state-space-formulation}
-
-The DLM structure applied follows the general state-space formulation,
-defined by the observation and system equations:
-
-\begin{itemize}
-\item
-  Observation Equation:
-\item
-  System Equation:
-\end{itemize}
-
-Where represents the observed AMOC value at time , is the unobserved
-state vector containing the level, trend, and seasonal components, and
-and represent the observation and system variances, respectively.
 
 \paragraph{Monthly AMOC DML:}\label{monthly-amoc-dml}
 
@@ -2687,7 +3075,28 @@ component in the DLM specification.
 \end{Highlighting}
 \end{Shaded}
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow=}\FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{))}
+\FunctionTok{plot}\NormalTok{(resid\_month, }\AttributeTok{type=}\StringTok{\textquotesingle{}l\textquotesingle{}}\NormalTok{, }\AttributeTok{main=}\StringTok{"Monthly DLM Residuals"}\NormalTok{, }\AttributeTok{ylab=}\StringTok{"Residuals"}\NormalTok{, }\AttributeTok{col=}\StringTok{\textquotesingle{}darkgreen\textquotesingle{}}\NormalTok{)}
+\FunctionTok{acf}\NormalTok{(resid\_month, }\AttributeTok{main=}\StringTok{"ACF of Residuals"}\NormalTok{)}
+\FunctionTok{qqnorm}\NormalTok{(resid\_month); }\FunctionTok{qqline}\NormalTok{(resid\_month, }\AttributeTok{col=}\StringTok{"red"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
 \includegraphics{project_files/figure-pdf/unnamed-chunk-53-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow=}\FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{Box.test}\NormalTok{(resid\_month, }\AttributeTok{lag=}\DecValTok{10}\NormalTok{, }\AttributeTok{type=}\StringTok{"Ljung{-}Box"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{verbatim}
 
@@ -2696,6 +3105,12 @@ component in the DLM specification.
 data:  resid_month
 X-squared = 19.708, df = 10, p-value = 0.03214
 \end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ArchTest}\NormalTok{(resid\_month, }\AttributeTok{lags=}\DecValTok{12}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{verbatim}
 
@@ -2779,10 +3194,10 @@ Formal tests confirmed these results:
 
 \begin{itemize}
 \item
-  Ljung-Box test (lag=5): \emph{p} = 0.104 → No evidence of residual
+  Ljung-Box test (lag=5): \emph{p} = 0.114 → No evidence of residual
   autocorrelation.
 \item
-  ARCH LM test (lags=5): \emph{p} = 0.110 → No evidence of conditional
+  ARCH LM test (lags=5): \emph{p} = 0.134 → No evidence of conditional
   heteroscedasticity.
 \end{itemize}
 
@@ -2814,8 +3229,6 @@ all observations up to 2022 Q2 (Quarterly) or 8 months before the end of
 the monthly data. The test set covered the subsequent two quarters or
 eight months.
 
-\paragraph{}\label{section}
-
 \paragraph{Forecasting ARIMA models}\label{forecasting-arima-models}
 
 \begin{Shaded}
@@ -2846,7 +3259,88 @@ Values:}\label{plotting-the-forecasted-values}
 
 \paragraph{Monthly AMOC Forecast}\label{monthly-amoc-forecast}
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Combine train, test, forecast, and intervals for Monthly ARIMA}
+\NormalTok{monthly\_arima\_combined }\OtherTok{\textless{}{-}} \FunctionTok{ts.union}\NormalTok{(}
+\NormalTok{  train\_ts,}
+\NormalTok{  test\_ts,}
+\NormalTok{  forecast\_monthly\_arima}\SpecialCharTok{$}\NormalTok{mean,}
+\NormalTok{  forecast\_monthly\_arima}\SpecialCharTok{$}\NormalTok{lower[,}\DecValTok{2}\NormalTok{],}
+\NormalTok{  forecast\_monthly\_arima}\SpecialCharTok{$}\NormalTok{upper[,}\DecValTok{2}\NormalTok{]}
+\NormalTok{)}
+
+\CommentTok{\# Prepare monthly data frame}
+\NormalTok{monthly\_df }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Time =} \FunctionTok{time}\NormalTok{(monthly\_arima\_combined),}
+  \AttributeTok{Observed =} \FunctionTok{as.numeric}\NormalTok{(monthly\_arima\_combined[,}\DecValTok{1}\NormalTok{]),}
+  \AttributeTok{Actual =} \FunctionTok{as.numeric}\NormalTok{(monthly\_arima\_combined[,}\DecValTok{2}\NormalTok{]),}
+  \AttributeTok{Forecast =} \FunctionTok{as.numeric}\NormalTok{(monthly\_arima\_combined[,}\DecValTok{3}\NormalTok{]),}
+  \AttributeTok{Lower =} \FunctionTok{as.numeric}\NormalTok{(monthly\_arima\_combined[,}\DecValTok{4}\NormalTok{]),}
+  \AttributeTok{Upper =} \FunctionTok{as.numeric}\NormalTok{(monthly\_arima\_combined[,}\DecValTok{5}\NormalTok{])}
+\NormalTok{)}
+
+\NormalTok{monthly\_arima\_plot }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(monthly\_df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{Time)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{y=}\NormalTok{Observed, }\AttributeTok{col=}\StringTok{"Observed (Train)"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{y=}\NormalTok{Actual, }\AttributeTok{col=}\StringTok{"Actual (Test)"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{y=}\NormalTok{Forecast, }\AttributeTok{col=}\StringTok{"Forecast"}\NormalTok{), }\AttributeTok{linetype=}\StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_ribbon}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{ymin=}\NormalTok{Lower, }\AttributeTok{ymax=}\NormalTok{Upper), }\AttributeTok{fill=}\StringTok{"blue"}\NormalTok{, }\AttributeTok{alpha=}\FloatTok{0.2}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_vline}\NormalTok{(}\AttributeTok{xintercept=}\FunctionTok{max}\NormalTok{(}\FunctionTok{time}\NormalTok{(train\_ts)), }\AttributeTok{linetype=}\StringTok{"dotted"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title=}\StringTok{"Monthly ARIMA(1,1,1) Forecast"}\NormalTok{, }\AttributeTok{y=}\StringTok{"AMOC Value"}\NormalTok{, }\AttributeTok{x=}\StringTok{"Time"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}\AttributeTok{values=}\FunctionTok{c}\NormalTok{(}\StringTok{"black"}\NormalTok{, }\StringTok{"green"}\NormalTok{, }\StringTok{"red"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.title=}\FunctionTok{element\_blank}\NormalTok{())}
+\end{Highlighting}
+\end{Shaded}
+
 \paragraph{Monthly DML}\label{monthly-dml}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# DLM forecast values and intervals}
+\NormalTok{dlm\_monthly\_mean }\OtherTok{\textless{}{-}}\NormalTok{ forecast\_dlm\_monthly}\SpecialCharTok{$}\NormalTok{f}
+\NormalTok{dlm\_monthly\_sd }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{unlist}\NormalTok{(forecast\_dlm\_monthly}\SpecialCharTok{$}\NormalTok{Q))}
+
+\CommentTok{\# Combine train, test, DLM forecast and intervals for Monthly DLM}
+\NormalTok{monthly\_dlm\_combined }\OtherTok{\textless{}{-}} \FunctionTok{ts.union}\NormalTok{(}
+\NormalTok{  train\_ts,}
+\NormalTok{  test\_ts,}
+\NormalTok{  dlm\_monthly\_mean,}
+\NormalTok{  dlm\_monthly\_mean }\SpecialCharTok{{-}} \FloatTok{1.96} \SpecialCharTok{*}\NormalTok{ dlm\_monthly\_sd,}
+\NormalTok{  dlm\_monthly\_mean }\SpecialCharTok{+} \FloatTok{1.96} \SpecialCharTok{*}\NormalTok{ dlm\_monthly\_sd}
+\NormalTok{)}
+
+\NormalTok{monthly\_dlm\_df }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Time =} \FunctionTok{time}\NormalTok{(monthly\_dlm\_combined),}
+  \AttributeTok{Observed =} \FunctionTok{as.numeric}\NormalTok{(monthly\_dlm\_combined[,}\DecValTok{1}\NormalTok{]),}
+  \AttributeTok{Actual =} \FunctionTok{as.numeric}\NormalTok{(monthly\_dlm\_combined[,}\DecValTok{2}\NormalTok{]),}
+  \AttributeTok{Forecast =} \FunctionTok{as.numeric}\NormalTok{(monthly\_dlm\_combined[,}\DecValTok{3}\NormalTok{]),}
+  \AttributeTok{Lower =} \FunctionTok{as.numeric}\NormalTok{(monthly\_dlm\_combined[,}\DecValTok{4}\NormalTok{]),}
+  \AttributeTok{Upper =} \FunctionTok{as.numeric}\NormalTok{(monthly\_dlm\_combined[,}\DecValTok{5}\NormalTok{])}
+\NormalTok{)}
+
+\NormalTok{monthly\_dlm\_plot }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(monthly\_dlm\_df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{Time)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{y=}\NormalTok{Observed, }\AttributeTok{col=}\StringTok{"Observed (Train)"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{y=}\NormalTok{Actual, }\AttributeTok{col=}\StringTok{"Actual (Test)"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{y=}\NormalTok{Forecast, }\AttributeTok{col=}\StringTok{"Forecast"}\NormalTok{), }\AttributeTok{linetype=}\StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_ribbon}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{ymin=}\NormalTok{Lower, }\AttributeTok{ymax=}\NormalTok{Upper), }\AttributeTok{fill=}\StringTok{"blue"}\NormalTok{, }\AttributeTok{alpha=}\FloatTok{0.2}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_vline}\NormalTok{(}\AttributeTok{xintercept=}\FunctionTok{max}\NormalTok{(}\FunctionTok{time}\NormalTok{(train\_ts)), }\AttributeTok{linetype=}\StringTok{"dotted"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title=}\StringTok{"Monthly DLM Forecast"}\NormalTok{, }\AttributeTok{y=}\StringTok{"AMOC Value"}\NormalTok{, }\AttributeTok{x=}\StringTok{"Time"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}\AttributeTok{values=}\FunctionTok{c}\NormalTok{(}\StringTok{"black"}\NormalTok{, }\StringTok{"green"}\NormalTok{, }\StringTok{"red"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.title=}\FunctionTok{element\_blank}\NormalTok{())}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(patchwork)}
+
+\NormalTok{monthly\_arima\_plot }\SpecialCharTok{+}\NormalTok{ monthly\_dlm\_plot }\SpecialCharTok{+} 
+  \FunctionTok{plot\_layout}\NormalTok{(}\AttributeTok{ncol=}\DecValTok{2}\NormalTok{, }\AttributeTok{guides =} \StringTok{"collect"}\NormalTok{) }\SpecialCharTok{\&} 
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"bottom"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{figure}[H]
 
@@ -2863,11 +3357,80 @@ period.}
 
 Quarterly ARIMA
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{quarterly\_arima\_combined }\OtherTok{\textless{}{-}} \FunctionTok{ts.union}\NormalTok{(}
+\NormalTok{  train\_q\_ts, test\_q\_ts,}
+\NormalTok{  forecast\_quarterly\_arima}\SpecialCharTok{$}\NormalTok{mean,}
+\NormalTok{  forecast\_quarterly\_arima}\SpecialCharTok{$}\NormalTok{lower[,}\DecValTok{2}\NormalTok{],}
+\NormalTok{  forecast\_quarterly\_arima}\SpecialCharTok{$}\NormalTok{upper[,}\DecValTok{2}\NormalTok{]}
+\NormalTok{)}
+
+\NormalTok{quarterly\_arima\_df }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Time =} \FunctionTok{time}\NormalTok{(quarterly\_arima\_combined),}
+  \AttributeTok{Observed =} \FunctionTok{as.numeric}\NormalTok{(quarterly\_arima\_combined[,}\DecValTok{1}\NormalTok{]),}
+  \AttributeTok{Actual =} \FunctionTok{as.numeric}\NormalTok{(quarterly\_arima\_combined[,}\DecValTok{2}\NormalTok{]),}
+  \AttributeTok{Forecast =} \FunctionTok{as.numeric}\NormalTok{(quarterly\_arima\_combined[,}\DecValTok{3}\NormalTok{]),}
+  \AttributeTok{Lower =} \FunctionTok{as.numeric}\NormalTok{(quarterly\_arima\_combined[,}\DecValTok{4}\NormalTok{]),}
+  \AttributeTok{Upper =} \FunctionTok{as.numeric}\NormalTok{(quarterly\_arima\_combined[,}\DecValTok{5}\NormalTok{])}
+\NormalTok{)}
+
+\NormalTok{quarterly\_arima\_plot }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(quarterly\_arima\_df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{Time)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{y=}\NormalTok{Observed, }\AttributeTok{col=}\StringTok{"Observed (Train)"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{y=}\NormalTok{Actual, }\AttributeTok{col=}\StringTok{"Actual (Test)"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{y=}\NormalTok{Forecast, }\AttributeTok{col=}\StringTok{"Forecast"}\NormalTok{), }\AttributeTok{linetype=}\StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_ribbon}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{ymin=}\NormalTok{Lower, }\AttributeTok{ymax=}\NormalTok{Upper), }\AttributeTok{fill=}\StringTok{"blue"}\NormalTok{, }\AttributeTok{alpha=}\FloatTok{0.2}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_vline}\NormalTok{(}\AttributeTok{xintercept=}\FunctionTok{max}\NormalTok{(}\FunctionTok{time}\NormalTok{(train\_q\_ts)), }\AttributeTok{linetype=}\StringTok{"dotted"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title=}\StringTok{"Quarterly ARIMA(1,1,1) Forecast"}\NormalTok{, }\AttributeTok{y=}\StringTok{"AMOC Value"}\NormalTok{, }\AttributeTok{x=}\StringTok{"Time"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}\AttributeTok{values=}\FunctionTok{c}\NormalTok{(}\StringTok{"black"}\NormalTok{, }\StringTok{"green"}\NormalTok{, }\StringTok{"red"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.title=}\FunctionTok{element\_blank}\NormalTok{())}
+\end{Highlighting}
+\end{Shaded}
+
 Quarterly DLM
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{\#| echo: false}
+\CommentTok{\# DLM forecast values and intervals for Quarterly}
+\NormalTok{dlm\_quarterly\_mean }\OtherTok{\textless{}{-}}\NormalTok{ forecast\_dlm\_quarterly}\SpecialCharTok{$}\NormalTok{f}
+\NormalTok{dlm\_quarterly\_sd }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{unlist}\NormalTok{(forecast\_dlm\_quarterly}\SpecialCharTok{$}\NormalTok{Q))}
+
+\CommentTok{\# Combine train, test, DLM forecast mean and intervals}
+\NormalTok{quarterly\_dlm\_combined }\OtherTok{\textless{}{-}} \FunctionTok{ts.union}\NormalTok{(}
+\NormalTok{  train\_q\_ts,}
+\NormalTok{  test\_q\_ts,}
+\NormalTok{  dlm\_quarterly\_mean,}
+\NormalTok{  dlm\_quarterly\_mean }\SpecialCharTok{{-}} \FloatTok{1.96} \SpecialCharTok{*}\NormalTok{ dlm\_quarterly\_sd,}
+\NormalTok{  dlm\_quarterly\_mean }\SpecialCharTok{+} \FloatTok{1.96} \SpecialCharTok{*}\NormalTok{ dlm\_quarterly\_sd}
+\NormalTok{)}
+
+\NormalTok{quarterly\_dlm\_df }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Time =} \FunctionTok{time}\NormalTok{(quarterly\_dlm\_combined),}
+  \AttributeTok{Observed =} \FunctionTok{as.numeric}\NormalTok{(quarterly\_dlm\_combined[,}\DecValTok{1}\NormalTok{]),}
+  \AttributeTok{Actual =} \FunctionTok{as.numeric}\NormalTok{(quarterly\_dlm\_combined[,}\DecValTok{2}\NormalTok{]),}
+  \AttributeTok{Forecast =} \FunctionTok{as.numeric}\NormalTok{(quarterly\_dlm\_combined[,}\DecValTok{3}\NormalTok{]),}
+  \AttributeTok{Lower =} \FunctionTok{as.numeric}\NormalTok{(quarterly\_dlm\_combined[,}\DecValTok{4}\NormalTok{]),}
+  \AttributeTok{Upper =} \FunctionTok{as.numeric}\NormalTok{(quarterly\_dlm\_combined[,}\DecValTok{5}\NormalTok{])}
+\NormalTok{)}
+
+
+\NormalTok{quarterly\_dlm\_plot }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(quarterly\_dlm\_df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{Time)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{y=}\NormalTok{Observed, }\AttributeTok{col=}\StringTok{"Observed (Train)"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{y=}\NormalTok{Actual, }\AttributeTok{col=}\StringTok{"Actual (Test)"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{y=}\NormalTok{Forecast, }\AttributeTok{col=}\StringTok{"Forecast"}\NormalTok{), }\AttributeTok{linetype=}\StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_ribbon}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{ymin=}\NormalTok{Lower, }\AttributeTok{ymax=}\NormalTok{Upper), }\AttributeTok{fill=}\StringTok{"blue"}\NormalTok{, }\AttributeTok{alpha=}\FloatTok{0.2}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_vline}\NormalTok{(}\AttributeTok{xintercept=}\FunctionTok{max}\NormalTok{(}\FunctionTok{time}\NormalTok{(train\_q\_ts)), }\AttributeTok{linetype=}\StringTok{"dotted"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title=}\StringTok{"Quarterly DLM Forecast"}\NormalTok{, }\AttributeTok{y=}\StringTok{"AMOC Value"}\NormalTok{, }\AttributeTok{x=}\StringTok{"Time"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}\AttributeTok{values=}\FunctionTok{c}\NormalTok{(}\StringTok{"black"}\NormalTok{, }\StringTok{"green"}\NormalTok{, }\StringTok{"red"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.title=}\FunctionTok{element\_blank}\NormalTok{())}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#| echo: true}
 \CommentTok{\#| message: false}
 \CommentTok{\#| warning: false}
 \FunctionTok{library}\NormalTok{(patchwork)}
@@ -2935,7 +3498,52 @@ greater forecast uncertainty.
 
 \paragraph{Model Prediction Accuracy}\label{model-prediction-accuracy}
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Monthly ARIMA accuracy}
+\NormalTok{acc\_monthly\_arima }\OtherTok{\textless{}{-}} \FunctionTok{accuracy}\NormalTok{(forecast\_monthly\_arima, test\_ts)}
+\NormalTok{mae\_monthly\_arima }\OtherTok{\textless{}{-}}\NormalTok{ acc\_monthly\_arima[}\StringTok{"Test set"}\NormalTok{, }\StringTok{"MAE"}\NormalTok{]}
+\NormalTok{rmse\_monthly\_arima }\OtherTok{\textless{}{-}}\NormalTok{ acc\_monthly\_arima[}\StringTok{"Test set"}\NormalTok{, }\StringTok{"RMSE"}\NormalTok{]}
+
+\CommentTok{\# Quarterly ARIMA accuracy}
+\NormalTok{acc\_quarterly\_arima }\OtherTok{\textless{}{-}} \FunctionTok{accuracy}\NormalTok{(forecast\_quarterly\_arima, test\_q\_ts)}
+\NormalTok{mae\_quarterly\_arima }\OtherTok{\textless{}{-}}\NormalTok{ acc\_quarterly\_arima[}\StringTok{"Test set"}\NormalTok{, }\StringTok{"MAE"}\NormalTok{]}
+\NormalTok{rmse\_quarterly\_arima }\OtherTok{\textless{}{-}}\NormalTok{ acc\_quarterly\_arima[}\StringTok{"Test set"}\NormalTok{, }\StringTok{"RMSE"}\NormalTok{]}
+
+\CommentTok{\# DLM Monthly accuracy}
+\NormalTok{dlm\_monthly\_mean }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(forecast\_dlm\_monthly}\SpecialCharTok{$}\NormalTok{f)}
+\NormalTok{actual\_monthly }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(test\_ts)}
+\NormalTok{mae\_monthly\_dlm }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{abs}\NormalTok{(actual\_monthly }\SpecialCharTok{{-}}\NormalTok{ dlm\_monthly\_mean))}
+\NormalTok{rmse\_monthly\_dlm }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((actual\_monthly }\SpecialCharTok{{-}}\NormalTok{ dlm\_monthly\_mean)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+
+\CommentTok{\# DLM Quarterly accuracy}
+\NormalTok{dlm\_quarterly\_mean }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(forecast\_dlm\_quarterly}\SpecialCharTok{$}\NormalTok{f)}
+\NormalTok{actual\_quarterly }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(test\_q\_ts)}
+\NormalTok{mae\_quarterly\_dlm }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{abs}\NormalTok{(actual\_quarterly }\SpecialCharTok{{-}}\NormalTok{ dlm\_quarterly\_mean))}
+\NormalTok{rmse\_quarterly\_dlm }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((actual\_quarterly }\SpecialCharTok{{-}}\NormalTok{ dlm\_quarterly\_mean)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
 Summary Table
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(knitr)}
+
+\CommentTok{\# Create summary dataframe}
+\NormalTok{summary\_df }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Model =} \FunctionTok{c}\NormalTok{(}\StringTok{"ARIMA(1,1,1)"}\NormalTok{, }\StringTok{"DLM"}\NormalTok{, }\StringTok{"ARIMA(1,1,1)"}\NormalTok{, }\StringTok{"DLM"}\NormalTok{),}
+  \AttributeTok{Frequency =} \FunctionTok{c}\NormalTok{(}\StringTok{"Monthly"}\NormalTok{, }\StringTok{"Monthly"}\NormalTok{, }\StringTok{"Quarterly"}\NormalTok{, }\StringTok{"Quarterly"}\NormalTok{),}
+  \AttributeTok{MAE =} \FunctionTok{round}\NormalTok{(}\FunctionTok{c}\NormalTok{(mae\_monthly\_arima, mae\_monthly\_dlm, mae\_quarterly\_arima, mae\_quarterly\_dlm), }\DecValTok{3}\NormalTok{),}
+  \AttributeTok{RMSE =} \FunctionTok{round}\NormalTok{(}\FunctionTok{c}\NormalTok{(rmse\_monthly\_arima, rmse\_monthly\_dlm, rmse\_quarterly\_arima, rmse\_quarterly\_dlm), }\DecValTok{3}\NormalTok{)}
+\NormalTok{)}
+
+\CommentTok{\# Output professional summary table}
+\FunctionTok{kable}\NormalTok{(summary\_df, }\AttributeTok{caption =} \StringTok{"Forecast Accuracy Summary for AMOC Models"}\NormalTok{,}
+      \AttributeTok{col.names =} \FunctionTok{c}\NormalTok{(}\StringTok{"Model"}\NormalTok{, }\StringTok{"Data Frequency"}\NormalTok{, }\StringTok{"MAE"}\NormalTok{, }\StringTok{"RMSE"}\NormalTok{),}
+      \AttributeTok{align =} \FunctionTok{c}\NormalTok{(}\StringTok{"c"}\NormalTok{, }\StringTok{"c"}\NormalTok{, }\StringTok{"c"}\NormalTok{, }\StringTok{"c"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{longtable}[]{@{}cccc@{}}
 \caption{Forecast accuracy summary for ARIMA(1,1,1) and DLM models
@@ -2976,11 +3584,26 @@ the short available test set. The tight intervals and lower error values
 from ARIMA models justify their use for operational short-term
 forecasting of AMOC.
 
+\newpage
+
 \section{California daily
 temperatures}\label{california-daily-temperatures}
 
 \subsection{Part A: Exploratory Analysis of Spatial and Temporal
 Relationships}\label{part-a-exploratory-analysis-of-spatial-and-temporal-relationships}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{temps }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"\textasciitilde{}/GitHub/university{-}projects/Modelling in Space and Time/In progress/MaxTempCalifornia.csv"}\NormalTok{)}
+\NormalTok{meta }\OtherTok{\textless{}{-}} \FunctionTok{read\_csv}\NormalTok{(}\StringTok{"\textasciitilde{}/GitHub/university{-}projects/Modelling in Space and Time/In progress/metadataCA.csv"}\NormalTok{)}
+
+\FunctionTok{library}\NormalTok{(ggmap)}
+\FunctionTok{library}\NormalTok{(ggspatial)}
+\FunctionTok{library}\NormalTok{(sf)}
+\FunctionTok{library}\NormalTok{(dplyr)}
+\FunctionTok{library}\NormalTok{(viridis)}
+\end{Highlighting}
+\end{Shaded}
 
 This section presents an exploratory analysis of daily maximum
 temperatures recorded at 11 sites across California during 2012,
@@ -2988,6 +3611,47 @@ focusing on spatial variation driven by site elevation and coastal
 proximity.
 
 \paragraph{Summary Statistics Table}\label{summary-statistics-table}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(dplyr)}
+\FunctionTok{library}\NormalTok{(gt)}
+
+\NormalTok{temps\_long }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"MaxTempCalifornia.csv"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{pivot\_longer}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{Date, }\AttributeTok{names\_to =} \StringTok{"Site"}\NormalTok{, }\AttributeTok{values\_to =} \StringTok{"Temp"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{Date =} \FunctionTok{as.Date}\NormalTok{(}\FunctionTok{as.character}\NormalTok{(Date), }\AttributeTok{format =} \StringTok{"\%Y\%m\%d"}\NormalTok{)) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{left\_join}\NormalTok{(meta, }\AttributeTok{by =} \FunctionTok{c}\NormalTok{(}\StringTok{"Site"} \OtherTok{=} \StringTok{"Location"}\NormalTok{))}
+
+\NormalTok{temps\_long }\OtherTok{\textless{}{-}}\NormalTok{ temps\_long }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{Site\_order =} \FunctionTok{reorder}\NormalTok{(Site, Temp, mean))}
+
+\NormalTok{summary\_table }\OtherTok{\textless{}{-}}\NormalTok{ temps\_long }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(Site) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{summarise}\NormalTok{(}
+    \AttributeTok{Mean\_Temp =} \FunctionTok{round}\NormalTok{(}\FunctionTok{mean}\NormalTok{(Temp, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{), }\DecValTok{1}\NormalTok{),}
+    \AttributeTok{Median\_Temp =} \FunctionTok{round}\NormalTok{(}\FunctionTok{median}\NormalTok{(Temp, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{), }\DecValTok{1}\NormalTok{),}
+    \AttributeTok{Min\_Temp =} \FunctionTok{round}\NormalTok{(}\FunctionTok{min}\NormalTok{(Temp, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{), }\DecValTok{1}\NormalTok{),}
+    \AttributeTok{Max\_Temp =} \FunctionTok{round}\NormalTok{(}\FunctionTok{max}\NormalTok{(Temp, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{), }\DecValTok{1}\NormalTok{),}
+    \AttributeTok{SD\_Temp =} \FunctionTok{round}\NormalTok{(}\FunctionTok{sd}\NormalTok{(Temp, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{), }\DecValTok{1}\NormalTok{)}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{arrange}\NormalTok{(}\FunctionTok{desc}\NormalTok{(Mean\_Temp))}
+
+\NormalTok{summary\_table }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{gt}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{tab\_header}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"Summary Statistics of Maximum Daily Temperatures"}\NormalTok{,}
+    \AttributeTok{subtitle =} \StringTok{"Across 11 California Sites (2012)"}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{cols\_label}\NormalTok{(}
+    \AttributeTok{Site =} \StringTok{"Site"}\NormalTok{,}
+    \AttributeTok{Mean\_Temp =} \StringTok{"Mean (°C)"}\NormalTok{,}
+    \AttributeTok{Median\_Temp =} \StringTok{"Median (°C)"}\NormalTok{,}
+    \AttributeTok{Min\_Temp =} \StringTok{"Min (°C)"}\NormalTok{,}
+    \AttributeTok{Max\_Temp =} \StringTok{"Max (°C)"}\NormalTok{,}
+    \AttributeTok{SD\_Temp =} \StringTok{"SD (°C)"}
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{table}
 \caption*{
@@ -3033,6 +3697,33 @@ inland sites like Redding (1041m) recording lower mean temperatures than
 nearby lowland regions --- coastal proximity remains the dominant driver
 of temperature patterns.
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{register\_stadiamaps}\NormalTok{(}\AttributeTok{key =} \StringTok{"6464b0dc{-}0207{-}4438{-}b618{-}4894b33199d5"}\NormalTok{)}
+
+\CommentTok{\# Convert to sf object}
+\NormalTok{meta\_sf }\OtherTok{\textless{}{-}} \FunctionTok{st\_as\_sf}\NormalTok{(meta, }\AttributeTok{coords =} \FunctionTok{c}\NormalTok{(}\StringTok{"Long"}\NormalTok{, }\StringTok{"Lat"}\NormalTok{), }\AttributeTok{crs =} \DecValTok{4326}\NormalTok{)}
+
+\NormalTok{ca\_map }\OtherTok{\textless{}{-}} \FunctionTok{get\_stadiamap}\NormalTok{(}\AttributeTok{bbox =} \FunctionTok{c}\NormalTok{(}\AttributeTok{left =} \SpecialCharTok{{-}}\DecValTok{125}\NormalTok{, }\AttributeTok{bottom =} \DecValTok{32}\NormalTok{, }\AttributeTok{right =} \SpecialCharTok{{-}}\DecValTok{114}\NormalTok{, }\AttributeTok{top =} \DecValTok{42}\NormalTok{),}
+                        \AttributeTok{zoom =} \DecValTok{7}\NormalTok{, }\AttributeTok{maptype =} \StringTok{"stamen\_terrain"}\NormalTok{)}
+
+
+\CommentTok{\# Plot with elevation gradient}
+\FunctionTok{ggmap}\NormalTok{(ca\_map) }\SpecialCharTok{+}
+  \FunctionTok{geom\_sf}\NormalTok{(}\AttributeTok{data =}\NormalTok{ meta\_sf, }\AttributeTok{inherit.aes =} \ConstantTok{FALSE}\NormalTok{, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{color =}\NormalTok{ Elev), }\AttributeTok{size =} \DecValTok{3}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_text}\NormalTok{(}\AttributeTok{data =}\NormalTok{ meta, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Long, }\AttributeTok{y =}\NormalTok{ Lat, }\AttributeTok{label =}\NormalTok{ Location), }\AttributeTok{size =} \DecValTok{3}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_viridis}\NormalTok{(}
+    \AttributeTok{option =} \StringTok{"C"}\NormalTok{,}
+    \AttributeTok{name =} \StringTok{"Elevation (m)"}\NormalTok{,}
+    \AttributeTok{trans =} \StringTok{"sqrt"}\NormalTok{,}
+    \AttributeTok{breaks =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{250}\NormalTok{, }\DecValTok{500}\NormalTok{, }\DecValTok{1000}\NormalTok{, }\DecValTok{1500}\NormalTok{),}
+    \AttributeTok{limits =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1500}\NormalTok{)}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{ggtitle}\NormalTok{(}\StringTok{"California Sites with Elevation Context"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
 \begin{figure}[H]
 
 {\centering \includegraphics{project_files/figure-pdf/ca_map_elevation-1.pdf}
@@ -3052,6 +3743,55 @@ higher-elevation sites like Redding (1041m) and Cedar Park (948m).
 Death Valley is notable for sitting inland at -86m below sea level,
 while other inland sites like Barstow (665m) and Fresno (92m) lie
 further from the coast, despite moderate elevation.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(ggridges)}
+\FunctionTok{library}\NormalTok{(dplyr)}
+\FunctionTok{library}\NormalTok{(hrbrthemes)}
+
+\NormalTok{temps\_long }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"MaxTempCalifornia.csv"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{pivot\_longer}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{Date, }\AttributeTok{names\_to =} \StringTok{"Site"}\NormalTok{, }\AttributeTok{values\_to =} \StringTok{"Temp"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{Date =} \FunctionTok{as.Date}\NormalTok{(}\FunctionTok{as.character}\NormalTok{(Date), }\AttributeTok{format =} \StringTok{"\%Y\%m\%d"}\NormalTok{)) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{left\_join}\NormalTok{(meta, }\AttributeTok{by =} \FunctionTok{c}\NormalTok{(}\StringTok{"Site"} \OtherTok{=} \StringTok{"Location"}\NormalTok{))}
+
+\NormalTok{temps\_long }\OtherTok{\textless{}{-}}\NormalTok{ temps\_long }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{Site\_order =} \FunctionTok{reorder}\NormalTok{(Site, Temp, mean))}
+
+
+\NormalTok{temps\_long }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Temp, }\AttributeTok{y =}\NormalTok{ Site\_order, }\AttributeTok{fill =}\NormalTok{ ..x..)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_density\_ridges\_gradient}\NormalTok{(}\AttributeTok{scale =} \DecValTok{3}\NormalTok{, }\AttributeTok{rel\_min\_height =} \FloatTok{0.01}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{annotate}\NormalTok{(}\StringTok{"text"}\NormalTok{, }
+           \AttributeTok{x =} \FunctionTok{max}\NormalTok{(temps\_long}\SpecialCharTok{$}\NormalTok{Temp) }\SpecialCharTok{+} \DecValTok{1}\NormalTok{, }
+           \AttributeTok{y =}\NormalTok{ temps\_long }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(Temp }\SpecialCharTok{==} \FunctionTok{max}\NormalTok{(Temp)) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{pull}\NormalTok{(Site\_order) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{unique}\NormalTok{(),}
+           \AttributeTok{label =} \FunctionTok{paste0}\NormalTok{(}\StringTok{"Hottest: "}\NormalTok{, }\FunctionTok{max}\NormalTok{(temps\_long}\SpecialCharTok{$}\NormalTok{Temp), }\StringTok{"°C"}\NormalTok{), }
+           \AttributeTok{hjust=}\DecValTok{0}\NormalTok{, }\AttributeTok{size=}\DecValTok{3}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{annotate}\NormalTok{(}\StringTok{"text"}\NormalTok{, }
+           \AttributeTok{x =} \FunctionTok{min}\NormalTok{(temps\_long}\SpecialCharTok{$}\NormalTok{Temp) }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{, }
+           \AttributeTok{y =}\NormalTok{ temps\_long }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(Temp }\SpecialCharTok{==} \FunctionTok{min}\NormalTok{(Temp)) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{pull}\NormalTok{(Site\_order) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{unique}\NormalTok{(),}
+           \AttributeTok{label =} \FunctionTok{paste0}\NormalTok{(}\StringTok{"Coldest: "}\NormalTok{, }\FunctionTok{min}\NormalTok{(temps\_long}\SpecialCharTok{$}\NormalTok{Temp), }\StringTok{"°C"}\NormalTok{), }
+           \AttributeTok{hjust=}\DecValTok{1}\NormalTok{, }\AttributeTok{size=}\DecValTok{3}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_fill\_gradientn}\NormalTok{(}
+    \AttributeTok{colours =} \FunctionTok{c}\NormalTok{(}\StringTok{"navyblue"}\NormalTok{, }\StringTok{"deepskyblue"}\NormalTok{, }\StringTok{"lightyellow"}\NormalTok{, }\StringTok{"orange"}\NormalTok{, }\StringTok{"firebrick"}\NormalTok{),}
+    \AttributeTok{name =} \StringTok{"Max Temp (°C)"}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"Distribution of Max Daily Temperatures by Site (2012)"}\NormalTok{,}
+    \AttributeTok{subtitle =} \StringTok{"Sites ordered by mean temperature | Colour gradient reflects temperature from cold (blue) to hot (red)"}\NormalTok{,}
+    \AttributeTok{x =} \StringTok{"Max Temperature (°C)"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"Site"}
+\NormalTok{  ) }\SpecialCharTok{+}
+ \FunctionTok{theme\_minimal}\NormalTok{() }\SpecialCharTok{+}
+\FunctionTok{theme}\NormalTok{(}
+  \AttributeTok{legend.position =} \StringTok{"right"}\NormalTok{,}
+  \AttributeTok{plot.title.position =} \StringTok{"plot"}\NormalTok{,}
+  \AttributeTok{panel.spacing =} \FunctionTok{unit}\NormalTok{(}\FloatTok{0.1}\NormalTok{, }\StringTok{"lines"}\NormalTok{),}
+  \AttributeTok{panel.grid =} \FunctionTok{element\_blank}\NormalTok{(),}
+  \AttributeTok{axis.text.y =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{hjust=}\DecValTok{0}\NormalTok{)}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{figure}[H]
 
@@ -3130,7 +3870,7 @@ Analysis:}\label{exploratory-variogram-analysis}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{ vario\_emp }\OtherTok{\textless{}{-}} \FunctionTok{variog}\NormalTok{(geo\_data\_train, }\AttributeTok{max.dist =} \DecValTok{600}\NormalTok{, }\AttributeTok{option=}\StringTok{\textquotesingle{}bin\textquotesingle{}}\NormalTok{)}
+\NormalTok{vario\_emp }\OtherTok{\textless{}{-}} \FunctionTok{variog}\NormalTok{(geo\_data\_train, }\AttributeTok{max.dist =} \DecValTok{600}\NormalTok{, }\AttributeTok{option=}\StringTok{\textquotesingle{}bin\textquotesingle{}}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -3330,6 +4070,19 @@ California and how it is influenced by local elevation.
 We evaluated the models using \textbf{AIC} and \textbf{log-likelihood}.
 Here are the comparison metrics for each model:
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Extract AIC, BIC, and Log{-}Likelihood for each model}
+\NormalTok{model\_stats }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Model =} \FunctionTok{c}\NormalTok{(}\StringTok{"Model GP (Base)"}\NormalTok{, }\StringTok{"Model GP Exponential"}\NormalTok{, }\StringTok{"Model GP Matern 2.5"}\NormalTok{),}
+  \AttributeTok{AIC =} \FunctionTok{c}\NormalTok{(}\FunctionTok{AIC}\NormalTok{(model\_gp), }\FunctionTok{AIC}\NormalTok{(model\_gp\_exponential), }\FunctionTok{AIC}\NormalTok{(model\_gp\_matern2}\FloatTok{.5}\NormalTok{)),}
+  \AttributeTok{LogLikelihood =} \FunctionTok{c}\NormalTok{(}\FunctionTok{logLik}\NormalTok{(model\_gp), }\FunctionTok{logLik}\NormalTok{(model\_gp\_exponential), }\FunctionTok{logLik}\NormalTok{(model\_gp\_matern2}\FloatTok{.5}\NormalTok{))}
+\NormalTok{)}
+
+\FunctionTok{kable}\NormalTok{(model\_stats, }\AttributeTok{caption =} \StringTok{"Model Comparison: AIC and Log{-}Likelihood"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
 \begin{longtable}[]{@{}lrr@{}}
 \caption{Model Comparison: AIC and Log-Likelihood}\tabularnewline
 \toprule\noalign{}
@@ -3366,12 +4119,13 @@ well to unseen data. We'll use the \texttt{xvalid()} function from the
 \texttt{geoR} package, which performs \textbf{leave-one-out
 cross-validation} for spatial data.
 
-\begin{verbatim}
-xvalid: number of data locations       = 9
-xvalid: number of validation locations = 9
-xvalid: performing cross-validation at location ... 1, 2, 3, 4, 5, 6, 7, 8, 9, 
-xvalid: end of cross-validation
-\end{verbatim}
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Cross{-}validation using xvalid() function from geoR}
+\CommentTok{\# For Model GP (Base)}
+\NormalTok{xvalid\_gp }\OtherTok{\textless{}{-}} \FunctionTok{xvalid}\NormalTok{(geo\_data\_train, }\AttributeTok{model =}\NormalTok{ model\_gp)}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{verbatim}
 xvalid: number of data locations       = 9
@@ -3380,12 +4134,64 @@ xvalid: performing cross-validation at location ... 1, 2, 3, 4, 5, 6, 7, 8, 9,
 xvalid: end of cross-validation
 \end{verbatim}
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# For Model GP Exponential}
+\NormalTok{xvalid\_exponential }\OtherTok{\textless{}{-}} \FunctionTok{xvalid}\NormalTok{(geo\_data\_train, }\AttributeTok{model =}\NormalTok{ model\_gp\_exponential)}
+\end{Highlighting}
+\end{Shaded}
+
 \begin{verbatim}
 xvalid: number of data locations       = 9
 xvalid: number of validation locations = 9
 xvalid: performing cross-validation at location ... 1, 2, 3, 4, 5, 6, 7, 8, 9, 
 xvalid: end of cross-validation
 \end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# For Model GP Matern 2.5}
+\NormalTok{xvalid\_matern2}\FloatTok{.5} \OtherTok{\textless{}{-}} \FunctionTok{xvalid}\NormalTok{(geo\_data\_train, }\AttributeTok{model =}\NormalTok{ model\_gp\_matern2}\FloatTok{.5}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+xvalid: number of data locations       = 9
+xvalid: number of validation locations = 9
+xvalid: performing cross-validation at location ... 1, 2, 3, 4, 5, 6, 7, 8, 9, 
+xvalid: end of cross-validation
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# RMSE, MAE, and R\^{}2 calculation}
+\CommentTok{\# RMSE for Model GP}
+\NormalTok{rmse\_gp }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((xvalid\_gp}\SpecialCharTok{$}\NormalTok{data }\SpecialCharTok{{-}}\NormalTok{ xvalid\_gp}\SpecialCharTok{$}\NormalTok{predicted)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{mae\_gp }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{abs}\NormalTok{(xvalid\_gp}\SpecialCharTok{$}\NormalTok{data }\SpecialCharTok{{-}}\NormalTok{ xvalid\_gp}\SpecialCharTok{$}\NormalTok{predicted))}
+\NormalTok{r2\_gp }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{{-}} \FunctionTok{sum}\NormalTok{((xvalid\_gp}\SpecialCharTok{$}\NormalTok{data }\SpecialCharTok{{-}}\NormalTok{ xvalid\_gp}\SpecialCharTok{$}\NormalTok{predicted)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{) }\SpecialCharTok{/} \FunctionTok{sum}\NormalTok{((xvalid\_gp}\SpecialCharTok{$}\NormalTok{data }\SpecialCharTok{{-}} \FunctionTok{mean}\NormalTok{(xvalid\_gp}\SpecialCharTok{$}\NormalTok{data))}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+
+\CommentTok{\# RMSE for Model GP Exponential}
+\NormalTok{rmse\_exponential }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((xvalid\_exponential}\SpecialCharTok{$}\NormalTok{data }\SpecialCharTok{{-}}\NormalTok{ xvalid\_exponential}\SpecialCharTok{$}\NormalTok{predicted)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{mae\_exponential }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{abs}\NormalTok{(xvalid\_exponential}\SpecialCharTok{$}\NormalTok{data }\SpecialCharTok{{-}}\NormalTok{ xvalid\_exponential}\SpecialCharTok{$}\NormalTok{predicted))}
+\NormalTok{r2\_exponential }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{{-}} \FunctionTok{sum}\NormalTok{((xvalid\_exponential}\SpecialCharTok{$}\NormalTok{data }\SpecialCharTok{{-}}\NormalTok{ xvalid\_exponential}\SpecialCharTok{$}\NormalTok{predicted)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{) }\SpecialCharTok{/} \FunctionTok{sum}\NormalTok{((xvalid\_exponential}\SpecialCharTok{$}\NormalTok{data }\SpecialCharTok{{-}} \FunctionTok{mean}\NormalTok{(xvalid\_exponential}\SpecialCharTok{$}\NormalTok{data))}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+
+\CommentTok{\# RMSE for Model GP Matern 2.5}
+\NormalTok{rmse\_matern2}\FloatTok{.5} \OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((xvalid\_matern2}\FloatTok{.5}\SpecialCharTok{$}\NormalTok{data }\SpecialCharTok{{-}}\NormalTok{ xvalid\_matern2}\FloatTok{.5}\SpecialCharTok{$}\NormalTok{predicted)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{mae\_matern2}\FloatTok{.5} \OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{abs}\NormalTok{(xvalid\_matern2}\FloatTok{.5}\SpecialCharTok{$}\NormalTok{data }\SpecialCharTok{{-}}\NormalTok{ xvalid\_matern2}\FloatTok{.5}\SpecialCharTok{$}\NormalTok{predicted))}
+\NormalTok{r2\_matern2}\FloatTok{.5} \OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{{-}} \FunctionTok{sum}\NormalTok{((xvalid\_matern2}\FloatTok{.5}\SpecialCharTok{$}\NormalTok{data }\SpecialCharTok{{-}}\NormalTok{ xvalid\_matern2}\FloatTok{.5}\SpecialCharTok{$}\NormalTok{predicted)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{) }\SpecialCharTok{/} \FunctionTok{sum}\NormalTok{((xvalid\_matern2}\FloatTok{.5}\SpecialCharTok{$}\NormalTok{data }\SpecialCharTok{{-}} \FunctionTok{mean}\NormalTok{(xvalid\_matern2}\FloatTok{.5}\SpecialCharTok{$}\NormalTok{data))}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+
+\CommentTok{\# Create a summary table for RMSE, MAE, and R\^{}2}
+\NormalTok{model\_comparison\_cv }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Model =} \FunctionTok{c}\NormalTok{(}\StringTok{"Model GP (Base)"}\NormalTok{, }\StringTok{"Model GP Exponential"}\NormalTok{, }\StringTok{"Model GP Matern 2.5"}\NormalTok{),}
+  \AttributeTok{RMSE =} \FunctionTok{c}\NormalTok{(rmse\_gp, rmse\_exponential, rmse\_matern2}\FloatTok{.5}\NormalTok{),}
+  \AttributeTok{MAE =} \FunctionTok{c}\NormalTok{(mae\_gp, mae\_exponential, mae\_matern2}\FloatTok{.5}\NormalTok{),}
+  \AttributeTok{R\_squared =} \FunctionTok{c}\NormalTok{(r2\_gp, r2\_exponential, r2\_matern2}\FloatTok{.5}\NormalTok{)}
+\NormalTok{)}
+
+\CommentTok{\# Display the comparison table}
+\NormalTok{knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{(model\_comparison\_cv, }\AttributeTok{caption =} \StringTok{"Model Comparison: Cross{-}Validation Metrics (RMSE, MAE, R²)"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{longtable}[]{@{}lrrr@{}}
 \caption{Model Comparison: Cross-Validation Metrics (RMSE, MAE,
@@ -3420,12 +4226,25 @@ inconsequential in terms of predictive accuracy. However, the
 \textbf{Exponential} model, being simpler, may be preferable due to its
 computational efficiency.
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{xv.ml}\OtherTok{\textless{}{-}}\FunctionTok{xvalid}\NormalTok{(geo\_data\_train,}\AttributeTok{model=}\NormalTok{model\_gp)}
+\end{Highlighting}
+\end{Shaded}
+
 \begin{verbatim}
 xvalid: number of data locations       = 9
 xvalid: number of validation locations = 9
 xvalid: performing cross-validation at location ... 1, 2, 3, 4, 5, 6, 7, 8, 9, 
 xvalid: end of cross-validation
 \end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+ \FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow=}\FunctionTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{,}\DecValTok{2}\NormalTok{),}\AttributeTok{mar=}\FunctionTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{2}\NormalTok{))}
+ \FunctionTok{plot}\NormalTok{(xv.ml,}\AttributeTok{error=}\ConstantTok{TRUE}\NormalTok{,}\AttributeTok{std.error=}\ConstantTok{FALSE}\NormalTok{,}\AttributeTok{pch=}\DecValTok{19}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
 
 \includegraphics{project_files/figure-pdf/unnamed-chunk-80-1.pdf}
 
@@ -3470,20 +4289,25 @@ the results for the two cities are as follows:
 \subsubsection{Comparison of Predicted vs Real
 Temperatures:}\label{comparison-of-predicted-vs-real-temperatures}
 
-MANUALLY ADD ELEV POINTS!!
-
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{\# Define the coordinates for San Diego and Fresno}
+\CommentTok{\# Define the coordinates and elevation for San Diego and Fresno}
 \NormalTok{locations }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
   \AttributeTok{x =} \FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\FloatTok{117.1611}\NormalTok{, }\SpecialCharTok{{-}}\FloatTok{119.7726}\NormalTok{),  }\CommentTok{\# Longitude for San Diego and Fresno}
-  \AttributeTok{y =} \FunctionTok{c}\NormalTok{(}\FloatTok{32.7157}\NormalTok{, }\FloatTok{36.7468}\NormalTok{)       }\CommentTok{\# Latitude for San Diego and Fresno}
+  \AttributeTok{y =} \FunctionTok{c}\NormalTok{(}\FloatTok{32.7157}\NormalTok{, }\FloatTok{36.7468}\NormalTok{),      }\CommentTok{\# Latitude for San Diego and Fresno}
+  \AttributeTok{Elevation =} \FunctionTok{c}\NormalTok{(}\FloatTok{32.7}\NormalTok{, }\DecValTok{106}\NormalTok{)      }\CommentTok{\# Elevation for San Diego (32.7m) and Fresno (106m)}
 \NormalTok{)}
 
-\CommentTok{\# Perform kriging for spatial prediction}
+\CommentTok{\# Perform kriging for spatial prediction, including elevation}
 \NormalTok{preds }\OtherTok{\textless{}{-}} \FunctionTok{krige.conv}\NormalTok{(geo\_data\_train, }\AttributeTok{loc =}\NormalTok{ locations, }\AttributeTok{krige =} \FunctionTok{krige.control}\NormalTok{(}\AttributeTok{obj.model =}\NormalTok{ model\_gp))}
 \end{Highlighting}
 \end{Shaded}
+
+\begin{verbatim}
+Warning in .check.locations(locations): locations provided with a matrix or
+data-frame with more than 2 columns. Only the first two columns used as
+coordinates
+\end{verbatim}
 
 \begin{verbatim}
 krige.conv: model with mean given by a 1st order polynomial on the coordinates
@@ -3496,9 +4320,13 @@ krige.conv: Kriging performed using global neighbourhood
 \NormalTok{predicted\_temperatures }\OtherTok{\textless{}{-}}\NormalTok{ preds}\SpecialCharTok{$}\NormalTok{predict}
 
 \CommentTok{\# Display predicted temperatures for San Diego and Fresno}
-\CommentTok{\# predicted\_temperatures}
+\NormalTok{predicted\_temperatures}
 \end{Highlighting}
 \end{Shaded}
+
+\begin{verbatim}
+[1] 16.49281 14.63612
+\end{verbatim}
 
 The predicted temperatures for \textbf{San Diego} and \textbf{Fresno} on
 \textbf{December 13th, 2012}, were obtained using the \textbf{Gaussian
@@ -3541,38 +4369,15 @@ or refining model parameters.
 
 Data Preparation:
 
-\begin{verbatim}
-'data.frame':   365 obs. of  12 variables:
- $ Date         : int  20120101 20120102 20120103 20120104 20120105 20120106 20120107 20120108 20120109 20120110 ...
- $ San.Francisco: num  14.4 12.8 11.7 13.9 16.1 13.3 17.8 18.3 15.6 15 ...
- $ Napa         : num  16.7 16.7 15.6 19.4 17.8 14.4 20.6 18.3 18.3 17.2 ...
- $ San.Diego    : num  19.4 20.6 21.7 26.1 28.3 20 15 18.3 23.3 20.6 ...
- $ Fresno       : num  18.3 18.3 13.3 16.7 17.8 17.8 13.3 17.2 18.9 18.9 ...
- $ Santa.Cruz   : num  22.8 15 17.2 18.9 18.3 15 20 20 20 16.1 ...
- $ Death.Valley : num  20.6 21.1 20.6 21.1 21.7 21.1 21.1 25 23.3 22.2 ...
- $ Ojai         : num  27.2 27.2 26.7 27.2 26.7 23.9 20.6 20.6 22.2 20 ...
- $ Barstow      : num  20.6 17.2 18.3 18.9 19.4 20 19.4 17.2 15.6 16.7 ...
- $ LA           : num  27.2 23.9 24.4 29.4 28.3 22.8 15.6 20 23.9 19.4 ...
- $ CedarPark    : num  19.4 21.7 10.6 3.3 8.9 16.1 20 22.2 22.2 14.4 ...
- $ Redding      : num  17.2 15 18.3 19.4 19.4 17.2 16.1 20 16.1 16.7 ...
-\end{verbatim}
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{temps }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"\textasciitilde{}/GitHub/university{-}projects/Modelling in Space and Time/In progress/MaxTempCalifornia.csv"}\NormalTok{)}
 
-\begin{verbatim}
-      Date San.Francisco Napa San.Diego Fresno Santa.Cruz Death.Valley Ojai
-1 20120101          14.4 16.7      19.4   18.3       22.8         20.6 27.2
-2 20120102          12.8 16.7      20.6   18.3       15.0         21.1 27.2
-3 20120103          11.7 15.6      21.7   13.3       17.2         20.6 26.7
-4 20120104          13.9 19.4      26.1   16.7       18.9         21.1 27.2
-5 20120105          16.1 17.8      28.3   17.8       18.3         21.7 26.7
-6 20120106          13.3 14.4      20.0   17.8       15.0         21.1 23.9
-  Barstow   LA CedarPark Redding
-1    20.6 27.2      19.4    17.2
-2    17.2 23.9      21.7    15.0
-3    18.3 24.4      10.6    18.3
-4    18.9 29.4       3.3    19.4
-5    19.4 28.3       8.9    19.4
-6    20.0 22.8      16.1    17.2
-\end{verbatim}
+\CommentTok{\# Check the structure of the dataset}
+\FunctionTok{str}\NormalTok{(temps)}
+\FunctionTok{head}\NormalTok{(temps)}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -3582,6 +4387,26 @@ Data Preparation:
 \CommentTok{\# Filter data for San Diego and Fresno for 2012}
 \NormalTok{san\_diego\_data }\OtherTok{\textless{}{-}}\NormalTok{ temps[temps}\SpecialCharTok{$}\NormalTok{Date }\SpecialCharTok{\textgreater{}=} \StringTok{"2012{-}01{-}01"} \SpecialCharTok{\&}\NormalTok{ temps}\SpecialCharTok{$}\NormalTok{Date }\SpecialCharTok{\textless{}=} \StringTok{"2012{-}12{-}31"}\NormalTok{, }\FunctionTok{c}\NormalTok{(}\StringTok{"Date"}\NormalTok{, }\StringTok{"San.Diego"}\NormalTok{)]}
 \NormalTok{fresno\_data }\OtherTok{\textless{}{-}}\NormalTok{ temps[temps}\SpecialCharTok{$}\NormalTok{Date }\SpecialCharTok{\textgreater{}=} \StringTok{"2012{-}01{-}01"} \SpecialCharTok{\&}\NormalTok{ temps}\SpecialCharTok{$}\NormalTok{Date }\SpecialCharTok{\textless{}=} \StringTok{"2012{-}12{-}31"}\NormalTok{, }\FunctionTok{c}\NormalTok{(}\StringTok{"Date"}\NormalTok{, }\StringTok{"Fresno"}\NormalTok{)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Plot for San Diego}
+\NormalTok{p1}\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(san\_diego\_data, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Date, }\AttributeTok{y =}\NormalTok{ San.Diego)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{ggtitle}\NormalTok{(}\StringTok{"San Diego (2012)"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{xlab}\NormalTok{(}\StringTok{"Date"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{ylab}\NormalTok{(}\StringTok{"Temperature (°C)"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+
+\CommentTok{\# Plot for Fresno}
+\NormalTok{p2 }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(fresno\_data, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Date, }\AttributeTok{y =}\NormalTok{ Fresno)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{ggtitle}\NormalTok{(}\StringTok{"Fresno (2012)"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{xlab}\NormalTok{(}\StringTok{"Date"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{ylab}\NormalTok{(}\StringTok{"Temperature (°C)"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+
+\NormalTok{p1 }\SpecialCharTok{+}\NormalTok{ p2}
 \end{Highlighting}
 \end{Shaded}
 
@@ -3608,6 +4433,25 @@ before fitting the models.
 
 \subsubsection{Model Fitting}\label{model-fitting}
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# First{-}order differencing to make data stationary}
+\NormalTok{san\_diego\_diff }\OtherTok{\textless{}{-}} \FunctionTok{diff}\NormalTok{(san\_diego\_data}\SpecialCharTok{$}\NormalTok{San.Diego)}
+\NormalTok{fresno\_diff }\OtherTok{\textless{}{-}} \FunctionTok{diff}\NormalTok{(fresno\_data}\SpecialCharTok{$}\NormalTok{Fresno)}
+
+\CommentTok{\# Plot the differenced data to visually check if stationarity is achieved}
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{))  }\CommentTok{\# To plot side by side}
+
+\CommentTok{\# Plot San Diego differenced data as a line graph}
+\FunctionTok{plot}\NormalTok{(san\_diego\_diff, }\AttributeTok{type =} \StringTok{"l"}\NormalTok{, }\AttributeTok{main =} \StringTok{"Differenced San Diego Temperature"}\NormalTok{, }
+     \AttributeTok{ylab =} \StringTok{"Differenced Temp (°C)"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Date"}\NormalTok{, }\AttributeTok{col =} \StringTok{"blue"}\NormalTok{)}
+
+\CommentTok{\# Plot Fresno differenced data as a line graph}
+\FunctionTok{plot}\NormalTok{(fresno\_diff, }\AttributeTok{type =} \StringTok{"l"}\NormalTok{, }\AttributeTok{main =} \StringTok{"Differenced Fresno Temperature"}\NormalTok{, }
+     \AttributeTok{ylab =} \StringTok{"Differenced Temp (°C)"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Date"}\NormalTok{, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
 \includegraphics{project_files/figure-pdf/unnamed-chunk-85-1.pdf}
 
 The differenced data for both \textbf{San Diego} and \textbf{Fresno}
@@ -3621,7 +4465,27 @@ inland climate.
 
 \subsubsection{ARIMA/ARMA Model Fitting}\label{arimaarma-model-fitting}
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Plot the differenced data to visually check if stationarity is achieved}
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{)) }
+\CommentTok{\# ACF and PACF for San Diego (first differenced data)}
+\FunctionTok{acf}\NormalTok{(san\_diego\_diff, }\AttributeTok{main =} \StringTok{"ACF for San Diego (Differenced)"}\NormalTok{)}
+\FunctionTok{pacf}\NormalTok{(san\_diego\_diff, }\AttributeTok{main =} \StringTok{"PACF for San Diego (Differenced)"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
 \includegraphics{project_files/figure-pdf/unnamed-chunk-86-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Plot the differenced data to visually check if stationarity is achieved}
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{)) }
+\CommentTok{\# ACF and PACF for San Diego (first differenced data)}
+\FunctionTok{acf}\NormalTok{(fresno\_diff, }\AttributeTok{main =} \StringTok{"ACF for Fresno (Differenced)"}\NormalTok{)}
+\FunctionTok{pacf}\NormalTok{(fresno\_diff, }\AttributeTok{main =} \StringTok{"PACF for Fresno (Differenced)"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
 
 \includegraphics{project_files/figure-pdf/unnamed-chunk-87-1.pdf}
 
@@ -3741,6 +4605,26 @@ suitable alternative for forecasting.
 
 Diagnostic tests:
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{)) }
+
+\CommentTok{\# Plot residuals for San Diego}
+\NormalTok{residuals\_sandiego }\OtherTok{\textless{}{-}} \FunctionTok{residuals}\NormalTok{(arima\_sandiego)}
+\FunctionTok{plot}\NormalTok{(residuals\_sandiego, }\AttributeTok{main =} \StringTok{"Residuals of ARIMA Model for San Diego"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Residuals"}\NormalTok{, }\AttributeTok{type =} \StringTok{"l"}\NormalTok{)}
+
+\CommentTok{\# ACF of residuals for San Diego}
+\FunctionTok{acf}\NormalTok{(residuals\_sandiego, }\AttributeTok{main =} \StringTok{"ACF of Residuals for San Diego ARIMA Model"}\NormalTok{)}
+
+\CommentTok{\# Plot residuals for Fresno}
+\NormalTok{residuals\_fresno }\OtherTok{\textless{}{-}} \FunctionTok{residuals}\NormalTok{(arima\_fresno)}
+\FunctionTok{plot}\NormalTok{(residuals\_fresno, }\AttributeTok{main =} \StringTok{"Residuals of ARIMA Model for Fresno"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Residuals"}\NormalTok{, }\AttributeTok{type =} \StringTok{"l"}\NormalTok{)}
+
+\CommentTok{\# ACF of residuals for Fresno}
+\FunctionTok{acf}\NormalTok{(residuals\_fresno, }\AttributeTok{main =} \StringTok{"ACF of Residuals for Fresno ARIMA Model"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
 \includegraphics{project_files/figure-pdf/unnamed-chunk-89-1.pdf}
 
 \textbf{San Diego} and \textbf{Fresno} both show relatively \textbf{good
@@ -3775,6 +4659,106 @@ lines}.
 \end{Highlighting}
 \end{Shaded}
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{)) }
+
+\CommentTok{\# Load necessary libraries}
+\FunctionTok{library}\NormalTok{(ggplot2)}
+
+\CommentTok{\# Forecasting for San Diego (Dec 9th–Dec 13th)}
+\NormalTok{forecast\_sandiego\_1 }\OtherTok{\textless{}{-}} \FunctionTok{forecast}\NormalTok{(arima\_sandiego, }\AttributeTok{h =} \DecValTok{5}\NormalTok{)}
+
+\CommentTok{\# Actual observed data for Dec 9th–Dec 13th (replace with your actual data)}
+\NormalTok{actual\_sandiego\_1 }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FloatTok{17.2}\NormalTok{, }\DecValTok{20}\NormalTok{, }\FloatTok{21.7}\NormalTok{, }\FloatTok{17.8}\NormalTok{, }\FloatTok{16.1}\NormalTok{)  }
+
+\CommentTok{\# Create a data frame for forecasted values}
+\NormalTok{forecast\_dates }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"Dec 9"}\NormalTok{, }\StringTok{"Dec 10"}\NormalTok{, }\StringTok{"Dec 11"}\NormalTok{, }\StringTok{"Dec 12"}\NormalTok{, }\StringTok{"Dec 13"}\NormalTok{)}
+\NormalTok{forecast\_data }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Date =}\NormalTok{ forecast\_dates,}
+  \AttributeTok{Forecasted =}\NormalTok{ forecast\_sandiego\_1}\SpecialCharTok{$}\NormalTok{mean,}
+  \AttributeTok{Lower =}\NormalTok{ forecast\_sandiego\_1}\SpecialCharTok{$}\NormalTok{lower[, }\DecValTok{2}\NormalTok{],}
+  \AttributeTok{Upper =}\NormalTok{ forecast\_sandiego\_1}\SpecialCharTok{$}\NormalTok{upper[, }\DecValTok{2}\NormalTok{]}
+\NormalTok{)}
+
+\CommentTok{\# Create a data frame for actual observed data}
+\NormalTok{actual\_data }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Date =}\NormalTok{ forecast\_dates,}
+  \AttributeTok{Actual =}\NormalTok{ actual\_sandiego\_1}
+\NormalTok{)}
+
+\CommentTok{\# Combine forecast and actual data into a single data frame for plotting}
+\NormalTok{combined\_data\_sandiego }\OtherTok{\textless{}{-}} \FunctionTok{merge}\NormalTok{(forecast\_data, actual\_data, }\AttributeTok{by =} \StringTok{"Date"}\NormalTok{)}
+
+\CommentTok{\# Plot the forecasted values (blue line) for San Diego}
+\FunctionTok{plot}\NormalTok{(combined\_data\_sandiego}\SpecialCharTok{$}\NormalTok{Forecasted, }
+     \AttributeTok{type =} \StringTok{"l"}\NormalTok{, }
+     \AttributeTok{col =} \StringTok{"blue"}\NormalTok{, }
+     \AttributeTok{xlab =} \StringTok{"Date"}\NormalTok{, }
+     \AttributeTok{ylab =} \StringTok{"Temperature (°C)"}\NormalTok{, }
+     \AttributeTok{main =} \StringTok{"San Diego"}\NormalTok{, }
+     \AttributeTok{xaxt =} \StringTok{"n"}\NormalTok{,    }\CommentTok{\# Disable default x{-}axis}
+     \AttributeTok{ylim =} \FunctionTok{range}\NormalTok{(}\FunctionTok{c}\NormalTok{(combined\_data\_sandiego}\SpecialCharTok{$}\NormalTok{Forecasted, combined\_data\_sandiego}\SpecialCharTok{$}\NormalTok{Actual, combined\_data\_sandiego}\SpecialCharTok{$}\NormalTok{Lower, combined\_data\_sandiego}\SpecialCharTok{$}\NormalTok{Upper)))  }\CommentTok{\# Ensure y{-}axis fits all data sets}
+
+\CommentTok{\# Custom x{-}axis labels for the forecast dates}
+\FunctionTok{axis}\NormalTok{(}\DecValTok{1}\NormalTok{, }\AttributeTok{at =} \DecValTok{1}\SpecialCharTok{:}\DecValTok{5}\NormalTok{, }\AttributeTok{labels =}\NormalTok{ combined\_data\_sandiego}\SpecialCharTok{$}\NormalTok{Date)}
+
+\CommentTok{\# Add the actual data (red line)}
+\FunctionTok{lines}\NormalTok{(combined\_data\_sandiego}\SpecialCharTok{$}\NormalTok{Actual, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{, }\AttributeTok{lwd =} \DecValTok{2}\NormalTok{)}
+
+\CommentTok{\# Add the confidence intervals as dashed lines}
+\FunctionTok{lines}\NormalTok{(combined\_data\_sandiego}\SpecialCharTok{$}\NormalTok{Upper, }\AttributeTok{col =} \StringTok{"grey"}\NormalTok{, }\AttributeTok{lty =} \DecValTok{2}\NormalTok{)  }\CommentTok{\# Upper bound as dashed line}
+\FunctionTok{lines}\NormalTok{(combined\_data\_sandiego}\SpecialCharTok{$}\NormalTok{Lower, }\AttributeTok{col =} \StringTok{"grey"}\NormalTok{, }\AttributeTok{lty =} \DecValTok{2}\NormalTok{)  }\CommentTok{\# Lower bound as dashed line}
+
+\CommentTok{\# Add a legend}
+\FunctionTok{legend}\NormalTok{(}\StringTok{"bottomleft"}\NormalTok{, }\AttributeTok{legend =} \FunctionTok{c}\NormalTok{(}\StringTok{"Forecasted"}\NormalTok{, }\StringTok{"Actual"}\NormalTok{, }\StringTok{"95\% CI"}\NormalTok{), }\AttributeTok{col =} \FunctionTok{c}\NormalTok{(}\StringTok{"blue"}\NormalTok{, }\StringTok{"red"}\NormalTok{, }\StringTok{"grey"}\NormalTok{), }\AttributeTok{lwd =} \DecValTok{2}\NormalTok{, }\AttributeTok{lty =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{), }\AttributeTok{cex =} \FloatTok{0.8}\NormalTok{)}
+
+\CommentTok{\# Actual observed data for Fresno (Dec 9th–Dec 13th)}
+\NormalTok{actual\_fresno\_1 }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FloatTok{14.4}\NormalTok{, }\FloatTok{16.1}\NormalTok{, }\FloatTok{18.3}\NormalTok{, }\FloatTok{11.7}\NormalTok{, }\FloatTok{16.7}\NormalTok{)  }\CommentTok{\# Actual data for Fresno (Dec 9th–13th)}
+
+\CommentTok{\# Forecasting for Fresno (Dec 9th–Dec 13th)}
+\NormalTok{forecast\_fresno\_1 }\OtherTok{\textless{}{-}} \FunctionTok{forecast}\NormalTok{(arima\_fresno, }\AttributeTok{h =} \DecValTok{5}\NormalTok{)}
+
+\CommentTok{\# Create a data frame for forecasted values}
+\NormalTok{forecast\_dates }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"Dec 9"}\NormalTok{, }\StringTok{"Dec 10"}\NormalTok{, }\StringTok{"Dec 11"}\NormalTok{, }\StringTok{"Dec 12"}\NormalTok{, }\StringTok{"Dec 13"}\NormalTok{)}
+\NormalTok{forecast\_data\_fresno }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Date =}\NormalTok{ forecast\_dates,}
+  \AttributeTok{Forecasted =}\NormalTok{ forecast\_fresno\_1}\SpecialCharTok{$}\NormalTok{mean,}
+  \AttributeTok{Lower =}\NormalTok{ forecast\_fresno\_1}\SpecialCharTok{$}\NormalTok{lower[, }\DecValTok{2}\NormalTok{],}
+  \AttributeTok{Upper =}\NormalTok{ forecast\_fresno\_1}\SpecialCharTok{$}\NormalTok{upper[, }\DecValTok{2}\NormalTok{]}
+\NormalTok{)}
+
+\CommentTok{\# Create a data frame for actual observed data}
+\NormalTok{actual\_data\_fresno }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Date =}\NormalTok{ forecast\_dates,}
+  \AttributeTok{Actual =}\NormalTok{ actual\_fresno\_1}
+\NormalTok{)}
+
+\CommentTok{\# Combine forecast and actual data into a single data frame for plotting}
+\NormalTok{combined\_data\_fresno }\OtherTok{\textless{}{-}} \FunctionTok{merge}\NormalTok{(forecast\_data\_fresno, actual\_data\_fresno, }\AttributeTok{by =} \StringTok{"Date"}\NormalTok{)}
+
+\CommentTok{\# Plot the forecasted values (blue line) for Fresno}
+\FunctionTok{plot}\NormalTok{(combined\_data\_fresno}\SpecialCharTok{$}\NormalTok{Forecasted, }
+     \AttributeTok{type =} \StringTok{"l"}\NormalTok{, }
+     \AttributeTok{col =} \StringTok{"blue"}\NormalTok{, }
+     \AttributeTok{xlab =} \StringTok{"Date"}\NormalTok{, }
+     \AttributeTok{ylab =} \StringTok{"Temperature (°C)"}\NormalTok{, }
+     \AttributeTok{main =} \StringTok{"Fresno)"}\NormalTok{, }
+     \AttributeTok{xaxt =} \StringTok{"n"}\NormalTok{,    }\CommentTok{\# Disable default x{-}axis}
+     \AttributeTok{ylim =} \FunctionTok{range}\NormalTok{(}\FunctionTok{c}\NormalTok{(combined\_data\_fresno}\SpecialCharTok{$}\NormalTok{Forecasted, combined\_data\_fresno}\SpecialCharTok{$}\NormalTok{Actual, combined\_data\_fresno}\SpecialCharTok{$}\NormalTok{Lower, combined\_data\_fresno}\SpecialCharTok{$}\NormalTok{Upper)))  }\CommentTok{\# Ensure y{-}axis fits all data sets}
+
+\CommentTok{\# Custom x{-}axis labels for the forecast dates}
+\FunctionTok{axis}\NormalTok{(}\DecValTok{1}\NormalTok{, }\AttributeTok{at =} \DecValTok{1}\SpecialCharTok{:}\DecValTok{5}\NormalTok{, }\AttributeTok{labels =}\NormalTok{ combined\_data\_fresno}\SpecialCharTok{$}\NormalTok{Date)}
+
+\CommentTok{\# Add the actual data (red line)}
+\FunctionTok{lines}\NormalTok{(combined\_data\_fresno}\SpecialCharTok{$}\NormalTok{Actual, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{, }\AttributeTok{lwd =} \DecValTok{2}\NormalTok{)}
+
+\CommentTok{\# Add the confidence intervals as dashed lines}
+\FunctionTok{lines}\NormalTok{(combined\_data\_fresno}\SpecialCharTok{$}\NormalTok{Upper, }\AttributeTok{col =} \StringTok{"grey"}\NormalTok{, }\AttributeTok{lty =} \DecValTok{2}\NormalTok{)  }\CommentTok{\# Upper bound as dashed line}
+\FunctionTok{lines}\NormalTok{(combined\_data\_fresno}\SpecialCharTok{$}\NormalTok{Lower, }\AttributeTok{col =} \StringTok{"grey"}\NormalTok{, }\AttributeTok{lty =} \DecValTok{2}\NormalTok{)  }\CommentTok{\# Lower bound as dashed line}
+\end{Highlighting}
+\end{Shaded}
+
 \includegraphics{project_files/figure-pdf/unnamed-chunk-91-1.pdf}
 
 The \textbf{San Diego} plot revealed a slight dip in temperature around
@@ -3793,6 +4777,93 @@ The forecasted values were plotted in the same way as the first period,
 with \textbf{blue lines} representing the forecasted temperatures and
 \textbf{red lines} showing the actual observed data.
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{)) }
+
+\CommentTok{\# Actual observed data for Dec 13th–Dec 17th}
+\NormalTok{actual\_sandiego\_2 }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FloatTok{16.1}\NormalTok{, }\FloatTok{15.6}\NormalTok{, }\DecValTok{15}\NormalTok{, }\FloatTok{15.6}\NormalTok{, }\FloatTok{17.2}\NormalTok{)  }\CommentTok{\# Actual data for San Diego (Dec 13th–17th)}
+\NormalTok{actual\_fresno\_2 }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FloatTok{16.7}\NormalTok{, }\FloatTok{12.2}\NormalTok{, }\FloatTok{10.6}\NormalTok{, }\FloatTok{15.6}\NormalTok{, }\FloatTok{18.9}\NormalTok{)  }\CommentTok{\# Actual data for Fresno (Dec 13th–17th)}
+
+\CommentTok{\# Forecasting for San Diego (Dec 13th–Dec 17th)}
+\NormalTok{forecast\_sandiego\_2 }\OtherTok{\textless{}{-}} \FunctionTok{forecast}\NormalTok{(arima\_sandiego, }\AttributeTok{h =} \DecValTok{5}\NormalTok{)}
+
+\CommentTok{\# Forecasting for Fresno (Dec 13th–Dec 17th)}
+\NormalTok{forecast\_fresno\_2 }\OtherTok{\textless{}{-}} \FunctionTok{forecast}\NormalTok{(arima\_fresno, }\AttributeTok{h =} \DecValTok{5}\NormalTok{)}
+
+\CommentTok{\# Create a data frame for forecasted values for both San Diego and Fresno}
+\NormalTok{forecast\_dates }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"Dec 13"}\NormalTok{, }\StringTok{"Dec 14"}\NormalTok{, }\StringTok{"Dec 15"}\NormalTok{, }\StringTok{"Dec 16"}\NormalTok{, }\StringTok{"Dec 17"}\NormalTok{)}
+
+\CommentTok{\# San Diego forecast data}
+\NormalTok{forecast\_data\_sandiego\_2 }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Date =}\NormalTok{ forecast\_dates,}
+  \AttributeTok{Forecasted =}\NormalTok{ forecast\_sandiego\_2}\SpecialCharTok{$}\NormalTok{mean,}
+  \AttributeTok{Lower =}\NormalTok{ forecast\_sandiego\_2}\SpecialCharTok{$}\NormalTok{lower[, }\DecValTok{2}\NormalTok{],}
+  \AttributeTok{Upper =}\NormalTok{ forecast\_sandiego\_2}\SpecialCharTok{$}\NormalTok{upper[, }\DecValTok{2}\NormalTok{]}
+\NormalTok{)}
+
+\CommentTok{\# Fresno forecast data}
+\NormalTok{forecast\_data\_fresno\_2 }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Date =}\NormalTok{ forecast\_dates,}
+  \AttributeTok{Forecasted =}\NormalTok{ forecast\_fresno\_2}\SpecialCharTok{$}\NormalTok{mean,}
+  \AttributeTok{Lower =}\NormalTok{ forecast\_fresno\_2}\SpecialCharTok{$}\NormalTok{lower[, }\DecValTok{2}\NormalTok{],}
+  \AttributeTok{Upper =}\NormalTok{ forecast\_fresno\_2}\SpecialCharTok{$}\NormalTok{upper[, }\DecValTok{2}\NormalTok{]}
+\NormalTok{)}
+
+\CommentTok{\# Create a data frame for actual observed data for San Diego and Fresno}
+\NormalTok{actual\_data\_sandiego\_2 }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Date =}\NormalTok{ forecast\_dates,}
+  \AttributeTok{Actual =}\NormalTok{ actual\_sandiego\_2}
+\NormalTok{)}
+
+\NormalTok{actual\_data\_fresno\_2 }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Date =}\NormalTok{ forecast\_dates,}
+  \AttributeTok{Actual =}\NormalTok{ actual\_fresno\_2}
+\NormalTok{)}
+
+\CommentTok{\# Combine forecast and actual data into a single data frame for plotting for both San Diego and Fresno}
+\NormalTok{combined\_data\_sandiego\_2 }\OtherTok{\textless{}{-}} \FunctionTok{merge}\NormalTok{(forecast\_data\_sandiego\_2, actual\_data\_sandiego\_2, }\AttributeTok{by =} \StringTok{"Date"}\NormalTok{)}
+\NormalTok{combined\_data\_fresno\_2 }\OtherTok{\textless{}{-}} \FunctionTok{merge}\NormalTok{(forecast\_data\_fresno\_2, actual\_data\_fresno\_2, }\AttributeTok{by =} \StringTok{"Date"}\NormalTok{)}
+
+\CommentTok{\# Set up plotting area for 1x2 grid (side by side for both forecast periods)}
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{))}
+
+\CommentTok{\# Plot forecast vs actual for San Diego (Dec 13th–Dec 17th)}
+\FunctionTok{plot}\NormalTok{(combined\_data\_sandiego\_2}\SpecialCharTok{$}\NormalTok{Forecasted, }
+     \AttributeTok{type =} \StringTok{"l"}\NormalTok{, }
+     \AttributeTok{col =} \StringTok{"blue"}\NormalTok{, }
+     \AttributeTok{xlab =} \StringTok{"Date"}\NormalTok{, }
+     \AttributeTok{ylab =} \StringTok{"Temperature (°C)"}\NormalTok{, }
+     \AttributeTok{main =} \StringTok{"San Diego"}\NormalTok{, }
+     \AttributeTok{xaxt =} \StringTok{"n"}\NormalTok{,    }\CommentTok{\# Disable default x{-}axis}
+     \AttributeTok{ylim =} \FunctionTok{range}\NormalTok{(}\FunctionTok{c}\NormalTok{(combined\_data\_sandiego\_2}\SpecialCharTok{$}\NormalTok{Forecasted, combined\_data\_sandiego\_2}\SpecialCharTok{$}\NormalTok{Actual, combined\_data\_sandiego\_2}\SpecialCharTok{$}\NormalTok{Lower, combined\_data\_sandiego\_2}\SpecialCharTok{$}\NormalTok{Upper)))  }\CommentTok{\# Ensure y{-}axis fits all data sets}
+\FunctionTok{axis}\NormalTok{(}\DecValTok{1}\NormalTok{, }\AttributeTok{at =} \DecValTok{1}\SpecialCharTok{:}\DecValTok{5}\NormalTok{, }\AttributeTok{labels =}\NormalTok{ combined\_data\_sandiego\_2}\SpecialCharTok{$}\NormalTok{Date)  }\CommentTok{\# Custom x{-}axis labels}
+\FunctionTok{lines}\NormalTok{(combined\_data\_sandiego\_2}\SpecialCharTok{$}\NormalTok{Actual, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{, }\AttributeTok{lwd =} \DecValTok{2}\NormalTok{)  }\CommentTok{\# Add actual data in red}
+\FunctionTok{lines}\NormalTok{(combined\_data\_sandiego\_2}\SpecialCharTok{$}\NormalTok{Upper, }\AttributeTok{col =} \StringTok{"grey"}\NormalTok{, }\AttributeTok{lty =} \DecValTok{2}\NormalTok{)  }\CommentTok{\# Upper bound as dashed line}
+\FunctionTok{lines}\NormalTok{(combined\_data\_sandiego\_2}\SpecialCharTok{$}\NormalTok{Lower, }\AttributeTok{col =} \StringTok{"grey"}\NormalTok{, }\AttributeTok{lty =} \DecValTok{2}\NormalTok{)  }\CommentTok{\# Lower bound as dashed line}
+
+\CommentTok{\# Add a legend for San Diego (Dec 13th–Dec 17th)}
+\FunctionTok{legend}\NormalTok{(}\StringTok{"topright"}\NormalTok{, }\AttributeTok{legend =} \FunctionTok{c}\NormalTok{(}\StringTok{"Forecasted"}\NormalTok{, }\StringTok{"Actual"}\NormalTok{, }\StringTok{"95\% CI"}\NormalTok{), }\AttributeTok{col =} \FunctionTok{c}\NormalTok{(}\StringTok{"blue"}\NormalTok{, }\StringTok{"red"}\NormalTok{, }\StringTok{"grey"}\NormalTok{), }\AttributeTok{lwd =} \DecValTok{2}\NormalTok{, }\AttributeTok{lty =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{), }\AttributeTok{cex =} \FloatTok{0.8}\NormalTok{)}
+
+\CommentTok{\# Plot forecast vs actual for Fresno (Dec 13th–Dec 17th)}
+\FunctionTok{plot}\NormalTok{(combined\_data\_fresno\_2}\SpecialCharTok{$}\NormalTok{Forecasted, }
+     \AttributeTok{type =} \StringTok{"l"}\NormalTok{, }
+     \AttributeTok{col =} \StringTok{"blue"}\NormalTok{, }
+     \AttributeTok{xlab =} \StringTok{"Date"}\NormalTok{, }
+     \AttributeTok{ylab =} \StringTok{"Temperature (°C)"}\NormalTok{, }
+     \AttributeTok{main =} \StringTok{"Fresno"}\NormalTok{, }
+     \AttributeTok{xaxt =} \StringTok{"n"}\NormalTok{,    }\CommentTok{\# Disable default x{-}axis}
+     \AttributeTok{ylim =} \FunctionTok{range}\NormalTok{(}\FunctionTok{c}\NormalTok{(combined\_data\_fresno\_2}\SpecialCharTok{$}\NormalTok{Forecasted, combined\_data\_fresno\_2}\SpecialCharTok{$}\NormalTok{Actual, combined\_data\_fresno\_2}\SpecialCharTok{$}\NormalTok{Lower, combined\_data\_fresno\_2}\SpecialCharTok{$}\NormalTok{Upper)))  }\CommentTok{\# Ensure y{-}axis fits all data sets}
+\FunctionTok{axis}\NormalTok{(}\DecValTok{1}\NormalTok{, }\AttributeTok{at =} \DecValTok{1}\SpecialCharTok{:}\DecValTok{5}\NormalTok{, }\AttributeTok{labels =}\NormalTok{ combined\_data\_fresno\_2}\SpecialCharTok{$}\NormalTok{Date)  }\CommentTok{\# Custom x{-}axis labels}
+\FunctionTok{lines}\NormalTok{(combined\_data\_fresno\_2}\SpecialCharTok{$}\NormalTok{Actual, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{, }\AttributeTok{lwd =} \DecValTok{2}\NormalTok{)  }\CommentTok{\# Add actual data in red}
+\FunctionTok{lines}\NormalTok{(combined\_data\_fresno\_2}\SpecialCharTok{$}\NormalTok{Upper, }\AttributeTok{col =} \StringTok{"grey"}\NormalTok{, }\AttributeTok{lty =} \DecValTok{2}\NormalTok{)  }\CommentTok{\# Upper bound as dashed line}
+\FunctionTok{lines}\NormalTok{(combined\_data\_fresno\_2}\SpecialCharTok{$}\NormalTok{Lower, }\AttributeTok{col =} \StringTok{"grey"}\NormalTok{, }\AttributeTok{lty =} \DecValTok{2}\NormalTok{)  }\CommentTok{\# Lower bound as dashed line}
+
+\CommentTok{\# Add a legend for Fresno (Dec 13th–Dec 17th)}
+\FunctionTok{legend}\NormalTok{(}\StringTok{"topright"}\NormalTok{, }\AttributeTok{legend =} \FunctionTok{c}\NormalTok{(}\StringTok{"Forecasted"}\NormalTok{, }\StringTok{"Actual"}\NormalTok{, }\StringTok{"95\% CI"}\NormalTok{), }\AttributeTok{col =} \FunctionTok{c}\NormalTok{(}\StringTok{"blue"}\NormalTok{, }\StringTok{"red"}\NormalTok{, }\StringTok{"grey"}\NormalTok{), }\AttributeTok{lwd =} \DecValTok{2}\NormalTok{, }\AttributeTok{lty =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{), }\AttributeTok{cex =} \FloatTok{0.8}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
 \includegraphics{project_files/figure-pdf/unnamed-chunk-92-1.pdf}
 
 For \textbf{Dec 13th to Dec 17th}, the ARIMA model continued to provide
@@ -3801,6 +4872,7 @@ variation compared to the first period. For \textbf{San Diego}, the
 forecast predicted a small drop in temperature, while the actual
 temperatures showed more significant fluctuations, leading to higher
 \textbf{RMSE} and \textbf{MAE} values compared to the first period.
+
 Similarly, in \textbf{Fresno}, the forecast closely mirrored the trend
 of the observed data but showed more pronounced deviations in the later
 part of the period. Despite these fluctuations, the model continued to
@@ -3812,6 +4884,56 @@ forecast.
 
 \subsubsection{Evaluating Forecast
 accuracy}\label{evaluating-forecast-accuracy}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Actual observed data for Dec 9th–Dec 13th (San Diego and Fresno)}
+\NormalTok{actual\_sandiego\_1 }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FloatTok{17.2}\NormalTok{, }\DecValTok{20}\NormalTok{, }\FloatTok{21.7}\NormalTok{, }\FloatTok{17.8}\NormalTok{, }\FloatTok{16.1}\NormalTok{)}
+\NormalTok{actual\_fresno\_1 }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FloatTok{14.4}\NormalTok{, }\FloatTok{16.1}\NormalTok{, }\FloatTok{18.3}\NormalTok{, }\FloatTok{11.7}\NormalTok{, }\FloatTok{16.7}\NormalTok{)}
+
+\CommentTok{\# Actual observed data for Dec 13th–Dec 17th (San Diego and Fresno)}
+\NormalTok{actual\_sandiego\_2 }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FloatTok{16.1}\NormalTok{, }\FloatTok{15.6}\NormalTok{, }\DecValTok{15}\NormalTok{, }\FloatTok{15.6}\NormalTok{, }\FloatTok{17.2}\NormalTok{)}
+\NormalTok{actual\_fresno\_2 }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FloatTok{16.7}\NormalTok{, }\FloatTok{12.2}\NormalTok{, }\FloatTok{10.6}\NormalTok{, }\FloatTok{15.6}\NormalTok{, }\FloatTok{18.9}\NormalTok{)}
+
+\CommentTok{\# Forecasted values for Dec 9th–Dec 13th (San Diego and Fresno)}
+\NormalTok{forecast\_sandiego\_1 }\OtherTok{\textless{}{-}} \FunctionTok{forecast}\NormalTok{(arima\_sandiego, }\AttributeTok{h =} \DecValTok{5}\NormalTok{)}
+\NormalTok{forecast\_fresno\_1 }\OtherTok{\textless{}{-}} \FunctionTok{forecast}\NormalTok{(arima\_fresno, }\AttributeTok{h =} \DecValTok{5}\NormalTok{)}
+
+\CommentTok{\# Forecasted values for Dec 13th–Dec 17th (San Diego and Fresno)}
+\NormalTok{forecast\_sandiego\_2 }\OtherTok{\textless{}{-}} \FunctionTok{forecast}\NormalTok{(arima\_sandiego, }\AttributeTok{h =} \DecValTok{5}\NormalTok{)}
+\NormalTok{forecast\_fresno\_2 }\OtherTok{\textless{}{-}} \FunctionTok{forecast}\NormalTok{(arima\_fresno, }\AttributeTok{h =} \DecValTok{5}\NormalTok{)}
+
+\CommentTok{\# RMSE Calculation for Dec 9th–Dec 13th (San Diego)}
+\NormalTok{rmse\_sandiego\_1 }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((forecast\_sandiego\_1}\SpecialCharTok{$}\NormalTok{mean }\SpecialCharTok{{-}}\NormalTok{ actual\_sandiego\_1)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{mae\_sandiego\_1 }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{abs}\NormalTok{(forecast\_sandiego\_1}\SpecialCharTok{$}\NormalTok{mean }\SpecialCharTok{{-}}\NormalTok{ actual\_sandiego\_1))}
+
+\CommentTok{\# RMSE Calculation for Dec 9th–Dec 13th (Fresno)}
+\NormalTok{rmse\_fresno\_1 }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((forecast\_fresno\_1}\SpecialCharTok{$}\NormalTok{mean }\SpecialCharTok{{-}}\NormalTok{ actual\_fresno\_1)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{mae\_fresno\_1 }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{abs}\NormalTok{(forecast\_fresno\_1}\SpecialCharTok{$}\NormalTok{mean }\SpecialCharTok{{-}}\NormalTok{ actual\_fresno\_1))}
+
+\CommentTok{\# RMSE Calculation for Dec 13th–Dec 17th (San Diego)}
+\NormalTok{rmse\_sandiego\_2 }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((forecast\_sandiego\_2}\SpecialCharTok{$}\NormalTok{mean }\SpecialCharTok{{-}}\NormalTok{ actual\_sandiego\_2)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{mae\_sandiego\_2 }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{abs}\NormalTok{(forecast\_sandiego\_2}\SpecialCharTok{$}\NormalTok{mean }\SpecialCharTok{{-}}\NormalTok{ actual\_sandiego\_2))}
+
+\CommentTok{\# RMSE Calculation for Dec 13th–Dec 17th (Fresno)}
+\NormalTok{rmse\_fresno\_2 }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((forecast\_fresno\_2}\SpecialCharTok{$}\NormalTok{mean }\SpecialCharTok{{-}}\NormalTok{ actual\_fresno\_2)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{mae\_fresno\_2 }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{abs}\NormalTok{(forecast\_fresno\_2}\SpecialCharTok{$}\NormalTok{mean }\SpecialCharTok{{-}}\NormalTok{ actual\_fresno\_2))}
+
+\CommentTok{\# Load necessary library for displaying the table}
+\FunctionTok{library}\NormalTok{(knitr)}
+
+\CommentTok{\# Create a data frame for the RMSE and MAE values}
+\NormalTok{error\_metrics }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Model =} \FunctionTok{c}\NormalTok{(}\StringTok{"San Diego (Dec 9th–Dec 13th)"}\NormalTok{, }\StringTok{"Fresno (Dec 9th–Dec 13th)"}\NormalTok{, }
+            \StringTok{"San Diego (Dec 13th–Dec 17th)"}\NormalTok{, }\StringTok{"Fresno (Dec 13th–Dec 17th)"}\NormalTok{),}
+  \AttributeTok{RMSE =} \FunctionTok{c}\NormalTok{(rmse\_sandiego\_1, rmse\_fresno\_1, rmse\_sandiego\_2, rmse\_fresno\_2),}
+  \AttributeTok{MAE =} \FunctionTok{c}\NormalTok{(mae\_sandiego\_1, mae\_fresno\_1, mae\_sandiego\_2, mae\_fresno\_2)}
+\NormalTok{)}
+
+\CommentTok{\# Display the table}
+\FunctionTok{kable}\NormalTok{(error\_metrics, }\AttributeTok{caption =} \StringTok{"RMSE and MAE for Forecast Accuracy"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{longtable}[]{@{}lrr@{}}
 \caption{RMSE and MAE for Forecast Accuracy}\tabularnewline
