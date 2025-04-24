@@ -52,7 +52,7 @@ This repository contains a curated portfolio of selected projects from my MSc in
 ---
 
 ### 5. [Quantifying Spatio-Temporal Tuberculosis Risk in Brazil using GAMs](https://github.com/KetchupJL/university-projects/tree/main/Statistical%20Data%20Modelling%20Projects%20-%20MTHM506/Coursework%202%20-%20Project)  
-![Grade](https://img.shields.io/badge/Grade-74%25-blue) ![Model](https://img.shields.io/badge/Model-GAMs-purple) ![Tools](https://img.shields.io/badge/Tools-R%2C%20mgcv%2C%20gratia-informational)  
+![Grade](https://img.shields.io/badge/Grade-76%25-blue) ![Model](https://img.shields.io/badge/Model-GAMs-purple) ![Tools](https://img.shields.io/badge/Tools-R%2C%20mgcv%2C%20gratia-informational)  
 **Module**: MTHM506  
 **Skills**: Generalised Additive Models (Poisson, Tweedie), spatial smoothing, tensor product interactions, time-varying covariates, risk mapping  
 **Description**: Models TB risk across 557 Brazilian microregions (2012–2014) using Poisson and Tweedie GAMs with spatial, temporal, and interaction smoothers.
