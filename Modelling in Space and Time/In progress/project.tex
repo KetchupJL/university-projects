@@ -281,7 +281,8 @@ Overview}\label{part-a-cleaning-and-spatial-overview}
   \FunctionTok{geom\_sf}\NormalTok{(}\AttributeTok{data =}\NormalTok{ world, }\AttributeTok{fill =} \StringTok{"grey95"}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+}  \CommentTok{\# Base map}
   \FunctionTok{geom\_sf}\NormalTok{(}\AttributeTok{data =}\NormalTok{ kuroshio\_sf, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{color =}\NormalTok{ sst), }\AttributeTok{size =} \DecValTok{2}\NormalTok{, }\AttributeTok{alpha =} \FloatTok{0.9}\NormalTok{) }\SpecialCharTok{+}
   \FunctionTok{scale\_color\_viridis\_c}\NormalTok{(}\AttributeTok{name =} \StringTok{"SST (°C)"}\NormalTok{, }\AttributeTok{option =} \StringTok{"C"}\NormalTok{, }\AttributeTok{direction =} \SpecialCharTok{{-}}\DecValTok{1}\NormalTok{) }\SpecialCharTok{+}
-  \FunctionTok{coord\_sf}\NormalTok{(}\AttributeTok{xlim =} \FunctionTok{c}\NormalTok{(}\DecValTok{140}\NormalTok{, }\DecValTok{150}\NormalTok{), }\AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\DecValTok{30}\NormalTok{, }\DecValTok{40}\NormalTok{), }\AttributeTok{expand =} \ConstantTok{FALSE}\NormalTok{) }\SpecialCharTok{+}  \CommentTok{\# Zoom on Kuroshio region}
+  \FunctionTok{coord\_sf}\NormalTok{(}\AttributeTok{xlim =} \FunctionTok{c}\NormalTok{(}\DecValTok{140}\NormalTok{, }\DecValTok{150}\NormalTok{), }\AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\DecValTok{30}\NormalTok{, }\DecValTok{40}\NormalTok{), }\AttributeTok{expand =} \ConstantTok{FALSE}\NormalTok{) }\SpecialCharTok{+}  
+  \CommentTok{\# Zoom on Kuroshio region}
   \FunctionTok{labs}\NormalTok{(}
     \AttributeTok{title =} \StringTok{"Sea Surface Temperature – Kuroshio Current"}\NormalTok{,}
     \AttributeTok{x =} \StringTok{"Longitude"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Latitude"}
@@ -300,26 +301,19 @@ Overview}\label{part-a-cleaning-and-spatial-overview}
 
 }
 
-\caption{Figure 1: Spatial distribution of Sea Surface Temperature (SST)
+\caption{Spatial distribution of Sea Surface Temperature (SST)
 observations collected on 1--2 January 1996 in the Kuroshio Current
 region. Each point represents an individual measurement; colour denotes
 temperature, with warmer SSTs concentrated in the north-east band.}
 
 \end{figure}%
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# plot(kuroshio100\_clean)}
-\end{Highlighting}
-\end{Shaded}
-
 The dataset \texttt{kuroshio100.csv} contains 100 Sea Surface
 Temperature (SST) observations recorded in January 1996 along the
 Kuroshio Current system in the western Pacific Ocean. Preliminary
 inspection revealed three rows with missing spatial coordinates
 (\texttt{lon} or \texttt{lat}), which were removed to ensure
-compatibility with spatial analysis functions such as
-\texttt{as.geodata()}.
+compatibility with spatial analysis function \texttt{as.geodata()}.
 
 This resulted in 97 complete observations spanning a broad geographical
 area, with longitudes ranging from approximately 140°E to 150°E and
@@ -377,7 +371,8 @@ their full spatial and response information:
 \begin{Shaded}
 \begin{Highlighting}[]
 \CommentTok{\# Create training dataset (excluding test points)}
-\NormalTok{kuroshio\_train }\OtherTok{\textless{}{-}} \FunctionTok{anti\_join}\NormalTok{(kuroshio100, test\_points, }\AttributeTok{by =} \FunctionTok{c}\NormalTok{(}\StringTok{"id"}\NormalTok{, }\StringTok{"lon"}\NormalTok{, }\StringTok{"lat"}\NormalTok{, }\StringTok{"sst"}\NormalTok{))}
+\NormalTok{kuroshio\_train }\OtherTok{\textless{}{-}} \FunctionTok{anti\_join}\NormalTok{(kuroshio100, test\_points, }\AttributeTok{by =} \FunctionTok{c}\NormalTok{(}\StringTok{"id"}\NormalTok{, }\StringTok{"lon"}\NormalTok{, }\StringTok{"lat"}
+\NormalTok{                                                             , }\StringTok{"sst"}\NormalTok{))}
 
 \CommentTok{\# Save for later prediction}
 \NormalTok{test\_coords }\OtherTok{\textless{}{-}}\NormalTok{ test\_points }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{select}\NormalTok{(lon, lat)}
@@ -405,8 +400,6 @@ Structure}\label{part-c-empirical-variogram-and-spatial-correlation-structure}
 \FunctionTok{library}\NormalTok{(geoR)}
 
 \CommentTok{\# Convert training dataset into a geodata object}
-\CommentTok{\# kuro\_geo\_train \textless{}{-} as.geodata(kuroshio\_train, coords.col = c("lon", "lat"), data.col = "sst")}
-
 \CommentTok{\# Jitter duplicated coordinates very slightly}
 \NormalTok{kuro\_geo\_train }\OtherTok{\textless{}{-}} \FunctionTok{jitterDupCoords}\NormalTok{(}
   \FunctionTok{as.geodata}\NormalTok{(kuroshio\_train, }\AttributeTok{coords.col =} \FunctionTok{c}\NormalTok{(}\StringTok{"lon"}\NormalTok{, }\StringTok{"lat"}\NormalTok{), }\AttributeTok{data.col =} \StringTok{"sst"}\NormalTok{),}
@@ -432,8 +425,8 @@ spatial jitter using \texttt{jitterDupCoords()} with
 (\textasciitilde0.00001 degrees) to resolve ties while preserving the
 spatial pattern.
 
-\subsubsection{Empirical Variogram
-Estimation:}\label{empirical-variogram-estimation}
+\paragraph{Empirical Variogram
+Estimation}\label{empirical-variogram-estimation}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -452,26 +445,43 @@ variog: computing omnidirectional variogram
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{project_files/figure-pdf/unnamed-chunk-6-1.pdf}
+\begin{figure}[H]
 
-\paragraph{Inclusion of a Latitudinal Trend
+{\centering \includegraphics{project_files/figure-pdf/unnamed-chunk-6-1.pdf}
+
+}
+
+\caption{Exploratory Plot}
+
+\end{figure}%
+
+\subparagraph{Inclusion of a Latitudinal Trend
 Term}\label{inclusion-of-a-latitudinal-trend-term}
 
 \begin{Shaded}
 \begin{Highlighting}[]
 \FunctionTok{ggplot}\NormalTok{(kuroshio\_train, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ lat, }\AttributeTok{y =}\NormalTok{ sst)) }\SpecialCharTok{+}   
   \FunctionTok{geom\_point}\NormalTok{() }\SpecialCharTok{+}   \FunctionTok{geom\_smooth}\NormalTok{(}\AttributeTok{method =} \StringTok{"lm"}\NormalTok{, }\AttributeTok{colour =} \StringTok{"red"}\NormalTok{, }\AttributeTok{se =} \ConstantTok{FALSE}\NormalTok{) }\SpecialCharTok{+}   
-  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Latitudinal Trend in Sea Surface Temperature"}\NormalTok{,        }\AttributeTok{x =} \StringTok{"Latitude"}\NormalTok{, }\AttributeTok{y =} \StringTok{"SST (°C)"}\NormalTok{) }\SpecialCharTok{+}   
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Latitudinal Trend in Sea Surface Temperature"}\NormalTok{,        }
+  \AttributeTok{x =} \StringTok{"Latitude"}\NormalTok{, }\AttributeTok{y =} \StringTok{"SST (°C)"}\NormalTok{) }\SpecialCharTok{+}   
   \FunctionTok{theme\_minimal}\NormalTok{()}
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{project_files/figure-pdf/unnamed-chunk-7-1.pdf}
+\begin{figure}[H]
 
-Exploratory analysis revealed a clear negative relationship between
-latitude and sea surface temperature (SST): as latitude increases, SST
-decreases. This represents a large-scale spatial trend, violating the
-second-order stationarity assumption of a constant mean.
+{\centering \includegraphics{project_files/figure-pdf/unnamed-chunk-7-1.pdf}
+
+}
+
+\caption{Latitiude against SST}
+
+\end{figure}%
+
+Exploratory analysis (Figure 2) revealed a clear negative relationship
+between latitude and sea surface temperature (SST): as latitude
+increases, SST decreases. This represents a large-scale spatial trend,
+violating the second-order stationarity assumption of a constant mean.
 
 To address this, a linear trend in latitude was incorporated into
 variogram estimation via the \texttt{trend\ =\ \textasciitilde{}\ lat}
@@ -568,16 +578,19 @@ correlation is present.
 
 }
 
-\caption{Figure 3: Empirical variograms computed using three different
-maximum distance thresholds. The max.dist = 7 version was selected for
-model fitting due to reduced instability in the tail while preserving
-the spatial structure.}
+\caption{Empirical variograms computed using three different maximum
+distance thresholds. The max.dist = 7 version was selected for model
+fitting due to reduced instability in the tail while preserving the
+spatial structure.}
 
 \end{figure}%
 
 To assess spatial autocorrelation in SST, empirical variograms were
 computed using residuals from the latitudinal trend. This allows
 estimation of the underlying stochastic spatial structure.
+
+\textbf{Figure 4} displays the three empirical variograms, with
+\texttt{max.dist\ =\ 7} selected for further analysis.
 
 Three \texttt{max.dist} values were tested --- 5, 7, and 10 ---
 following the common guideline of using two-thirds of the maximum
@@ -596,14 +609,11 @@ increase, but differed in stability and tail behaviour:
   parametric fitting
 \end{itemize}
 
-\textbf{Figure 4} displays the three empirical variograms, with
-\texttt{max.dist\ =\ 7} selected for further analysis.
-
 Bin counts for the selected variogram were generally robust (e.g.,
 \textgreater60 observations per bin), supporting its use for weighted
 least squares fitting.
 
-\paragraph{Nugget Effect
+\subparagraph{Nugget Effect
 Justification}\label{nugget-effect-justification}
 
 The empirical variogram did not pass through the origin, indicating a
@@ -619,15 +629,15 @@ in model fitting, which may reflect:
   Small-scale oceanographic processes
 \end{itemize}
 
-\paragraph{Final Selection}\label{final-selection}
+\subparagraph{Final Selection}\label{final-selection}
 
 The detrended empirical variogram with \texttt{max.dist\ =\ 7} was
-selected for parametric model fitting in Part C2. It offers a stable and
+selected for parametric model fitting. It offers a stable and
 interpretable residual spatial structure while maintaining adequate
 coverage across spatial lags.
 
-\subsubsection{Part C2: Fitting Parametric Variogram
-Models}\label{part-c2-fitting-parametric-variogram-models}
+\paragraph{Fitting Parametric Variogram
+Models}\label{fitting-parametric-variogram-models}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -797,8 +807,7 @@ function:
 
 \begin{itemize}
 \item
-  \textbf{Exponential}: models rough sample paths with rapid correlation
-  decay.
+  \textbf{Exponential}: models rough sample paths.
 \item
   \textbf{Gaussian}: assumes strong local correlation and very smooth
   sample paths.
@@ -829,8 +838,8 @@ the empirical structure. The Matérn model also performed well and may
 offer greater flexibility in Bayesian implementations (Part E), where
 smoothness parameters can be tuned explicitly.
 
-\subsubsection{\texorpdfstring{\textbf{Model Parameters and
-Interpretation}}{Model Parameters and Interpretation}}\label{model-parameters-and-interpretation}
+\paragraph{Model Parameters and
+Interpretation}\label{model-parameters-and-interpretation}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -893,8 +902,8 @@ variability. The \textbf{Gaussian model} achieved the lowest residual SS
 consistent fit across all distances. The \textbf{Matérn model} performed
 similarly (RSS = 9.95) but with a shorter effective range.
 
-\subsubsection{\texorpdfstring{\textbf{Model Selection for
-Kriging}}{Model Selection for Kriging}}\label{model-selection-for-kriging}
+\paragraph{Model Selection for
+Kriging}\label{model-selection-for-kriging}
 
 Although all three models captured the empirical structure reasonably
 well, the \textbf{Gaussian model was selected} for spatial prediction
@@ -909,15 +918,15 @@ due to:
   Theoretical support for smooth spatial processes in oceanography
 \end{itemize}
 
-\subsubsection{\texorpdfstring{\textbf{Ordinary Kriging and
-Prediction}}{Ordinary Kriging and Prediction}}\label{ordinary-kriging-and-prediction}
+\paragraph{Ordinary Kriging and
+Prediction}\label{ordinary-kriging-and-prediction}
 
 Using the fitted Gaussian model, ordinary kriging was performed at five
 randomly withheld test locations. The kriging model assumed:
 
 \begin{itemize}
 \item
-  A \textbf{constant mean} (after trend removal)
+  A constant mean (after trend removal)
 \item
   The fitted parameters from the Gaussian model
 \item
@@ -981,19 +990,16 @@ krige.conv: Kriging performed using global neighbourhood
 }
 
 \caption{Observed vs predicted sea surface temperature (SST) at five
-withheld locations using ordinary kriging with the fitted Matérn model.
-Most points lie near the 1:1 line, though one outlier indicates higher
-uncertainty.}
+withheld locations using ordinary kriging with the fitted Matérn model.}
 
 \end{figure}%
 
-As shown in \textbf{Figure} @ref(fig:krigscatter), predicted SST values
-closely aligned with observed values, with four of five points falling
-near the 1:1 line. One outlier reflected a higher kriging variance,
-illustrating the model's ability to express uncertainty at less
-well-supported locations.
+As shown in \textbf{Figure 6}, predicted SST values closely aligned with
+observed values, with four of five points falling near the 1:1 line. One
+outlier reflected a higher kriging variance, illustrating the model's
+ability to express uncertainty at less well-supported locations.
 
-\subsubsection{Model Evaluation: Gaussian
+\paragraph{Model Evaluation: Gaussian
 Kriging}\label{model-evaluation-gaussian-kriging}
 
 A Gaussian variogram model was fitted to the detrended empirical
@@ -1003,8 +1009,8 @@ spatial structure. Ordinary kriging was then performed at five randomly
 withheld test locations to assess predictive performance, and model
 diagnostics were generated via leave-one-out cross-validation (LOOCV).
 
-\textbf{Table} @ref(tab:krigsummary) summarises observed and predicted
-SSTs, residuals, and kriging variances. The model showed:
+\textbf{Table 2} below summarises observed and predicted SSTs,
+residuals, and kriging variances. The model showed:
 
 \begin{itemize}
 \item
@@ -1014,7 +1020,7 @@ SSTs, residuals, and kriging variances. The model showed:
   One large residual (−6.88\,°C), which corresponded to the
   \textbf{largest kriging variance} (1.505), demonstrating that the
   model appropriately reflected increased uncertainty
-
+\item
   Overall \textbf{bounded kriging variances}, mostly below 1, indicating
   moderate prediction confidence across the region
 \end{itemize}
@@ -1062,17 +1068,18 @@ generally well-aligned predictions.}
 
 \end{figure}%
 
-\subsubsection{\texorpdfstring{\textbf{LOOCV
-Diagnostics}}{LOOCV Diagnostics}}\label{loocv-diagnostics}
+\paragraph{LOOCV Diagnostics}\label{loocv-diagnostics}
 
-\textbf{Figure} @ref(fig:cvkrig) shows diagnostic plots for
-leave-one-out cross-validation using the fitted Gaussian model. The
-results support the assumptions of normality and spatial stationarity:
+\textbf{Figure 7} shows diagnostic plots for leave-one-out
+cross-validation using the fitted Gaussian model. The results support
+the assumptions of normality and spatial stationarity:
 
 \begin{itemize}
 \item
   The \textbf{Q--Q plot} and histogram show residuals are approximately
-  normally distributed and centred around zero, indicating minimal bias
+  normally distributed and centred around zero, indicating minimal bias.
+  There is some deviance in the mid-section, suggesting some uncaptured
+  trends.
 \item
   \textbf{Residual vs predicted} and \textbf{residual vs observed} plots
   show no clear heteroscedasticity or systemic patterns
@@ -1102,10 +1109,12 @@ assumptions.
     \StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(residual, }\DecValTok{2}\NormalTok{),}
     \StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(kriging\_var, }\DecValTok{3}\NormalTok{)}
 \NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
-  \FunctionTok{select}\NormalTok{(lon, lat, }\StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}}\NormalTok{)}
+  \FunctionTok{select}\NormalTok{(lon, lat, }\StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}}\NormalTok{,}
+         \StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}}\NormalTok{)}
 
 \FunctionTok{kable}\NormalTok{(results\_table, }\AttributeTok{format =} \StringTok{"latex"}\NormalTok{, }\AttributeTok{booktabs =} \ConstantTok{TRUE}\NormalTok{,}
-      \AttributeTok{caption =} \StringTok{"Observed and predicted SST values at five withheld locations using the Gaussian variogram model."}\NormalTok{)}
+      \AttributeTok{caption =} \StringTok{"Observed and predicted SST values at five withheld locations }
+\StringTok{      using the Gaussian variogram model."}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1128,7 +1137,7 @@ lon & lat & Observed SST (°C) & Predicted SST (°C) & Residual (°C) & Kriging 
 \end{tabular}
 \end{table}
 
-\subsubsection{\texorpdfstring{\textbf{Conclusion}}{Conclusion}}\label{conclusion}
+\paragraph{Conclusion}\label{conclusion}
 
 The Gaussian kriging model effectively captured residual SST spatial
 structure and provided credible uncertainty estimates. Despite a single
@@ -1138,7 +1147,7 @@ predictive accuracy}, with errors in line with the kriging variances.
 \subsection{Part D: Gaussian Process via Maximum
 Likelihood}\label{part-d-gaussian-process-via-maximum-likelihood}
 
-\subsubsection{Model Setup and Fitting}\label{model-setup-and-fitting}
+\paragraph{Model Setup and Fitting}\label{model-setup-and-fitting}
 
 To validate and compare our previous kriging model, we fitted a spatial
 Gaussian Process (GP) model using \textbf{maximum likelihood estimation
@@ -1150,7 +1159,7 @@ spatial model.
 We aimed to fit the Matérn covariance model with κ = 1.5 to match the
 best-performing model from Part C. However, fixing this smoothness
 parameter and including a spatial trend caused convergence failures due
-to non-positive definite covariance matrices --- a known limitation when
+to non-positive definite covariance matrices - a known limitation when
 using \texttt{likfit()} with fixed κ and trend terms.
 
 Instead, we fitted a simplified GP model with the following structure:
@@ -1193,6 +1202,12 @@ likfit: WARNING: This step can be time demanding!
 ---------------------------------------------------------------
 likfit: end of numerical maximisation.
 \end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#likfit\_exp}
+\end{Highlighting}
+\end{Shaded}
 
 This model converged successfully and provided interpretable parameter
 estimates. While the covariance structure differs slightly from the
@@ -1253,8 +1268,8 @@ Log-Likelihood & -53.8600\\
 \end{tabular}
 \end{table}
 
-Compared to the kriging model from Part C --- which used a Gaussian
-variogram with nugget = 0.53, partial sill = 5.26, and range = 2.90 ---
+Compared to the kriging model from Part C, which used a Gaussian
+variogram with nugget = 0.53, partial sill = 5.26, and range = 2.90 -
 the MLE-based Gaussian Process (GP) model estimated a \textbf{much
 smaller nugget} (0.0043), a \textbf{smaller partial sill} (3.17), and a
 \textbf{shorter fitted range} (1.34). However, its \textbf{practical
@@ -1262,11 +1277,11 @@ range} (the distance at which spatial correlation drops below 0.05) was
 estimated at \textbf{4.03}, suggesting similar overall spatial coverage.
 
 The MLE model also estimated a \textbf{linear spatial trend in
-latitude}, with an intercept of 59.15 and a slope of −1.25 ---
-consistent with the negative latitudinal SST gradient identified
-earlier. Despite being fit under a slightly different covariance
-assumption (Matérn with κ = 0.5, i.e., exponential), the model captured
-the dominant spatial structure effectively.
+latitude}, with an intercept of 59.15 and a slope of −1.25, consistent
+with the negative latitudinal SST gradient identified earlier. Despite
+being fit under a slightly different covariance assumption (Matérn with
+κ = 0.5, i.e., exponential), the model captured the dominant spatial
+structure effectively.
 
 Overall, this MLE-based model provides a useful benchmark for comparing
 inference and prediction against both the classical kriging model in
@@ -1309,18 +1324,15 @@ residual spread.}
 \end{figure}%
 
 Leave-one-out cross-validation (LOOCV) diagnostics for the MLE-based
-exponential Gaussian Process model are presented in \textbf{Figure
-@ref(fig:gp\_cv)}. The residual plots show broadly consistent behaviour
-with those observed under the kriging model in Part C.
+exponential Gaussian Process model are presented in \textbf{Figure 8}.
+The residual plots show broadly consistent behaviour with those observed
+under the kriging model in Part C.
 
 \begin{itemize}
 \item
-  The \textbf{observed vs predicted} panel shows strong alignment, with
-  most predictions falling near the 1:1 line.
-\item
   The \textbf{Q--Q plot} and \textbf{histogram} indicate approximate
-  normality, although slight deviations in the Q--Q plot tails suggest
-  some residual skewness or kurtosis not fully captured by the model.
+  normality, although slight deviations in the Q--Q plot mid-section
+  suggest some trends not fully captured by the model.
 \item
   The \textbf{residuals vs predicted/observed} plots show no clear
   heteroscedasticity, and the \textbf{spatial residual map} suggests no
@@ -1333,8 +1345,8 @@ improvement or deterioration. Given the model simplification (Matérn
 with κ = 0.5) and the use of MLE rather than WLS, this consistency
 supports the robustness of the spatial structure identified in Part C.
 However, the slight Q--Q plot deviations indicate that more flexible
-models --- such as Bayesian GPs (Part E) --- may further improve
-residual behaviour and uncertainty quantification.
+models - such as Bayesian GPs (Part E) - may further improve residual
+behaviour and uncertainty quantification.
 
 \paragraph{GP Prediction at Withheld
 Locations}\label{gp-prediction-at-withheld-locations}
@@ -1425,8 +1437,10 @@ the 1:1 agreement.}
     \StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(residual, }\DecValTok{2}\NormalTok{),}
     \StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(kriging\_var, }\DecValTok{3}\NormalTok{)}
 \NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
-  \FunctionTok{select}\NormalTok{(lon, lat, }\StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
-  \FunctionTok{kable}\NormalTok{(}\AttributeTok{format =} \StringTok{"latex"}\NormalTok{, }\AttributeTok{booktabs =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{caption =} \StringTok{"Observed vs Predicted SST at Withheld Locations – GP Model"}\NormalTok{)}
+  \FunctionTok{select}\NormalTok{(lon, lat, }\StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }
+         \StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{kable}\NormalTok{(}\AttributeTok{format =} \StringTok{"latex"}\NormalTok{, }\AttributeTok{booktabs =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{caption =} \StringTok{"Observed vs Predicted SST }
+\StringTok{        at Withheld Locations – GP Model"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1449,9 +1463,9 @@ lon & lat & Observed SST (°C) & Predicted SST (°C) & Residual (°C) & Kriging 
 
 \paragraph{Interpretation}\label{interpretation}
 
-\textbf{Figure @ref(fig:gp\_pred\_scatter)} displays the predicted
-versus observed SSTs, and \textbf{Table @ref(tab:gp\_krigsummary)}
-summarises the predictions, residuals, and kriging variances.
+\textbf{Figure 9} displays the predicted versus observed SSTs, and
+\textbf{Table 4} summarises the predictions, residuals, and kriging
+variances.
 
 The model achieved:
 
@@ -1478,7 +1492,8 @@ accuracy, its rigidity (e.g., difficulty fitting κ = 1.5) limited
 flexibility. Nonetheless, the GP provides a principled and probabilistic
 framework that performs robustly under likelihood-based inference.
 
-\subsection{Part E:}\label{part-e}
+\subsection{Part E: Bayesian Parameter
+Estimation}\label{part-e-bayesian-parameter-estimation}
 
 \paragraph{Bayesian Parameter Estimation with Discrete
 Priors}\label{bayesian-parameter-estimation-with-discrete-priors}
@@ -1652,14 +1667,14 @@ Posterior Mean (β) & 16.49 & --- & Consistent with expected SST in this
 region \\
 \end{longtable}
 
-Figure @ref(fig:posterior\_sidebyside) displays the marginal posterior
-distributions for the correlation range (ϕ) and the relative nugget (τ²
-/ (σ² + τ²)) under the Bayesian GP model. Both distributions are
-\textbf{sharply concentrated}, with the posterior for ϕ peaking near the
-lower bound (ϕ ≈ 1.5) and most of the nugget posterior mass concentrated
-around 0.01. This indicates strong posterior support for
-\textbf{short-range spatial dependence} and \textbf{minimal microscale
-variation} --- a result that aligns closely with previous findings.
+\textbf{Figure 10} below displays the marginal posterior distributions
+for the correlation range (ϕ) and the relative nugget (τ² / (σ² + τ²))
+under the Bayesian GP model. Both distributions are \textbf{sharply
+concentrated}, with the posterior for ϕ peaking near the lower bound (ϕ
+≈ 1.5) and most of the nugget posterior mass concentrated around 0.01.
+This indicates strong posterior support for \textbf{short-range spatial
+dependence} and \textbf{minimal microscale variation} --- a result that
+aligns closely with previous findings.
 
 Quantitatively, over 75\% of the posterior mass for ϕ lies below 1.66,
 suggesting high confidence in localised correlation. The skewness of the
@@ -1825,9 +1840,11 @@ the 1:1 agreement.}
     \StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(residual, }\DecValTok{2}\NormalTok{),}
     \StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{round}\NormalTok{(kriging\_var, }\DecValTok{3}\NormalTok{)}
 \NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
-  \FunctionTok{select}\NormalTok{(lon, lat, }\StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{select}\NormalTok{(lon, lat, }\StringTok{\textasciigrave{}}\AttributeTok{Observed SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Predicted SST (°C)}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{Residual (°C)}\StringTok{\textasciigrave{}}\NormalTok{,}
+         \StringTok{\textasciigrave{}}\AttributeTok{Kriging Variance}\StringTok{\textasciigrave{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
 \NormalTok{  knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{(}\AttributeTok{format =} \StringTok{"latex"}\NormalTok{, }\AttributeTok{booktabs =} \ConstantTok{TRUE}\NormalTok{,}
-               \AttributeTok{caption =} \StringTok{"Observed vs Predicted SST at Withheld Locations – Bayesian Model"}\NormalTok{)}
+               \AttributeTok{caption =} \StringTok{"Observed vs Predicted SST at Withheld Locations – }
+\StringTok{               Bayesian Model"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1849,10 +1866,9 @@ lon & lat & Observed SST (°C) & Predicted SST (°C) & Residual (°C) & Kriging 
 \end{tabular}
 \end{table}
 
-\textbf{Table @ref(tab:gp\_bayes\_pred)} summarises the results,
-including prediction errors and kriging variances. \textbf{Figure
-@ref(fig:bayes\_pred\_scatter)} shows the observed versus predicted SST
-values.
+\textbf{Table 6} summarises the results, including prediction errors and
+kriging variances. \textbf{Figure 11} shows the observed versus
+predicted SST values.
 
 The model achieved:
 
@@ -1947,9 +1963,8 @@ RMSE (°C) & 3.22 & 3.163 & 3.57 \\
 MAE (°C) & 1.88 & 1.809 & 2.21 \\
 \end{longtable}
 
-\subsubsection{\texorpdfstring{\textbf{Interpretation and Comparison of
-Model
-Predictions}}{Interpretation and Comparison of Model Predictions}}\label{interpretation-and-comparison-of-model-predictions}
+\paragraph{Interpretation and Comparison of Model
+Predictions}\label{interpretation-and-comparison-of-model-predictions}
 
 All three spatial models captured the dominant structure in SST and
 produced broadly consistent predictions at well-supported locations ---
@@ -1978,11 +1993,11 @@ discrete prior grid may have contributed to its slightly less precise
 point predictions.
 
 All three models \textbf{underperformed at Location 2}, where kriging
-variances were highest and residuals exceeded −6.7\,°C. This consistent
+variances were highest and residuals exceeded −6.7°C. This consistent
 error across methods highlights a location with sparse spatial support
 and greater predictive uncertainty.
 
-\subsubsection{\texorpdfstring{\textbf{Conclusion}}{Conclusion}}\label{conclusion-1}
+\paragraph{Conclusion}\label{conclusion-1}
 
 Despite differing estimation strategies, all three models produced
 \textbf{consistent predictions} and \textbf{comparable spatial residual
@@ -2070,21 +2085,21 @@ are visualised in the figure below.
 
 \end{figure}%
 
-\textbf{Figure} @ref(fig:monthly amoc) shows the monthly time series
-with a LOESS smoother. The AMOC displays \textbf{notable short-term
-variability}, with values fluctuating around a relatively stable
-long-term mean. Although no clear linear trend is present, local dips in
-\textbf{mid-2021 and late 2022}, and peaks in \textbf{early 2018},
-\textbf{late 2020}, and \textbf{early 2023}, suggest possible
-\textbf{short-memory dynamics} or \textbf{mild seasonality}, which will
-be assessed further through time series modelling.
+\textbf{Figure 12} shows the monthly time series with a LOESS smoother.
+The AMOC displays \textbf{notable short-term variability}, with values
+fluctuating around a relatively stable long-term mean. Although no clear
+linear trend is present, local dips in \textbf{mid-2021 and late 2022},
+and peaks in \textbf{early 2018}, \textbf{late 2020}, and \textbf{early
+2023}, suggest possible \textbf{short-memory dynamics} or \textbf{mild
+seasonality}, which will be assessed further through time series
+modelling.
 
-To examine distributional properties, \textbf{Figure} @ref(fig:AMOC
-Histo) presents a histogram and density estimate. The distribution is
-approximately \textbf{unimodal and symmetric}, centred around
-\textbf{16--17 Sv}, with \textbf{slight tail weight} on the right side.
-This suggests near-Gaussian behaviour, though the mild excess kurtosis
-indicates heavier-than-normal tails.
+To examine distributional properties, \textbf{Figure 13} presents a
+histogram and density estimate. The distribution is approximately
+\textbf{unimodal and symmetric}, centred around \textbf{16--17 Sv}, with
+\textbf{slight tail weight} on the right side. This suggests
+near-Gaussian behaviour, though the mild excess kurtosis indicates
+heavier-than-normal tails.
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -2119,7 +2134,6 @@ summary statistics below.
 \FunctionTok{library}\NormalTok{(gt)}
 \FunctionTok{library}\NormalTok{(moments)}
 
-\CommentTok{\# summary}
 \NormalTok{amoc\_summary }\OtherTok{\textless{}{-}}\NormalTok{ moc\_df }\SpecialCharTok{\%\textgreater{}\%}
   \FunctionTok{summarise}\NormalTok{(}
     \AttributeTok{Mean =} \FunctionTok{mean}\NormalTok{(amoc),}
@@ -2135,53 +2149,49 @@ summary statistics below.
 \NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
   \FunctionTok{pivot\_longer}\NormalTok{(}\FunctionTok{everything}\NormalTok{(), }\AttributeTok{names\_to =} \StringTok{"Statistic"}\NormalTok{, }\AttributeTok{values\_to =} \StringTok{"Value"}\NormalTok{)}
 
-\CommentTok{\# table}
-\FunctionTok{gt}\NormalTok{(amoc\_summary) }\SpecialCharTok{\%\textgreater{}\%}
-  \FunctionTok{fmt\_number}\NormalTok{(}\AttributeTok{columns =} \StringTok{"Value"}\NormalTok{, }\AttributeTok{decimals =} \DecValTok{2}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
-  \FunctionTok{tab\_header}\NormalTok{(}
-    \AttributeTok{title =} \StringTok{"Expanded Summary Statistics of AMOC Time Series"}\NormalTok{,}
-    \AttributeTok{subtitle =} \StringTok{"October 2017 – February 2023"}
-\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
-  \FunctionTok{tab\_options}\NormalTok{(}
-    \AttributeTok{table.font.size =} \StringTok{"smaller"}\NormalTok{,        }\CommentTok{\# smaller overall font}
-    \AttributeTok{data\_row.padding =} \FunctionTok{px}\NormalTok{(}\DecValTok{2}\NormalTok{),           }\CommentTok{\# tighter row padding}
-    \AttributeTok{heading.padding =} \FunctionTok{px}\NormalTok{(}\DecValTok{3}\NormalTok{),            }\CommentTok{\# tighter heading spacing}
-    \AttributeTok{row\_group.padding =} \FunctionTok{px}\NormalTok{(}\DecValTok{2}\NormalTok{)}
+\CommentTok{\# Table}
+\NormalTok{amoc\_summary }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{Value =} \FunctionTok{round}\NormalTok{(Value, }\DecValTok{2}\NormalTok{)) }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{(}
+    \AttributeTok{caption =} \StringTok{"Aummary statistics of AMOC time series from October 2017 to February 2023."}\NormalTok{,}
+    \AttributeTok{col.names =} \FunctionTok{c}\NormalTok{(}\StringTok{"Statistic"}\NormalTok{, }\StringTok{"Value"}\NormalTok{),}
+    \AttributeTok{format =} \StringTok{"pipe"}
 \NormalTok{  )}
 \end{Highlighting}
 \end{Shaded}
 
-\begin{table}
-\caption*{
-{\large Expanded Summary Statistics of AMOC Time Series} \\ 
-{\small October 2017 – February 2023}
-} 
-\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lr}
-\toprule
-Statistic & Value \\ 
-\midrule\addlinespace[2.5pt]
-Mean & 16.81 \\ 
-SD & 2.93 \\ 
-Min & 8.35 \\ 
-Max & 24.07 \\ 
-Median & 16.82 \\ 
-IQR & 3.37 \\ 
-CV & 0.17 \\ 
-Skewness & -0.24 \\ 
-Kurtosis & 3.54 \\ 
-N & 67.00 \\ 
-\bottomrule
-\end{tabular*}
-\end{table}
+\begin{longtable}[]{@{}lr@{}}
+\caption{Expanded summary statistics of AMOC time series from October
+2017 to February 2023.}\tabularnewline
+\toprule\noalign{}
+Statistic & Value \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+Statistic & Value \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Mean & 16.81 \\
+SD & 2.93 \\
+Min & 8.35 \\
+Max & 24.07 \\
+Median & 16.82 \\
+IQR & 3.37 \\
+CV & 0.17 \\
+Skewness & -0.24 \\
+Kurtosis & 3.54 \\
+N & 67.00 \\
+\end{longtable}
 
-\textbf{Table} @ref(tab:AMOC Summary Stats) summarises key statistics.
-The mean overturning strength is \textbf{16.81 Sv}, with a standard
-deviation of \textbf{2.93 Sv} and a low \textbf{coefficient of variation
-(CV)} of \textbf{0.17}, indicating limited relative variability. The
-\textbf{interquartile range (IQR)} of \textbf{3.37 Sv} confirms moderate
-dispersion. Skewness (−0.24) and kurtosis (3.54) are within acceptable
-bounds for Gaussian modelling, supporting the use of classical ARMA-type
-models.
+\textbf{Table 9} summarises key statistics. The mean overturning
+strength is \textbf{16.81 Sv}, with a standard deviation of \textbf{2.93
+Sv} and a low \textbf{coefficient of variation (CV)} of \textbf{0.17},
+indicating limited relative variability. The \textbf{interquartile range
+(IQR)} of \textbf{3.37 Sv} confirms moderate dispersion. Skewness
+(−0.24) and kurtosis (3.54) are within acceptable bounds for Gaussian
+modelling, supporting the use of classical ARMA-type models.
 
 Together, these results support the modelling of AMOC using
 \textbf{weakly stationary time series models}, such as \textbf{ARMA or
@@ -2189,7 +2199,8 @@ ARIMA}, possibly with short memory and mild seasonal effects. The
 assumptions of \textbf{homoscedasticity} and \textbf{stationarity}
 appear reasonable based on visual and statistical diagnostics.
 
-\subsection{Part B}\label{part-b}
+\subsection{Part B: Monthly Modelling of
+AMOC}\label{part-b-monthly-modelling-of-amoc}
 
 We investigate suitable ARMA and ARIMA models for the monthly Atlantic
 Meridional Overturning Circulation (AMOC) time series. The series was
@@ -2215,7 +2226,7 @@ the training data:
      \CommentTok{\# ylab = "AMOC Strength (Sv)", xlab = "Year", col = "steelblue", lwd = 2)}
 
 \CommentTok{\# ACF and PACF}
-\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{))  }\CommentTok{\# 1 row, 2 columns}
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{))}
 
 \FunctionTok{acf}\NormalTok{(train\_ts, }\AttributeTok{main =} \StringTok{"ACF of AMOC (Training Set)"}\NormalTok{)}
 \FunctionTok{pacf}\NormalTok{(train\_ts, }\AttributeTok{main =} \StringTok{"PACF of AMOC (Training Set)"}\NormalTok{)}
@@ -2234,7 +2245,7 @@ the training data:
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))  }\CommentTok{\# reset}
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))}
 \end{Highlighting}
 \end{Shaded}
 
@@ -2253,7 +2264,7 @@ Stationarity}\label{transforming-for-stationarity}
 \NormalTok{diff\_amoc }\OtherTok{\textless{}{-}} \FunctionTok{diff}\NormalTok{(train\_ts)}
 
 \CommentTok{\# Plot layout: 1 row, 3 plots}
-\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{3}\NormalTok{), }\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{, }\DecValTok{4}\NormalTok{, }\FloatTok{3.5}\NormalTok{, }\DecValTok{1}\NormalTok{))  }\CommentTok{\# slightly increase top margin for spacing}
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{3}\NormalTok{), }\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{, }\DecValTok{4}\NormalTok{, }\FloatTok{3.5}\NormalTok{, }\DecValTok{1}\NormalTok{))}
 
 \CommentTok{\# Plot 1: Differenced Series}
 \FunctionTok{plot}\NormalTok{(diff\_amoc, }
@@ -2285,11 +2296,10 @@ Stationarity}\label{transforming-for-stationarity}
 
 \end{figure}%
 
-\textbf{Figure} @ref(fig:diff-acf-pacf) shows the first-order
-differenced AMOC series and its autocorrelation diagnostics. The
-differenced series now fluctuates around a constant mean, with no
-evident trend, indicating that \textbf{stationarity has been
-successfully induced}.
+\textbf{Figure 15} shows the first-order differenced AMOC series and its
+autocorrelation diagnostics. The differenced series now fluctuates
+around a constant mean, with no evident trend, indicating that
+\textbf{stationarity has been successfully induced}.
 
 The \textbf{ACF} decays rapidly, with most lags falling within the 95\%
 confidence bounds after lag 1 --- a strong sign that the
@@ -2304,8 +2314,8 @@ These patterns collectively support the use of
 \textbf{either} \(p=1\) \textbf{or} \(q=1\) to reflect the short memory
 structure.
 
-\paragraph{\texorpdfstring{\textbf{Model Rationale and Modelling
-Strategy}}{Model Rationale and Modelling Strategy}}\label{model-rationale-and-modelling-strategy}
+\paragraph{Model Rationale and Modelling
+Strategy}\label{model-rationale-and-modelling-strategy}
 
 To model the temporal dynamics of the Atlantic Meridional Overturning
 Circulation (AMOC), we consider both \textbf{ARMA} and \textbf{ARIMA}
@@ -2480,24 +2490,18 @@ Series)}\label{arima-model-fitting-differenced-series}
 \begin{Highlighting}[]
 \CommentTok{\# Diagnostic plotting function}
 \NormalTok{plot\_diagnostics }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(model, model\_name, col\_line) \{}
-  \FunctionTok{layout}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\DecValTok{3}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{3}\NormalTok{, }\AttributeTok{byrow =} \ConstantTok{TRUE}\NormalTok{), }\AttributeTok{widths =} \FunctionTok{c}\NormalTok{(}\FloatTok{1.4}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))  }\CommentTok{\# Widen residual plot}
-  \FunctionTok{par}\NormalTok{(}\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{3}\NormalTok{, }\DecValTok{1}\NormalTok{))  }\CommentTok{\# Margins: bottom, left, top, right}
+  \FunctionTok{layout}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\DecValTok{3}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{3}\NormalTok{, }\AttributeTok{byrow =} \ConstantTok{TRUE}\NormalTok{), }\AttributeTok{widths =} \FunctionTok{c}\NormalTok{(}\FloatTok{1.4}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+  \FunctionTok{par}\NormalTok{(}\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{3}\NormalTok{, }\DecValTok{1}\NormalTok{))}
   
-  \CommentTok{\# Residual time series}
   \FunctionTok{plot}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(model), }\AttributeTok{type =} \StringTok{"l"}\NormalTok{, }\AttributeTok{col =}\NormalTok{ col\_line, }\AttributeTok{lwd =} \FloatTok{1.2}\NormalTok{,}
        \AttributeTok{main =} \FunctionTok{paste}\NormalTok{(model\_name, }\StringTok{"Residuals"}\NormalTok{), }\AttributeTok{ylab =} \StringTok{"Residuals"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Time"}\NormalTok{)}
-  
-  \CommentTok{\# ACF}
   \FunctionTok{acf}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(model), }\AttributeTok{main =} \StringTok{"ACF of Residuals"}\NormalTok{, }\AttributeTok{col =} \StringTok{"black"}\NormalTok{, }\AttributeTok{lwd =} \FloatTok{1.2}\NormalTok{)}
-  
-  \CommentTok{\# Q–Q plot}
   \FunctionTok{qqnorm}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(model), }\AttributeTok{main =} \StringTok{"Normal Q–Q Plot"}\NormalTok{)}
   \FunctionTok{qqline}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(model), }\AttributeTok{col =} \StringTok{"red"}\NormalTok{, }\AttributeTok{lwd =} \FloatTok{1.2}\NormalTok{)}
   
-  \FunctionTok{layout}\NormalTok{(}\DecValTok{1}\NormalTok{)  }\CommentTok{\# Reset layout}
+  \FunctionTok{layout}\NormalTok{(}\DecValTok{1}\NormalTok{)}
 \NormalTok{\}}
 
-\CommentTok{\# Call function for each ARIMA model}
 \FunctionTok{plot\_diagnostics}\NormalTok{(arima\_110, }\StringTok{"ARIMA(1,1,0)"}\NormalTok{, }\StringTok{"steelblue"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
@@ -2546,7 +2550,7 @@ Series)}\label{arima-model-fitting-differenced-series}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{\# {-}{-}{-}{-} Ljung–Box Tests {-}{-}{-}{-}}
+\CommentTok{\# Ljung–Box Tests}
 \NormalTok{lb\_110 }\OtherTok{\textless{}{-}} \FunctionTok{Box.test}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arima\_110), }\AttributeTok{lag =} \DecValTok{10}\NormalTok{, }\AttributeTok{type =} \StringTok{"Ljung{-}Box"}\NormalTok{)}
 \NormalTok{lb\_011 }\OtherTok{\textless{}{-}} \FunctionTok{Box.test}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arima\_011), }\AttributeTok{lag =} \DecValTok{10}\NormalTok{, }\AttributeTok{type =} \StringTok{"Ljung{-}Box"}\NormalTok{)}
 \NormalTok{lb\_111 }\OtherTok{\textless{}{-}} \FunctionTok{Box.test}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(arima\_111), }\AttributeTok{lag =} \DecValTok{10}\NormalTok{, }\AttributeTok{type =} \StringTok{"Ljung{-}Box"}\NormalTok{)}
@@ -2577,7 +2581,7 @@ ARIMA(0,1,1) & 286.6222 & 0.1412433 & Good fit \\
 ARIMA(1,1,1) & 285.0751 & 0.1265184 & Best fit \\
 \end{longtable}
 
-\paragraph{Findings:}\label{findings}
+\paragraph{Findings}\label{findings}
 
 The three ARIMA models were evaluated using AIC, residual
 autocorrelation (via ACF and Ljung--Box test), and normality (via Q--Q
@@ -2665,10 +2669,10 @@ ARIMA(2,1,0) & 285.5323 & 0.3362862 & No clear improvement \\
 ARIMA(2,1,2) & 282.7781 & 0.3303888 & Slight AIC gain, more complex \\
 \end{longtable}
 
-As shown in Table @ref(tab:refined-arima-models), \textbf{ARIMA(2,1,2)}
-achieved a modest reduction in AIC compared to ARIMA(1,1,1), and both
-refined models returned Ljung--Box p-values above 0.3, suggesting no
-significant autocorrelation in the residuals.
+As shown in \textbf{Table 12}, \textbf{ARIMA(2,1,2)} achieved a modest
+reduction in AIC compared to ARIMA(1,1,1), and both refined models
+returned Ljung--Box p-values above 0.3, suggesting no significant
+autocorrelation in the residuals.
 
 While ARIMA(2,1,2) performs best by AIC, the improvement over
 ARIMA(1,1,1) is \textbf{minor}, and comes at the cost of a \textbf{more
@@ -2720,15 +2724,15 @@ for out-of-sample forecast validation.
 \end{Highlighting}
 \end{Shaded}
 
-\subsubsection{ACF and PACF of Quarterly
+\paragraph{ACF and PACF of Quarterly
 AMOC}\label{acf-and-pacf-of-quarterly-amoc}
 
 \begin{Shaded}
 \begin{Highlighting}[]
 \FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{), }\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{3}\NormalTok{, }\DecValTok{1}\NormalTok{))}
 
-\FunctionTok{acf}\NormalTok{(train\_q\_ts, }\AttributeTok{main =} \StringTok{"ACF {-} Quarterly AMOC"}\NormalTok{, }\AttributeTok{lag.max =} \DecValTok{20}\NormalTok{)}
-\FunctionTok{pacf}\NormalTok{(train\_q\_ts, }\AttributeTok{main =} \StringTok{"PACF {-} Quarterly AMOC"}\NormalTok{, }\AttributeTok{lag.max =} \DecValTok{20}\NormalTok{)}
+\FunctionTok{acf}\NormalTok{(train\_q\_ts, }\AttributeTok{main =} \StringTok{"ACF"}\NormalTok{, }\AttributeTok{lag.max =} \DecValTok{20}\NormalTok{)}
+\FunctionTok{pacf}\NormalTok{(train\_q\_ts, }\AttributeTok{main =} \StringTok{"PACF"}\NormalTok{, }\AttributeTok{lag.max =} \DecValTok{20}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -2744,12 +2748,12 @@ AMOC}\label{acf-and-pacf-of-quarterly-amoc}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))  }\CommentTok{\# Reset layout}
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))}
 \end{Highlighting}
 \end{Shaded}
 
 The autocorrelation structure of the quarterly AMOC series is shown in
-Figure @ref(fig:acf-pacf-quarterly).
+\textbf{Figure 20}.
 
 \begin{itemize}
 \item
@@ -2775,12 +2779,20 @@ Series}\label{first-order-differencing-of-quarterly-series}
 
 \CommentTok{\# Plot ACF and PACF of differenced series}
 \FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{), }\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{3}\NormalTok{, }\DecValTok{2}\NormalTok{))}
-\FunctionTok{acf}\NormalTok{(diff\_q, }\AttributeTok{main =} \StringTok{"ACF {-} Differenced Quarterly AMOC"}\NormalTok{)}
-\FunctionTok{pacf}\NormalTok{(diff\_q, }\AttributeTok{main =} \StringTok{"PACF {-} Differenced Quarterly AMOC"}\NormalTok{)}
+\FunctionTok{acf}\NormalTok{(diff\_q, }\AttributeTok{main =} \StringTok{"ACF {-} Differenced"}\NormalTok{)}
+\FunctionTok{pacf}\NormalTok{(diff\_q, }\AttributeTok{main =} \StringTok{"PACF {-} Differenced"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{project_files/figure-pdf/unnamed-chunk-45-1.pdf}
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-acf-pacf-quarterly-differenced-1.pdf}
+
+}
+
+\caption{ACF and PACF of Quarterly AMOC (Differenced)}
+
+\end{figure}%
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -2788,12 +2800,12 @@ Series}\label{first-order-differencing-of-quarterly-series}
 \end{Highlighting}
 \end{Shaded}
 
-The \textbf{ACF} plot displays a prominent spike at lag 1, followed by
-smaller but non-trivial spikes at subsequent lags. Notably, a spike
-between lags 1 appears to breach the 95\% bounds, suggesting local
-autocorrelation that may not be captured by an MA(1) term alone.
-Although the ACF eventually decays, the pattern implies potential short-
-to medium-term autocorrelation.
+In \textbf{Figure 21}, the \textbf{ACF} plot displays a prominent spike
+at lag 1, followed by smaller but non-trivial spikes at subsequent lags.
+Notably, a spike between lags 1 appears to breach the 95\% bounds,
+suggesting local autocorrelation that may not be captured by an MA(1)
+term alone. Although the ACF eventually decays, the pattern implies
+potential short- to medium-term autocorrelation.
 
 The \textbf{PACF} plot reveals significant spikes at \textbf{lags 0.5
 and 1.5}, with possible weaker structure beyond. This indicates that a
@@ -2854,7 +2866,8 @@ Data}\label{fitting-arima-models-to-quarterly-data}
 \end{Shaded}
 
 \begin{longtable}[]{@{}lrr@{}}
-\caption{Comparison of ARIMA Models for Quarterly AMOC}\tabularnewline
+\caption{Comparison of ARIMA models fitted to quarterly AMOC
+data.}\tabularnewline
 \toprule\noalign{}
 Model & AIC & Ljung\_Box\_p \\
 \midrule\noalign{}
@@ -2904,7 +2917,8 @@ Registered S3 method overwritten by 'quantmod':
 \begin{Shaded}
 \begin{Highlighting}[]
 \CommentTok{\# Auto.arima with non{-}seasonal specification}
-\NormalTok{auto\_arima }\OtherTok{\textless{}{-}} \FunctionTok{auto.arima}\NormalTok{(train\_q\_ts, }\AttributeTok{seasonal =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{stepwise =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{approximation =} \ConstantTok{FALSE}\NormalTok{)}
+\NormalTok{auto\_arima }\OtherTok{\textless{}{-}} \FunctionTok{auto.arima}\NormalTok{(train\_q\_ts, }\AttributeTok{seasonal =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{stepwise =} \ConstantTok{FALSE}\NormalTok{,}
+                         \AttributeTok{approximation =} \ConstantTok{FALSE}\NormalTok{)}
 
 \CommentTok{\# Summary of selected model}
 \FunctionTok{summary}\NormalTok{(auto\_arima)}
@@ -2930,29 +2944,69 @@ Training set 3.045126e-15 1.804089 1.428281 -1.226133 8.838226 0.7246567
 Training set 0.1261586
 \end{verbatim}
 
-\includegraphics{project_files/figure-pdf/unnamed-chunk-48-1.pdf}
+\begin{figure}[H]
 
-\includegraphics{project_files/figure-pdf/unnamed-chunk-48-2.pdf}
+{\centering \includegraphics{project_files/figure-pdf/fig-residplots-1.pdf}
+
+}
+
+\caption{Residual Plots of ARIMA(1,1,1) and auto.arima}
+
+\end{figure}%
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-residplots-2.pdf}
+
+}
+
+\caption{Residual Plots of ARIMA(1,1,1) and auto.arima}
+
+\end{figure}%
 
 The selected model was ARIMA(2,1,2), with an AIC of 279.11 --- notably
 lower than the manually fitted ARIMA(1,1,1) (AIC = 285.08).
 
-\begin{table}
-\caption*{
-{\large Comparison of Manual and auto.arima Models for Quarterly AMOC}
-} 
-\fontsize{12.0pt}{14.4pt}\selectfont
-\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrr}
-\toprule
-Model & AIC & Ljung\_Box\_p \\ 
-\midrule\addlinespace[2.5pt]
-ARIMA(1,1,1) & 285.0751 & 0.1265 \\ 
-auto.arima (0,1,0) & 88.3778 & 0.4988 \\ 
-\bottomrule
-\end{tabular*}
-\end{table}
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Model =} \FunctionTok{c}\NormalTok{(}
+    \StringTok{"ARIMA(1,1,1)"}\NormalTok{,}
+    \FunctionTok{paste0}\NormalTok{(}\StringTok{"auto.arima ("}\NormalTok{, auto\_arima}\SpecialCharTok{$}\NormalTok{arma[}\DecValTok{1}\NormalTok{], }\StringTok{",1,"}\NormalTok{, auto\_arima}\SpecialCharTok{$}\NormalTok{arma[}\DecValTok{2}\NormalTok{], }\StringTok{")"}\NormalTok{)}
+\NormalTok{  ),}
+  \AttributeTok{AIC =} \FunctionTok{c}\NormalTok{(}\FunctionTok{AIC}\NormalTok{(arima\_111), }\FunctionTok{AIC}\NormalTok{(auto\_arima)),}
+  \AttributeTok{Ljung\_Box\_p =} \FunctionTok{c}\NormalTok{(lb\_manual}\SpecialCharTok{$}\NormalTok{p.value, lb\_auto}\SpecialCharTok{$}\NormalTok{p.value)}
+\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{AIC =} \FunctionTok{round}\NormalTok{(AIC, }\DecValTok{4}\NormalTok{),}
+    \AttributeTok{Ljung\_Box\_p =} \FunctionTok{round}\NormalTok{(Ljung\_Box\_p, }\DecValTok{4}\NormalTok{)}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{(}
+    \AttributeTok{caption =} \StringTok{"Comparison of manual ARIMA(1,1,1) and auto.arima models fitted to quarterly AMOC data."}\NormalTok{,}
+    \AttributeTok{col.names =} \FunctionTok{c}\NormalTok{(}\StringTok{"Model"}\NormalTok{, }\StringTok{"AIC"}\NormalTok{, }\StringTok{"Ljung{-}Box p{-}value"}\NormalTok{),}
+    \AttributeTok{format =} \StringTok{"pipe"}
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
 
-\subsubsection{Residual Diagnostics
+\begin{longtable}[]{@{}lrr@{}}
+\caption{Comparison of manual ARIMA(1,1,1) and auto.arima models fitted
+to quarterly AMOC data.}\tabularnewline
+\toprule\noalign{}
+Model & AIC & Ljung-Box p-value \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+Model & AIC & Ljung-Box p-value \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+ARIMA(1,1,1) & 285.0751 & 0.1265 \\
+auto.arima (0,1,0) & 88.3778 & 0.4988 \\
+\end{longtable}
+
+\paragraph{Residual Diagnostics
 Comparison}\label{residual-diagnostics-comparison}
 
 Residual plots for both models (ARIMA(1,1,1) and auto.arima
@@ -3045,11 +3099,18 @@ trends.
 \paragraph{Monthly AMOC DML:}\label{monthly-amoc-dml}
 
 To investigate seasonal behaviour within the monthly AMOC series, a
-seasonal differencing with lag 12 was applied (Figure
-@ref(fig:seasonal-diff)). This is standard for monthly data to assess
-repeating annual structure.
+seasonal differencing with lag 12 was applied (Figure 24). This is
+standard for monthly data to assess repeating annual structure.
 
-\includegraphics{project_files/figure-pdf/unnamed-chunk-51-1.pdf}
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-monthlydml-1.pdf}
+
+}
+
+\caption{Seasonal differencing Plot with lag 12}
+
+\end{figure}%
 
 Seasonal differencing at lag 12 breveals a clear repeating pattern in
 the monthly AMOC series, supporting the inclusion of a seasonal
@@ -3084,7 +3145,15 @@ component in the DLM specification.
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{project_files/figure-pdf/unnamed-chunk-53-1.pdf}
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-monthlydmlresid-1.pdf}
+
+}
+
+\caption{Monthly DLM Residuals}
+
+\end{figure}%
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -3166,7 +3235,15 @@ was included for consistency.
 
 Residual Diagnostics:
 
-\includegraphics{project_files/figure-pdf/unnamed-chunk-56-1.pdf}
+\begin{figure}[H]
+
+{\centering \includegraphics{project_files/figure-pdf/fig-qrdmlresid-1.pdf}
+
+}
+
+\caption{Residual Diagnostics for Quarterly DLM}
+
+\end{figure}%
 
 \begin{verbatim}
 
@@ -3254,7 +3331,7 @@ eight months.
 \end{Highlighting}
 \end{Shaded}
 
-\subsubsection{Plotting the Forecasted
+\paragraph{Plotting the Forecasted
 Values:}\label{plotting-the-forecasted-values}
 
 \paragraph{Monthly AMOC Forecast}\label{monthly-amoc-forecast}
@@ -3430,47 +3507,11 @@ Quarterly DLM
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{\#| echo: true}
-\CommentTok{\#| message: false}
-\CommentTok{\#| warning: false}
-\FunctionTok{library}\NormalTok{(patchwork)}
-
 \NormalTok{quarterly\_arima\_plot }\SpecialCharTok{+}\NormalTok{ quarterly\_dlm\_plot }\SpecialCharTok{+} 
   \FunctionTok{plot\_layout}\NormalTok{(}\AttributeTok{ncol=}\DecValTok{2}\NormalTok{, }\AttributeTok{guides =} \StringTok{"collect"}\NormalTok{) }\SpecialCharTok{\&} 
   \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"bottom"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
-
-\begin{verbatim}
-Don't know how to automatically pick scale for object of type <ts>. Defaulting
-to continuous.
-\end{verbatim}
-
-\begin{verbatim}
-Warning: Removed 2 rows containing missing values or values outside the scale range
-(`geom_line()`).
-\end{verbatim}
-
-\begin{verbatim}
-Warning: Removed 21 rows containing missing values or values outside the scale range
-(`geom_line()`).
-Removed 21 rows containing missing values or values outside the scale range
-(`geom_line()`).
-\end{verbatim}
-
-\begin{verbatim}
-Don't know how to automatically pick scale for object of type <ts>. Defaulting
-to continuous.
-\end{verbatim}
-
-\begin{verbatim}
-Warning: Removed 2 rows containing missing values or values outside the scale range
-(`geom_line()`).
-Removed 21 rows containing missing values or values outside the scale range
-(`geom_line()`).
-Removed 21 rows containing missing values or values outside the scale range
-(`geom_line()`).
-\end{verbatim}
 
 \begin{figure}[H]
 
@@ -3485,7 +3526,7 @@ outperforms DLM with lower forecast uncertainty and error over the
 
 \end{figure}%
 
-Figures X and Y below present side-by-side visual comparisons of the
+Figures 24 and 25 below present side-by-side visual comparisons of the
 ARIMA and DLM forecasts for both the monthly and quarterly datasets. The
 solid black line indicates the observed training data, the red dashed
 line represents the forecast values, while the green line represents the
@@ -3528,8 +3569,6 @@ Summary Table
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{library}\NormalTok{(knitr)}
-
 \CommentTok{\# Create summary dataframe}
 \NormalTok{summary\_df }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
   \AttributeTok{Model =} \FunctionTok{c}\NormalTok{(}\StringTok{"ARIMA(1,1,1)"}\NormalTok{, }\StringTok{"DLM"}\NormalTok{, }\StringTok{"ARIMA(1,1,1)"}\NormalTok{, }\StringTok{"DLM"}\NormalTok{),}
@@ -3678,9 +3717,9 @@ San.Francisco & 18.3 & 18.3 & 9.4 & 33.9 & 4.0 \\
 \end{tabular*}
 \end{table}
 
-Table 10 summarises key temperature statistics. Inland sites generally
-recorded higher mean temperatures and greater variability than coastal
-locations.
+\textbf{Table 10} summarises key temperature statistics. Inland sites
+generally recorded higher mean temperatures and greater variability than
+coastal locations.
 
 Death Valley recorded both the highest mean temperature (34.5°C) and the
 largest variability (SD = 10.5°C), reflecting its extreme inland desert
@@ -3735,10 +3774,11 @@ across California, overlaid on a terrain basemap.}
 
 \end{figure}%
 
-Figure 20 shows the spatial distribution of the monitoring sites,
-coloured by elevation. Elevation varies considerably across locations,
-from sea level at Santa Cruz (0m) and San Francisco (16m), to inland
-higher-elevation sites like Redding (1041m) and Cedar Park (948m).
+\textbf{Figure 29} shows the spatial distribution of the monitoring
+sites, coloured by elevation. Elevation varies considerably across
+locations, from sea level at Santa Cruz (0m) and San Francisco (16m), to
+inland higher-elevation sites like Redding (1041m) and Cedar Park
+(948m).
 
 Death Valley is notable for sitting inland at -86m below sea level,
 while other inland sites like Barstow (665m) and Fresno (92m) lie
@@ -3808,7 +3848,7 @@ the hottest temperature (52.8°C), while Santa Cruz recorded the coldest
 
 \end{figure}%
 
-Figure 21 displays the distribution of maximum daily temperatures across
+Figure 30 displays the distribution of maximum daily temperatures across
 sites. Inland sites consistently exhibited higher maximum temperatures
 and wider variability.
 
@@ -3817,7 +3857,7 @@ coldest temperature of 0°C was observed at the coastal site of Santa
 Cruz. Inland sites like Barstow and Fresno also recorded very high
 maximum temperatures of 43.9°C.
 
-\subsubsection{Interpretation}\label{interpretation-1}
+\paragraph{Interpretation}\label{interpretation-1}
 
 Inland Californian sites, regardless of elevation, experienced hotter
 and more variable conditions than coastal locations. Coastal proximity
@@ -3836,7 +3876,7 @@ recorded across California on 13th December 2012. The primary goal is to
 fit a spatial Gaussian Process (GP) model to predict temperatures at two
 withheld locations: San Diego and Fresno.
 
-\subsubsection{Data Preparation:}\label{data-preparation}
+\paragraph{Data Preparation:}\label{data-preparation}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -3889,18 +3929,26 @@ variog: computing omnidirectional variogram
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{project_files/figure-pdf/unnamed-chunk-74-1.pdf}
+\begin{figure}[H]
 
-The empirical variogram (Figure X) shows moderate spatial dependence in
-maximum temperatures across California on 13th December 2012.
-Semivariance generally increases with distance, indicating that
+{\centering \includegraphics{project_files/figure-pdf/fig-1234-1.pdf}
+
+}
+
+\caption{Empirical Variogram of Max Temp (13 Dec 2012)}
+
+\end{figure}%
+
+The empirical variogram (\textbf{Figure 31}) shows moderate spatial
+dependence in maximum temperatures across California on 13th December
+2012. Semivariance generally increases with distance, indicating that
 geographically closer sites have more similar temperatures. The slight
 dip at mid-range distances suggests some local similarity among inland
 sites, while the rise at larger distances reflects greater dissimilarity
 between coastal and inland regions. This structure supports the use of a
 spatial Gaussian process with a short-to-moderate effective range.
 
-\subsubsection{Fitting the Spatial Gaussian Process
+\paragraph{Fitting the Spatial Gaussian Process
 Model}\label{fitting-the-spatial-gaussian-process-model}
 
 We fit three different models to the spatial temperature data:
@@ -3928,15 +3976,13 @@ Each model was fitted using \textbf{Maximum Likelihood Estimation (MLE)}
 and assessed using \textbf{AIC}, \textbf{BIC}, and
 \textbf{log-likelihood}.
 
-DOUBLE CHECK I AM ADDING THE ELEV RELATIONSHOP PROPERLY, AND IT SHOULDNT
-BE trend \textasciitilde elev
-
-\paragraph{Model 1: Matern Model
-(Baseline)}\label{model-1-matern-model-baseline}
+\paragraph{\texorpdfstring{\textbf{Model 1: Matern Model
+(Baseline)}}{Model 1: Matern Model (Baseline)}}\label{model-1-matern-model-baseline}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{model\_gp }\OtherTok{\textless{}{-}} \FunctionTok{likfit}\NormalTok{(geo\_data\_train, }\AttributeTok{trend =} \StringTok{"1st"}\NormalTok{, }\AttributeTok{cov.model =} \StringTok{"matern"}\NormalTok{, }\AttributeTok{kappa =} \FloatTok{1.5}\NormalTok{, }\AttributeTok{ini.cov.pars =} \FunctionTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\NormalTok{model\_gp }\OtherTok{\textless{}{-}} \FunctionTok{likfit}\NormalTok{(geo\_data\_train, }\AttributeTok{trend =} \StringTok{"1st"}\NormalTok{, }\AttributeTok{cov.model =} \StringTok{"matern"}\NormalTok{, }
+                   \AttributeTok{kappa =} \FloatTok{1.5}\NormalTok{, }\AttributeTok{ini.cov.pars =} \FunctionTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{1}\NormalTok{))}
 \end{Highlighting}
 \end{Shaded}
 
@@ -4012,7 +4058,9 @@ likfit: maximised log-likelihood = -22.95
 \begin{Shaded}
 \begin{Highlighting}[]
 \CommentTok{\# Fit Matérn model with kappa = 1.5}
-\NormalTok{model\_gp\_matern2}\FloatTok{.5} \OtherTok{\textless{}{-}} \FunctionTok{likfit}\NormalTok{(geo\_data\_train, }\AttributeTok{trend =} \StringTok{"1st"}\NormalTok{, }\AttributeTok{cov.model =} \StringTok{"exponential"}\NormalTok{, }\AttributeTok{kappa =} \FloatTok{2.5}\NormalTok{, }\AttributeTok{ini.cov.pars =} \FunctionTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\NormalTok{model\_gp\_matern2}\FloatTok{.5} \OtherTok{\textless{}{-}} \FunctionTok{likfit}\NormalTok{(geo\_data\_train, }\AttributeTok{trend =} \StringTok{"1st"}\NormalTok{, }
+                             \AttributeTok{cov.model =} \StringTok{"exponential"}\NormalTok{, }\AttributeTok{kappa =} \FloatTok{2.5}\NormalTok{, }
+                             \AttributeTok{ini.cov.pars =} \FunctionTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{1}\NormalTok{))}
 \end{Highlighting}
 \end{Shaded}
 
@@ -4065,7 +4113,7 @@ correlation structure. By examining these parameters, we can gain a
 deeper understanding of how temperature is spatially distributed across
 California and how it is influenced by local elevation.
 
-\subsubsection{Comparison of Models:}\label{comparison-of-models}
+\paragraph{Comparison of Models:}\label{comparison-of-models}
 
 We evaluated the models using \textbf{AIC} and \textbf{log-likelihood}.
 Here are the comparison metrics for each model:
@@ -4076,7 +4124,8 @@ Here are the comparison metrics for each model:
 \NormalTok{model\_stats }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
   \AttributeTok{Model =} \FunctionTok{c}\NormalTok{(}\StringTok{"Model GP (Base)"}\NormalTok{, }\StringTok{"Model GP Exponential"}\NormalTok{, }\StringTok{"Model GP Matern 2.5"}\NormalTok{),}
   \AttributeTok{AIC =} \FunctionTok{c}\NormalTok{(}\FunctionTok{AIC}\NormalTok{(model\_gp), }\FunctionTok{AIC}\NormalTok{(model\_gp\_exponential), }\FunctionTok{AIC}\NormalTok{(model\_gp\_matern2}\FloatTok{.5}\NormalTok{)),}
-  \AttributeTok{LogLikelihood =} \FunctionTok{c}\NormalTok{(}\FunctionTok{logLik}\NormalTok{(model\_gp), }\FunctionTok{logLik}\NormalTok{(model\_gp\_exponential), }\FunctionTok{logLik}\NormalTok{(model\_gp\_matern2}\FloatTok{.5}\NormalTok{))}
+  \AttributeTok{LogLikelihood =} \FunctionTok{c}\NormalTok{(}\FunctionTok{logLik}\NormalTok{(model\_gp), }\FunctionTok{logLik}\NormalTok{(model\_gp\_exponential), }
+                    \FunctionTok{logLik}\NormalTok{(model\_gp\_matern2}\FloatTok{.5}\NormalTok{))}
 \NormalTok{)}
 
 \FunctionTok{kable}\NormalTok{(model\_stats, }\AttributeTok{caption =} \StringTok{"Model Comparison: AIC and Log{-}Likelihood"}\NormalTok{)}
@@ -4112,7 +4161,7 @@ Model GP Matern 2.5 & 57.90412 & -22.95206 \\
   the data slightly better.
 \end{itemize}
 
-\subsubsection{Model Validation:}\label{model-validation-1}
+\paragraph{Model Validation:}\label{model-validation-1}
 
 \textbf{Cross-validation} helps us check if the fitted model generalizes
 well to unseen data. We'll use the \texttt{xvalid()} function from the
@@ -4268,7 +4317,7 @@ cross-validation (LOO-CV)} and assessed key diagnostic plots:
 These plots show that the model fits the data well, with no significant
 issues in prediction accuracy or residuals.
 
-\subsubsection{Prediction of Maximum Temperature in San Diego and
+\paragraph{Prediction of Maximum Temperature in San Diego and
 Fresno:}\label{prediction-of-maximum-temperature-in-san-diego-and-fresno}
 
 Using the fitted \textbf{Gaussian Process model (Base)}, we predicted
@@ -4286,7 +4335,7 @@ the results for the two cities are as follows:
   prediction variance of \textbf{W}).
 \end{itemize}
 
-\subsubsection{Comparison of Predicted vs Real
+\paragraph{Comparison of Predicted vs Real
 Temperatures:}\label{comparison-of-predicted-vs-real-temperatures}
 
 \begin{Shaded}
@@ -4365,7 +4414,8 @@ in predicting \textbf{Fresno}'s temperature. Potential improvements
 could involve exploring more sophisticated spatial modeling techniques
 or refining model parameters.
 
-\subsection{Part C:}\label{part-c}
+\subsection{Part C: Time Series
+Modelling}\label{part-c-time-series-modelling}
 
 Data Preparation:
 
@@ -4431,7 +4481,7 @@ prepare the data for effective forecasting, we will need to apply
 \textbf{differencing} to remove these trends and stabilize the variance
 before fitting the models.
 
-\subsubsection{Model Fitting}\label{model-fitting}
+\paragraph{Model Fitting}\label{model-fitting}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -4463,7 +4513,7 @@ more consistent variability, with less pronounced spikes compared to San
 Diego, yet still maintaining periodic fluctuations reflective of its
 inland climate.
 
-\subsubsection{ARIMA/ARMA Model Fitting}\label{arimaarma-model-fitting}
+\paragraph{ARIMA/ARMA Model Fitting}\label{arimaarma-model-fitting}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -4522,7 +4572,7 @@ Given these observations, we have chosen \textbf{ARIMA(2,1,1)}, where:
 This model captures both the seasonal structure and short-term
 dependencies in the data while ensuring stationarity.
 
-\subsubsection{Fitting the ARIMA Model}\label{fitting-the-arima-model}
+\paragraph{Fitting the ARIMA Model}\label{fitting-the-arima-model}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -4592,8 +4642,7 @@ Training set -0.005409219
   reasonably good but could benefit from further refinement.
 \end{itemize}
 
-\paragraph{\texorpdfstring{\textbf{SARIMA Model
-Limitation:}}{SARIMA Model Limitation:}}\label{sarima-model-limitation}
+\paragraph{SARIMA Model Limitation}\label{sarima-model-limitation}
 
 A \textbf{SARIMA} model would have been ideal for capturing the seasonal
 patterns in both \textbf{San Diego} and \textbf{Fresno} temperature
@@ -4634,7 +4683,7 @@ successfully captured the structure of the data.
 
 \subsection{Forecasting}\label{forecasting}
 
-\subsubsection{Forecasting 9th to 13th}\label{forecasting-9th-to-13th}
+\subsubsection{9th to 13th}\label{th-to-13th}
 
 The \textbf{ARIMA(2,1,1)} model was applied to \textbf{San Diego} and
 \textbf{Fresno} temperature data, using daily data from \textbf{Jan 1st
@@ -4771,7 +4820,7 @@ certainty in the forecasts. The \textbf{RMSE} and \textbf{MAE} values
 for this period were within an acceptable range, confirming the model's
 overall reliability.
 
-\subsubsection{December 13th--17th}\label{december-13th17th}
+\subsubsection{13th to 17th}\label{th-to-17th}
 
 The forecasted values were plotted in the same way as the first period,
 with \textbf{blue lines} representing the forecasted temperatures and
@@ -4882,7 +4931,7 @@ remained satisfactory, although the larger deviations in actual
 temperatures during this period highlighted some challenges with the
 forecast.
 
-\subsubsection{Evaluating Forecast
+\paragraph{Evaluating Forecast
 accuracy}\label{evaluating-forecast-accuracy}
 
 \begin{Shaded}
