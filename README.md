@@ -44,7 +44,7 @@ This repository contains a curated portfolio of selected projects from my MSc in
 ---
 
 ### 4. [Advanced Statistical Modelling – Reaction Time Inference & Classification](https://github.com/KetchupJL/university-projects/tree/main/Advanced%20Topics%20In%20Statistics)  
-![Grade](https://img.shields.io/badge/Grade-85%-blue) ![Focus](https://img.shields.io/badge/Methods-Bayesian%20%2B%20ML-brightgreen) ![Tools](https://img.shields.io/badge/Tools-R%2C%20JAGS%2C%20caret-informational)  
+![Grade](https://img.shields.io/badge/Grade-85%25-blue) ![Focus](https://img.shields.io/badge/Methods-Bayesian%20%2B%20ML-brightgreen) ![Tools](https://img.shields.io/badge/Tools-R%2C%20JAGS%2C%20caret-informational)  
 **Module**: MTHM017  
 **Skills**: Bayesian modelling with JAGS, hierarchical inference, MCMC diagnostics, multi-model ML comparison (LDA, QDA, kNN, SVM, RF)  
 **Description**: Combines Bayesian hierarchical modelling (JAGS) of patient reaction times with supervised learning classification (LDA, QDA, KNN, SVM, RF) on synthetic data.
