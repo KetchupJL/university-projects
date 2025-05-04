@@ -125,7 +125,7 @@ Used `s(x, by = Year)` to model changing covariate effects over time.
 ---
 
 <p align="center">
-  <img src="https://img.shields.io/badge/MSc%20Project%20Grade-NA%25-blue?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/MSc%20Project%20Grade-76%25-blue?style=for-the-badge"/>
 </p>
 
 > For questions or collaboration: **james066lewis@gmail.com**
