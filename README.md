@@ -60,7 +60,7 @@ This repository contains a curated portfolio of selected projects from my MSc in
 ---
 
 ### 6. [Phytoplankton Disruption After Deepwater Horizon (Ecological Time Series)](https://github.com/KetchupJL/university-projects/tree/main/Long-Term%20Phytoplankton%20Disruption%20in%20the%20Gulf%20of%20Mexico)  
-![Grade](https://img.shields.io/badge/Grade-Pending-lightgrey) 
+![Grade](https://img.shields.io/badge/Grade-83%25-blue) 
 ![Focus](https://img.shields.io/badge/Focus-STL_Decomposition_and_Spatio--temporal_Trends-blueviolet)
 ![Tools](https://img.shields.io/badge/Tools-R%2C%20terra%2C%20forecast-informational)  
 **Module**: MTHM507  
