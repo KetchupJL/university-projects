@@ -3,7 +3,7 @@
 
 This MSc research project explores the long-term impact of the 2010 Deepwater Horizon oil spill on phytoplankton productivity in the Gulf of Mexico. Using satellite-derived chlorophyll-a data and time-series decomposition, the study investigates ecological disturbance patterns and evaluates recovery trajectories across defined spatial zones.
 
-> MSc Communicating Data Science (MTHM507) Coursework — Grade: TBC
+> MSc Communicating Data Science (MTHM507) Coursework — Grade: 83%
 
 <p align="center">
   <img src="./figures/anomaly_map.png" alt="Deepwater Horizon Residual Map" width="600"/>
