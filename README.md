@@ -2,6 +2,8 @@
 
 This repository contains a curated portfolio of selected projects from my MSc in Applied Data Science & Statistics at the University of Exeter. These projects reflect a range of applied **statistical modelling**, **machine learning**, and **data science** workflows developed across the course.
 
+### Average 81% (Distinction)
+
 > Each project includes a full PDF report, cleaned datasets, reproducible R or Python code, and achieved grades where available.
 
 ---
