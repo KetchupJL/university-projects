@@ -70,7 +70,7 @@ This repository contains a curated portfolio of selected projects from my MSc in
 ---
 
 ### 7. [Sea Surface Temperature, AMOC & California Temperatures (Spatio-Temporal Modelling)](https://github.com/KetchupJL/university-projects/tree/main/Modelling%20in%20Space%20and%20Time)    
-![Grade](https://img.shields.io/badge/Grade-Pending-lightgrey)  
+![Grade](https://img.shields.io/badge/Grade-94%25-blue)  
 ![Focus](https://img.shields.io/badge/Focus-Spatial%20%2B%20Temporal%20%2B%20SpatioTemporal%20Modelling-blueviolet)  
 ![Tools](https://img.shields.io/badge/Tools-R%2C%20geoR%2C%20gstat%2C%20forecast%2C%20spBayes%2C%20dlm-informational)  
 **Module**: MTHM505 — Data Science and Statistical Modelling in Space and Time  
